@@ -11,7 +11,7 @@ import {
   Megaphone,
   Sparkles,
 } from "lucide-react";
-import { useMemo } from "react";
+import { useEffect, useState } from "react";
 import { z } from "zod";
 import { clearActivePlan, planUnlocks, useActivePlan, PLANS } from "@/lib/plan";
 import { listProjects, getProject, type Project } from "@/lib/projects";
@@ -77,9 +77,11 @@ function DeliverablesPage() {
   const unlocks = planUnlocks(plan);
   const planName = PLANS.find((p) => p.id === plan)?.name;
   const { id } = Route.useSearch();
-  const project = useMemo<Project | undefined>(() => {
-    if (id) return getProject(id);
-    return listProjects().find((p) => p.status === "ready") ?? listProjects()[0];
+  const [project, setProject] = useState<Project | undefined>(undefined);
+  useEffect(() => {
+    // localStorage is browser-only — resolve after mount, not during SSR.
+    if (id) setProject(getProject(id));
+    else setProject(listProjects().find((p) => p.status === "ready") ?? listProjects()[0]);
   }, [id]);
 
   return (

@@ -80,8 +80,9 @@ export function planUnlocks(plan: PlanId | null): Set<string> {
 
 /** Reactive hook — re-renders when the plan changes (incl. cross-tab). */
 export function useActivePlan() {
-  const [plan, setPlan] = useState<PlanId | null>(() => getActivePlan());
+  const [plan, setPlan] = useState<PlanId | null>(null);
   useEffect(() => {
+    setPlan(getActivePlan()); // sync on mount (SSR can't read localStorage)
     const onStorage = (e: StorageEvent) => {
       if (e.key === KEY || e.key === null) setPlan(getActivePlan());
     };
