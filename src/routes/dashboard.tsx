@@ -23,7 +23,7 @@ function DashboardPage() {
             IdeaForge
           </Link>
           <Link
-            to="/auth"
+            to="/intake"
             className="inline-flex items-center gap-2 rounded-full bg-gradient-ember px-4 py-2 text-sm font-medium text-ember-foreground shadow-ember hover:brightness-110 transition"
           >
             <Plus className="h-4 w-4" /> New idea
