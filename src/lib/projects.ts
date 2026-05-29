@@ -88,8 +88,9 @@ function cryptoRandomId(): string {
 }
 
 export function useProjects() {
-  const [projects, setProjects] = useState<Project[]>(() => listProjects());
+  const [projects, setProjects] = useState<Project[]>([]);
   useEffect(() => {
+    setProjects(listProjects()); // sync on mount (SSR can't read localStorage)
     const refresh = (e: StorageEvent) => {
       if (e.key === KEY || e.key === null) setProjects(listProjects());
     };
