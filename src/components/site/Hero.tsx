@@ -1,5 +1,6 @@
 import { motion } from "motion/react";
 import { ArrowRight, Sparkles, Upload } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import heroImg from "@/assets/hero-forge.jpg";
 
 export function Hero() {
