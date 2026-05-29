@@ -1,5 +1,6 @@
 import { motion } from "motion/react";
 import { ArrowRight, Sparkles, Upload } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import heroImg from "@/assets/hero-forge.jpg";
 
 export function Hero() {
@@ -55,10 +56,10 @@ export function Hero() {
               <button className="inline-flex items-center gap-2 rounded-full border border-border bg-secondary/60 px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground transition">
                 <Upload className="h-3.5 w-3.5" /> Attach sketch
               </button>
-              <button className="group inline-flex items-center gap-2 rounded-full bg-gradient-ember px-5 py-2.5 text-sm font-medium text-ember-foreground shadow-ember hover:brightness-110 transition">
+              <Link to="/auth" className="group inline-flex items-center gap-2 rounded-full bg-gradient-ember px-5 py-2.5 text-sm font-medium text-ember-foreground shadow-ember hover:brightness-110 transition">
                 Vet my idea
                 <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
-              </button>
+              </Link>
             </div>
           </div>
           <p className="px-4 py-3 text-center text-xs text-muted-foreground">

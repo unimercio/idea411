@@ -1,4 +1,5 @@
 import { Check } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 
 const tiers = [
   {
@@ -7,6 +8,7 @@ const tiers = [
     blurb: "Vet your concept. No commitment.",
     features: ["Unlimited idea intake", "Basic compliance & market scan", "Opportunity score"],
     cta: "Start free",
+    to: "/auth",
     featured: false,
   },
   {
@@ -22,6 +24,7 @@ const tiers = [
       "Live pre-order landing page",
     ],
     cta: "Start forging",
+    to: "/auth",
     featured: true,
   },
   {
@@ -30,6 +33,7 @@ const tiers = [
     blurb: "For studios shipping a portfolio of ideas.",
     features: ["Unlimited projects & seats", "White-label exports", "Dedicated launch strategist", "API access"],
     cta: "Talk to us",
+    to: "/contact",
     featured: false,
   },
 ];
@@ -74,16 +78,17 @@ export function Pricing() {
                   </li>
                 ))}
               </ul>
-              <button
+              <Link
+                to={t.to}
                 className={
-                  "mt-8 w-full rounded-full px-4 py-2.5 text-sm font-medium transition " +
+                  "mt-8 block text-center w-full rounded-full px-4 py-2.5 text-sm font-medium transition " +
                   (t.featured
                     ? "bg-gradient-ember text-ember-foreground shadow-ember hover:brightness-110"
                     : "border border-border bg-background/60 hover:bg-accent")
                 }
               >
                 {t.cta}
-              </button>
+              </Link>
             </div>
           ))}
         </div>

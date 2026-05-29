@@ -13,20 +13,21 @@ export function Nav() {
             IdeaForge
           </Link>
           <nav className="hidden md:flex items-center gap-7 text-sm text-muted-foreground">
-            <a href="#flow" className="hover:text-foreground transition-colors">How it works</a>
-            <a href="#showcase" className="hover:text-foreground transition-colors">Showcase</a>
-            <a href="#pricing" className="hover:text-foreground transition-colors">Pricing</a>
+            <a href="/#flow" className="hover:text-foreground transition-colors">How it works</a>
+            <a href="/#showcase" className="hover:text-foreground transition-colors">Showcase</a>
+            <a href="/#pricing" className="hover:text-foreground transition-colors">Pricing</a>
+            <Link to="/contact" className="hover:text-foreground transition-colors">Contact</Link>
           </nav>
           <div className="flex items-center gap-2">
-            <a href="#start" className="hidden sm:inline-flex items-center text-sm text-muted-foreground hover:text-foreground px-3 py-1.5">
+            <Link to="/auth" className="hidden sm:inline-flex items-center text-sm text-muted-foreground hover:text-foreground px-3 py-1.5">
               Sign in
-            </a>
-            <a
-              href="#start"
+            </Link>
+            <Link
+              to="/auth"
               className="inline-flex items-center rounded-full bg-gradient-ember px-4 py-2 text-sm font-medium text-ember-foreground shadow-ember hover:brightness-110 transition"
             >
               Start forging
-            </a>
+            </Link>
           </div>
         </div>
       </div>
