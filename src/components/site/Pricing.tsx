@@ -8,7 +8,7 @@ const tiers = [
     blurb: "Vet your concept. No commitment.",
     features: ["Unlimited idea intake", "Basic compliance & market scan", "Opportunity score"],
     cta: "Start free",
-    to: "/auth",
+    to: "/intake",
     featured: false,
   },
   {
@@ -24,7 +24,7 @@ const tiers = [
       "Live pre-order landing page",
     ],
     cta: "Start forging",
-    to: "/auth",
+    to: "/checkout?plan=forge",
     featured: true,
   },
   {

@@ -189,7 +189,7 @@ function VettingPage() {
                   </p>
                 </div>
                 <button
-                  onClick={() => navigate({ to: "/dashboard" })}
+                  onClick={() => navigate({ to: "/deliverables" })}
                   className="group inline-flex items-center gap-2 rounded-full bg-gradient-ember px-5 py-2.5 text-sm font-medium text-ember-foreground shadow-ember hover:brightness-110 transition"
                 >
                   Continue to renders
