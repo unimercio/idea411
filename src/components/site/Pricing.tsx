@@ -78,16 +78,17 @@ export function Pricing() {
                   </li>
                 ))}
               </ul>
-              <button
+              <Link
+                to={t.to}
                 className={
-                  "mt-8 w-full rounded-full px-4 py-2.5 text-sm font-medium transition " +
+                  "mt-8 block text-center w-full rounded-full px-4 py-2.5 text-sm font-medium transition " +
                   (t.featured
                     ? "bg-gradient-ember text-ember-foreground shadow-ember hover:brightness-110"
                     : "border border-border bg-background/60 hover:bg-accent")
                 }
               >
                 {t.cta}
-              </button>
+              </Link>
             </div>
           ))}
         </div>
