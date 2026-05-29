@@ -76,9 +76,8 @@ function IntakePage() {
     }
     setError(null);
     setSubmitting(true);
-    // Placeholder — wire to server fn once Lovable Cloud is enabled.
-    await new Promise((r) => setTimeout(r, 600));
-    navigate({ to: "/dashboard" });
+    await new Promise((r) => setTimeout(r, 400));
+    navigate({ to: "/vetting", search: { idea: parsed.data.idea } });
   };
 
   const chars = idea.trim().length;
