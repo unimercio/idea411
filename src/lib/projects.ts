@@ -1,9 +1,12 @@
 // Client-side projects store. Swap for a Supabase table once Lovable Cloud is enabled.
 import { useEffect, useState } from "react";
+import type { Analysis } from "./api/vetting.functions";
 
 export type StageKey = "compliance" | "market" | "demand";
 
 export type ProjectScores = Record<StageKey, number>;
+
+export type ChatMessage = { role: "user" | "assistant"; content: string };
 
 export type Project = {
   id: string;
@@ -13,7 +16,9 @@ export type Project = {
   createdAt: number;
   updatedAt: number;
   scores?: ProjectScores;
-  status: "draft" | "vetting" | "ready";
+  analysis?: Analysis;
+  chat?: ChatMessage[];
+  status: "draft" | "vetting" | "ready" | "error";
 };
 
 const KEY = "ideaforge:projects";
