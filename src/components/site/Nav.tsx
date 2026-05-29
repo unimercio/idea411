@@ -14,8 +14,8 @@ export function Nav() {
           </Link>
           <nav className="hidden md:flex items-center gap-7 text-sm text-muted-foreground">
             <a href="/#flow" className="hover:text-foreground transition-colors">How it works</a>
-            <a href="/#showcase" className="hover:text-foreground transition-colors">Showcase</a>
             <a href="/#pricing" className="hover:text-foreground transition-colors">Pricing</a>
+            <Link to="/dashboard" className="hover:text-foreground transition-colors">Projects</Link>
             <Link to="/contact" className="hover:text-foreground transition-colors">Contact</Link>
           </nav>
           <div className="flex items-center gap-2">
