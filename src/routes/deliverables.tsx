@@ -189,21 +189,32 @@ function DeliverableCard({
       </p>
 
       {!locked && (
-        <button
-          onClick={() => project && downloadDeliverable(item.key, project)}
-          disabled={!canDownload}
-          className="mt-5 inline-flex items-center gap-1.5 text-sm text-ember hover:brightness-110 transition disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {canDownload ? (
-            <>
-              Download <Download className="h-3.5 w-3.5" />
-            </>
-          ) : (
-            <>
-              No project yet <ArrowRight className="h-3.5 w-3.5" />
-            </>
+        <div className="mt-5 flex flex-wrap gap-3 items-center">
+          {item.key === "crowdfund" && project && (
+            <Link
+              to="/campaign"
+              search={{ id: project.id }}
+              className="inline-flex items-center gap-1.5 rounded-full bg-gradient-ember px-3 py-1.5 text-xs text-ember-foreground shadow-ember hover:brightness-110 transition"
+            >
+              Open builder <ArrowRight className="h-3 w-3" />
+            </Link>
           )}
-        </button>
+          <button
+            onClick={() => project && downloadDeliverable(item.key, project)}
+            disabled={!canDownload}
+            className="inline-flex items-center gap-1.5 text-sm text-ember hover:brightness-110 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {canDownload ? (
+              <>
+                Download <Download className="h-3.5 w-3.5" />
+              </>
+            ) : (
+              <>
+                No project yet <ArrowRight className="h-3.5 w-3.5" />
+              </>
+            )}
+          </button>
+        </div>
       )}
 
       {locked && (
