@@ -3,6 +3,7 @@ import { motion } from "motion/react";
 import {
   ArrowRight,
   Box,
+  Download,
   FileText,
   Flame,
   Globe,
@@ -10,9 +11,16 @@ import {
   Megaphone,
   Sparkles,
 } from "lucide-react";
+import { useMemo } from "react";
+import { z } from "zod";
 import { clearActivePlan, planUnlocks, useActivePlan, PLANS } from "@/lib/plan";
+import { listProjects, getProject, type Project } from "@/lib/projects";
+import { downloadDeliverable } from "@/lib/deliverables";
+
+const searchSchema = z.object({ id: z.string().optional() });
 
 export const Route = createFileRoute("/deliverables")({
+  validateSearch: searchSchema,
   head: () => ({
     meta: [
       { title: "Deliverables — IdeaForge" },
