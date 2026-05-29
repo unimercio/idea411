@@ -3,6 +3,7 @@ import { motion } from "motion/react";
 import {
   ArrowRight,
   Box,
+  Download,
   FileText,
   Flame,
   Globe,
@@ -10,9 +11,16 @@ import {
   Megaphone,
   Sparkles,
 } from "lucide-react";
+import { useMemo } from "react";
+import { z } from "zod";
 import { clearActivePlan, planUnlocks, useActivePlan, PLANS } from "@/lib/plan";
+import { listProjects, getProject, type Project } from "@/lib/projects";
+import { downloadDeliverable } from "@/lib/deliverables";
+
+const searchSchema = z.object({ id: z.string().optional() });
 
 export const Route = createFileRoute("/deliverables")({
+  validateSearch: searchSchema,
   head: () => ({
     meta: [
       { title: "Deliverables — IdeaForge" },
@@ -68,6 +76,11 @@ function DeliverablesPage() {
   const plan = useActivePlan();
   const unlocks = planUnlocks(plan);
   const planName = PLANS.find((p) => p.id === plan)?.name;
+  const { id } = Route.useSearch();
+  const project = useMemo<Project | undefined>(() => {
+    if (id) return getProject(id);
+    return listProjects().find((p) => p.status === "ready") ?? listProjects()[0];
+  }, [id]);
 
   return (
     <main className="min-h-screen bg-background text-foreground">
@@ -104,10 +117,12 @@ function DeliverablesPage() {
       <section className="mx-auto max-w-6xl px-6 pt-16 pb-24">
         <p className="text-xs uppercase tracking-[0.2em] text-ember">Deliverables</p>
         <h1 className="mt-3 font-display text-4xl sm:text-5xl font-semibold text-balance">
-          Your forged assets.
+          {project ? project.title : "Your forged assets."}
         </h1>
         <p className="mt-3 max-w-2xl text-muted-foreground">
-          Everything you need to take this concept to market — renders, IP, campaign, and a live pre-order page.
+          {project
+            ? project.idea
+            : "Everything you need to take this concept to market — renders, IP, campaign, and a live pre-order page."}
         </p>
 
         <div className="mt-12 grid gap-5 md:grid-cols-2">
@@ -117,6 +132,7 @@ function DeliverablesPage() {
               item={item}
               index={i}
               locked={!unlocks.has(item.key)}
+              project={project}
             />
           ))}
         </div>
@@ -127,8 +143,19 @@ function DeliverablesPage() {
   );
 }
 
-function DeliverableCard({ item, index, locked }: { item: Item; index: number; locked: boolean }) {
+function DeliverableCard({
+  item,
+  index,
+  locked,
+  project,
+}: {
+  item: Item;
+  index: number;
+  locked: boolean;
+  project?: Project;
+}) {
   const Icon = item.icon;
+  const canDownload = !locked && !!project;
   return (
     <motion.article
       initial={{ opacity: 0, y: 16 }}
@@ -160,8 +187,20 @@ function DeliverableCard({ item, index, locked }: { item: Item; index: number; l
       </p>
 
       {!locked && (
-        <button className="mt-5 inline-flex items-center gap-1.5 text-sm text-ember hover:brightness-110 transition">
-          Download <ArrowRight className="h-3.5 w-3.5" />
+        <button
+          onClick={() => project && downloadDeliverable(item.key, project)}
+          disabled={!canDownload}
+          className="mt-5 inline-flex items-center gap-1.5 text-sm text-ember hover:brightness-110 transition disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {canDownload ? (
+            <>
+              Download <Download className="h-3.5 w-3.5" />
+            </>
+          ) : (
+            <>
+              No project yet <ArrowRight className="h-3.5 w-3.5" />
+            </>
+          )}
         </button>
       )}
 
@@ -171,6 +210,7 @@ function DeliverableCard({ item, index, locked }: { item: Item; index: number; l
     </motion.article>
   );
 }
+
 
 function UnlockScreen() {
   const navigate = useNavigate();
