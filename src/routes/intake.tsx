@@ -76,8 +76,12 @@ function IntakePage() {
     }
     setError(null);
     setSubmitting(true);
-    await new Promise((r) => setTimeout(r, 400));
-    navigate({ to: "/vetting", search: { idea: parsed.data.idea } });
+    const { createProject } = await import("@/lib/projects");
+    const project = createProject({
+      idea: parsed.data.idea,
+      sketchName: sketch?.file.name,
+    });
+    navigate({ to: "/vetting", search: { id: project.id } });
   };
 
   const chars = idea.trim().length;
