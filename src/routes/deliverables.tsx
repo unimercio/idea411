@@ -11,7 +11,7 @@ import {
   Megaphone,
   Sparkles,
 } from "lucide-react";
-import { useMemo } from "react";
+import { useEffect, useState } from "react";
 import { z } from "zod";
 import { clearActivePlan, planUnlocks, useActivePlan, PLANS } from "@/lib/plan";
 import { listProjects, getProject, type Project } from "@/lib/projects";
