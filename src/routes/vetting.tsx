@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
   ArrowRight,
@@ -12,9 +12,11 @@ import {
   Sparkles,
 } from "lucide-react";
 import { z } from "zod";
+import { createProject, getProject, updateProject } from "@/lib/projects";
 
 const search = z.object({
   idea: z.string().trim().min(1).max(2000).optional().catch(undefined),
+  id: z.string().trim().min(1).max(64).optional().catch(undefined),
 });
 
 export const Route = createFileRoute("/vetting")({
@@ -68,19 +70,47 @@ const STAGES: Stage[] = [
 ];
 
 function VettingPage() {
-  const { idea } = Route.useSearch();
+  const { idea: ideaParam, id: idParam } = Route.useSearch();
   const navigate = useNavigate();
 
-  // Deterministic scores from the idea string so reloads feel consistent.
-  const scores = useMemo(() => synthesize(idea ?? "concept"), [idea]);
+  // Resolve or create a project once on mount.
+  const projectRef = useRef<{ id: string; idea: string; hadScores: boolean } | null>(null);
+  if (!projectRef.current) {
+    if (idParam) {
+      const existing = getProject(idParam);
+      if (existing) {
+        projectRef.current = {
+          id: existing.id,
+          idea: existing.idea,
+          hadScores: !!existing.scores,
+        };
+      }
+    }
+    if (!projectRef.current && ideaParam) {
+      const p = createProject({ idea: ideaParam });
+      projectRef.current = { id: p.id, idea: p.idea, hadScores: false };
+    }
+  }
+  const idea = projectRef.current?.idea ?? ideaParam ?? "";
+  const projectId = projectRef.current?.id;
+  const hadScores = projectRef.current?.hadScores ?? false;
 
+  // Deterministic scores keyed off the project id (or idea fallback) so reopens match.
+  const scores = useMemo(
+    () => synthesize(projectId ?? idea ?? "concept"),
+    [projectId, idea],
+  );
+
+  // If reopening a project that already has scores, skip the animation.
+  const initial: Status = hadScores ? "done" : "pending";
   const [statuses, setStatuses] = useState<Record<StageKey, Status>>({
-    compliance: "pending",
-    market: "pending",
-    demand: "pending",
+    compliance: initial,
+    market: initial,
+    demand: initial,
   });
 
   useEffect(() => {
+    if (hadScores) return;
     let cancelled = false;
     (async () => {
       for (const stage of STAGES) {
@@ -90,19 +120,23 @@ function VettingPage() {
         if (cancelled) return;
         setStatuses((s) => ({ ...s, [stage.key]: "done" }));
       }
+      if (projectId) {
+        updateProject(projectId, { scores, status: "ready" });
+      }
     })();
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [hadScores, projectId, scores]);
 
   const allDone = STAGES.every((s) => statuses[s.key] === "done");
   const completed = STAGES.filter((s) => statuses[s.key] === "done").length;
   const progress = Math.round((completed / STAGES.length) * 100);
 
   const overall = Math.round(
-    (scores.compliance * 0.3 + scores.market * 0.35 + scores.demand * 0.35),
+    scores.compliance * 0.3 + scores.market * 0.35 + scores.demand * 0.35,
   );
+
 
   return (
     <main className="min-h-screen bg-background text-foreground">
