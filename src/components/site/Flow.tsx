@@ -23,7 +23,7 @@ export function Flow() {
         <div className="max-w-2xl">
           <p className="text-xs uppercase tracking-[0.2em] text-ember">The IdeaForge flow</p>
           <h2 className="mt-3 font-display text-4xl sm:text-5xl font-semibold text-balance">
-            Four refined stages. One uninterrupted journey.
+            Two refined stages. One uninterrupted journey.
           </h2>
           <p className="mt-4 text-muted-foreground text-balance">
             Each stage is a self-contained surface — beautiful, focused, and instantly editable.
