@@ -698,21 +698,21 @@ function CompareIterations({ projectId }: { projectId: string }) {
           <IterationSelect
             label="From"
             value={aIdx}
-            options={withAnalysis}
+            options={allIterations}
             onChange={setAIdx}
           />
           <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />
           <IterationSelect
             label="To"
             value={bIdx}
-            options={withAnalysis}
+            options={allIterations}
             onChange={setBIdx}
           />
         </div>
       </div>
 
       <IterationTimeline
-        iterations={withAnalysis}
+        iterations={allIterations}
         aIdx={aIdx}
         bIdx={bIdx}
         onSelect={(i) => {
