@@ -755,6 +755,76 @@ function CompareIterations({ projectId }: { projectId: string }) {
   );
 }
 
+function IterationTimeline({
+  iterations,
+  aIdx,
+  bIdx,
+  onSelect,
+}: {
+  iterations: Iteration[];
+  aIdx: number;
+  bIdx: number;
+  onSelect: (i: number) => void;
+}) {
+  if (iterations.length < 2) return null;
+  const lo = Math.min(aIdx, bIdx);
+  const hi = Math.max(aIdx, bIdx);
+  return (
+    <div className="border-b border-border bg-background/40 px-6 py-5">
+      <div className="mb-3 flex items-center justify-between text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+        <span>Iteration timeline</span>
+        <span>Click a node to set the nearest endpoint</span>
+      </div>
+      <div className="relative">
+        {/* base rail */}
+        <div className="absolute left-2 right-2 top-1/2 h-px -translate-y-1/2 bg-border" />
+        {/* active range */}
+        <div
+          className="absolute top-1/2 h-[2px] -translate-y-1/2 bg-ember/60"
+          style={{
+            left: `calc(${(lo / Math.max(1, iterations.length - 1)) * 100}% + 8px)`,
+            right: `calc(${(1 - hi / Math.max(1, iterations.length - 1)) * 100}% + 8px)`,
+          }}
+        />
+        <ul className="relative flex items-center justify-between">
+          {iterations.map((it, i) => {
+            const isA = i === aIdx;
+            const isB = i === bIdx;
+            const inRange = i > lo && i < hi;
+            return (
+              <li key={it.at} className="flex flex-col items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => onSelect(i)}
+                  aria-label={`Iteration v${i + 1}, score ${it.overall}`}
+                  className={`group relative grid h-7 w-7 place-items-center rounded-full border transition-all ${
+                    isA || isB
+                      ? "border-ember bg-ember text-background shadow-elegant scale-110"
+                      : inRange
+                        ? "border-ember/40 bg-ember/10 text-foreground hover:scale-110"
+                        : "border-border bg-card text-muted-foreground hover:border-ember/60 hover:text-foreground hover:scale-110"
+                  }`}
+                >
+                  <span className="text-[10px] font-semibold tabular-nums">{i + 1}</span>
+                  {(isA || isB) && (
+                    <span className="absolute -top-5 text-[9px] font-semibold uppercase tracking-wider text-ember">
+                      {isA ? "From" : "To"}
+                    </span>
+                  )}
+                </button>
+                <span className="text-[10px] tabular-nums text-muted-foreground">
+                  {it.overall}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+
 function IterationSelect({
   label,
   value,
