@@ -164,7 +164,7 @@ function VettingPage() {
   return (
     <Shell>
       <section className="mx-auto max-w-6xl px-6 pt-14 pb-24">
-        <Header idea={idea} />
+        <Header idea={idea} projectId={projectId} />
 
         {loading && <AnalyzingState />}
         {!loading && error && <ErrorState message={error} onRetry={run} />}
@@ -184,6 +184,17 @@ function VettingPage() {
       </section>
     </Shell>
   );
+}
+
+function useIterationCount(projectId: string) {
+  const [n, setN] = useState(0);
+  useEffect(() => {
+    const refresh = () => setN(getProject(projectId)?.iterations?.length ?? 0);
+    refresh();
+    window.addEventListener("storage", refresh);
+    return () => window.removeEventListener("storage", refresh);
+  }, [projectId]);
+  return n;
 }
 
 function Shell({ children }: { children: React.ReactNode }) {
@@ -207,12 +218,22 @@ function Shell({ children }: { children: React.ReactNode }) {
   );
 }
 
-function Header({ idea }: { idea: string }) {
+function Header({ idea, projectId }: { idea: string; projectId: string }) {
+  const count = useIterationCount(projectId);
   return (
     <div>
-      <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-3 py-1 text-xs text-muted-foreground">
-        <Sparkles className="h-3.5 w-3.5 text-ember" /> AI vetting & analysis
-      </span>
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-3 py-1 text-xs text-muted-foreground">
+          <Sparkles className="h-3.5 w-3.5 text-ember" /> AI vetting & analysis
+        </span>
+        <span
+          className="inline-flex items-center gap-1.5 rounded-full border border-ember/30 bg-ember/5 px-3 py-1 text-xs text-ember"
+          title="Number of saved iterations for this project"
+        >
+          <GitCompare className="h-3.5 w-3.5" />
+          Iterations: <strong className="font-display tabular-nums">{count}</strong>
+        </span>
+      </div>
       <h1 className="mt-5 font-display text-4xl sm:text-5xl font-semibold text-balance leading-[1.05]">
         Your opportunity report.
       </h1>
