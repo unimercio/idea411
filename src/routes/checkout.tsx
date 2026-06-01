@@ -15,7 +15,7 @@ export const Route = createFileRoute("/checkout")({
   head: () => ({
     meta: [
       { title: "Checkout — IdeaForge" },
-      { name: "description", content: "Unlock renders, patent drafts, crowdfund kits, and pre-order pages." },
+      { name: "description", content: "Unlock provisional patent drafts and crowdfund campaign kits." },
     ],
   }),
   component: CheckoutPage,
