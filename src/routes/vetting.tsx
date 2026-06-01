@@ -108,13 +108,24 @@ function VettingPage() {
     try {
       const result = await runAnalysis({ data: { idea, sketchName } });
       setAnalysis(result);
+      const scores = {
+        compliance: Math.round(result.compliance.score * 10),
+        market: Math.round(result.market.score * 10),
+        demand: Math.round(result.sales.score * 10),
+      };
+      const existing = getProject(projectId);
+      const iterations = existing?.iterations ?? [];
+      iterations.push({
+        at: Date.now(),
+        idea,
+        scores,
+        overall: Math.round(result.overallScore),
+        thesis: result.oneLineThesis,
+      });
       updateProject(projectId, {
         analysis: result,
-        scores: {
-          compliance: Math.round(result.compliance.score * 10),
-          market: Math.round(result.market.score * 10),
-          demand: Math.round(result.sales.score * 10),
-        },
+        scores,
+        iterations,
         status: "ready",
       });
     } catch (err) {
