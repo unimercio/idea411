@@ -1,7 +1,6 @@
 // Client-side projects store. Swap for a Supabase table once Lovable Cloud is enabled.
 import { useEffect, useState } from "react";
 import type { Analysis } from "./api/vetting.functions";
-import type { Campaign } from "./api/campaign.functions";
 
 export type StageKey = "compliance" | "market" | "demand";
 
@@ -19,8 +18,6 @@ export type Project = {
   scores?: ProjectScores;
   analysis?: Analysis;
   chat?: ChatMessage[];
-  campaign?: Campaign;
-  campaignChat?: ChatMessage[];
   status: "draft" | "vetting" | "ready" | "error";
 };
 

@@ -146,7 +146,7 @@ const ANALYSIS_TOOL = {
               type: "array",
               maxItems: 6,
               items: { type: "string" },
-              description: "Patent, trademark, or trade-secret concerns and prior art.",
+              description: "Trademark or trade-secret concerns and prior-art conflicts.",
             },
           },
         },

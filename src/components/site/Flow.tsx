@@ -1,10 +1,5 @@
 import { motion } from "motion/react";
-import {
-  ScanSearch,
-  LineChart,
-  ScrollText,
-  Rocket,
-} from "lucide-react";
+import { ScanSearch, LineChart } from "lucide-react";
 
 const steps = [
   {
@@ -12,18 +7,6 @@ const steps = [
     title: "Vet & Analyze",
     body: "Compliance flags, market viability, demand scoring — surfaced as clear risk and opportunity scores.",
     meta: "Step 01 · Intelligence",
-  },
-  {
-    icon: ScrollText,
-    title: "Patent Draft",
-    body: "A US provisional patent draft — claims, abstract, description, drawings — with filing guidance.",
-    meta: "Step 02 · IP",
-  },
-  {
-    icon: Rocket,
-    title: "Crowdfund Kit",
-    body: "Campaign copy, reward tiers, narrative arc, and an AI-generated explainer video script.",
-    meta: "Step 03 · Launch",
   },
   {
     icon: LineChart,
@@ -40,7 +23,7 @@ export function Flow() {
         <div className="max-w-2xl">
           <p className="text-xs uppercase tracking-[0.2em] text-ember">The IdeaForge flow</p>
           <h2 className="mt-3 font-display text-4xl sm:text-5xl font-semibold text-balance">
-            Four refined stages. One uninterrupted journey.
+            Two refined stages. One uninterrupted journey.
           </h2>
           <p className="mt-4 text-muted-foreground text-balance">
             Each stage is a self-contained surface — beautiful, focused, and instantly editable.

@@ -6,7 +6,6 @@ import {
   Plus,
   Sparkles,
   Trash2,
-  Package,
 } from "lucide-react";
 import {
   deleteProject,
@@ -134,14 +133,6 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
         >
           Reopen <ArrowRight className="h-3.5 w-3.5" />
         </button>
-        {score !== null && (
-          <Link
-            to="/deliverables"
-            className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/60 px-4 py-2 text-sm hover:bg-accent transition"
-          >
-            <Package className="h-3.5 w-3.5" /> Deliverables
-          </Link>
-        )}
         <button
           onClick={() => {
             if (confirm(`Delete "${project.title}"? This can't be undone.`)) {
