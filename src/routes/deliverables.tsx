@@ -108,7 +108,7 @@ function DeliverablesPage() {
         <p className="mt-3 max-w-2xl text-muted-foreground">
           {project
             ? project.idea
-            : "Everything you need to take this concept to market — renders, IP, campaign, and a live pre-order page."}
+            : "Everything you need to take this concept to market — IP protection and a launch-ready crowdfund campaign."}
         </p>
 
         <div className="mt-12 grid gap-5 md:grid-cols-2">
