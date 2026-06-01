@@ -42,13 +42,6 @@ type Item = {
 
 const ITEMS: Item[] = [
   {
-    key: "renders",
-    title: "Studio renders",
-    blurb: "12 photoreal product shots in your brand environment.",
-    icon: Box,
-    preview: "4K · PNG · CMYK-ready",
-  },
-  {
     key: "patent",
     title: "Provisional patent draft",
     blurb: "USPTO-ready claims, abstract, and figure descriptions.",
@@ -61,13 +54,6 @@ const ITEMS: Item[] = [
     blurb: "Pitch video script, reward tiers, and launch sequence.",
     icon: Megaphone,
     preview: "Kickstarter + Indiegogo ready",
-  },
-  {
-    key: "preorder",
-    title: "Pre-order landing page",
-    blurb: "Live, hosted page with email capture and Stripe checkout.",
-    icon: Globe,
-    preview: "Hosted on ideaforge.app",
   },
 ];
 
