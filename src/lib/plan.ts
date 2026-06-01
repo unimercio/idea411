@@ -32,12 +32,10 @@ export const PLANS: Plan[] = [
     blurb: "The full concept-to-market toolkit.",
     features: [
       "Everything in Spark",
-      "Studio-grade 3D renders",
       "Provisional patent draft",
       "Crowdfund campaign kit",
-      "Live pre-order page",
     ],
-    unlocks: ["vetting", "renders", "patent", "crowdfund", "preorder"],
+    unlocks: ["vetting", "patent", "crowdfund"],
     featured: true,
   },
   {
@@ -51,7 +49,7 @@ export const PLANS: Plan[] = [
       "Dedicated launch strategist",
       "API access",
     ],
-    unlocks: ["vetting", "renders", "patent", "crowdfund", "preorder", "api", "whitelabel"],
+    unlocks: ["vetting", "patent", "crowdfund", "api", "whitelabel"],
   },
 ];
 
