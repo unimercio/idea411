@@ -14,7 +14,6 @@ export type Iteration = {
   scores: ProjectScores;
   overall: number;
   thesis?: string;
-  analysis?: Analysis;
 };
 
 export type Project = {

@@ -21,9 +21,6 @@ import {
   Minus,
   ArrowDownRight,
   MessageSquare,
-  GitCompare,
-  Plus as PlusIcon,
-  X,
 } from "lucide-react";
 import { z } from "zod";
 import { analyzeIdea, type Analysis } from "@/lib/api/vetting.functions";
@@ -33,7 +30,6 @@ import {
   getProject,
   updateProject,
   type ChatMessage,
-  type Iteration,
 } from "@/lib/projects";
 
 const search = z.object({
@@ -125,7 +121,6 @@ function VettingPage() {
         scores,
         overall: Math.round(result.overallScore),
         thesis: result.oneLineThesis,
-        analysis: result,
       });
       updateProject(projectId, {
         analysis: result,
@@ -164,7 +159,7 @@ function VettingPage() {
   return (
     <Shell>
       <section className="mx-auto max-w-6xl px-6 pt-14 pb-24">
-        <Header idea={idea} projectId={projectId} />
+        <Header idea={idea} />
 
         {loading && <AnalyzingState />}
         {!loading && error && <ErrorState message={error} onRetry={run} />}
@@ -184,17 +179,6 @@ function VettingPage() {
       </section>
     </Shell>
   );
-}
-
-function useIterationCount(projectId: string) {
-  const [n, setN] = useState(0);
-  useEffect(() => {
-    const refresh = () => setN(getProject(projectId)?.iterations?.length ?? 0);
-    refresh();
-    window.addEventListener("storage", refresh);
-    return () => window.removeEventListener("storage", refresh);
-  }, [projectId]);
-  return n;
 }
 
 function Shell({ children }: { children: React.ReactNode }) {
@@ -218,22 +202,12 @@ function Shell({ children }: { children: React.ReactNode }) {
   );
 }
 
-function Header({ idea, projectId }: { idea: string; projectId: string }) {
-  const count = useIterationCount(projectId);
+function Header({ idea }: { idea: string }) {
   return (
     <div>
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-3 py-1 text-xs text-muted-foreground">
-          <Sparkles className="h-3.5 w-3.5 text-ember" /> AI vetting & analysis
-        </span>
-        <span
-          className="inline-flex items-center gap-1.5 rounded-full border border-ember/30 bg-ember/5 px-3 py-1 text-xs text-ember"
-          title="Number of saved iterations for this project"
-        >
-          <GitCompare className="h-3.5 w-3.5" />
-          Iterations: <strong className="font-display tabular-nums">{count}</strong>
-        </span>
-      </div>
+      <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-3 py-1 text-xs text-muted-foreground">
+        <Sparkles className="h-3.5 w-3.5 text-ember" /> AI vetting & analysis
+      </span>
       <h1 className="mt-5 font-display text-4xl sm:text-5xl font-semibold text-balance leading-[1.05]">
         Your opportunity report.
       </h1>
@@ -347,8 +321,6 @@ function ResultsView({
         <MarketPillar data={analysis.market} />
         <SalesPillar data={analysis.sales} />
       </div>
-
-      <CompareIterations projectId={projectId} />
 
       <ChatPanel idea={idea} analysis={analysis} projectId={projectId} />
 
@@ -642,407 +614,6 @@ function SalesPillar({ data }: { data: Analysis["sales"] }) {
         </Section>
       </Expandable>
     </PillarCard>
-  );
-}
-
-/* ─────────────────────────────── Compare iterations ─────────────────────────────── */
-
-function CompareIterations({ projectId }: { projectId: string }) {
-  const [iterations, setIterations] = useState<Iteration[]>(
-    () => getProject(projectId)?.iterations ?? [],
-  );
-  useEffect(() => {
-    const refresh = () => setIterations(getProject(projectId)?.iterations ?? []);
-    window.addEventListener("storage", refresh);
-    return () => window.removeEventListener("storage", refresh);
-  }, [projectId]);
-
-  // Show every iteration in the picker. Diff sections that need full analysis
-  // render conditionally below, so older entries (saved before we tracked
-  // `analysis`) still appear in the timeline and selectors.
-  const allIterations = iterations;
-
-  const [aIdx, setAIdx] = useState<number>(() => Math.max(0, allIterations.length - 2));
-  const [bIdx, setBIdx] = useState<number>(() => Math.max(0, allIterations.length - 1));
-
-  useEffect(() => {
-    setAIdx(Math.max(0, allIterations.length - 2));
-    setBIdx(Math.max(0, allIterations.length - 1));
-  }, [allIterations.length]);
-
-  if (allIterations.length < 2) {
-    return (
-      <motion.section
-        initial={{ opacity: 0, y: 14 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="rounded-3xl border border-dashed border-border bg-card/40 p-8 text-center"
-      >
-        <div className="mx-auto grid h-10 w-10 place-items-center rounded-xl border border-border bg-background/80 text-ember">
-          <GitCompare className="h-4 w-4" />
-        </div>
-        <h3 className="mt-4 font-display text-lg font-semibold">
-          Compare iterations side-by-side
-        </h3>
-        <p className="mt-1.5 text-sm text-muted-foreground">
-          Refine your idea at least once to unlock a diff of scores, risks and recommendations.
-        </p>
-      </motion.section>
-    );
-  }
-
-  const a = allIterations[aIdx]!;
-  const b = allIterations[bIdx]!;
-  const bothHaveAnalysis = !!a.analysis && !!b.analysis;
-
-
-  return (
-    <motion.section
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-      className="rounded-3xl border border-border bg-card/80 shadow-elegant overflow-hidden"
-    >
-      <div className="flex flex-wrap items-center gap-3 border-b border-border px-6 py-4">
-        <span className="grid h-9 w-9 place-items-center rounded-xl border border-border bg-background/80 text-ember">
-          <GitCompare className="h-4 w-4" />
-        </span>
-        <div className="min-w-0">
-          <h3 className="font-display text-lg font-semibold leading-tight">
-            Compare iterations
-          </h3>
-          <p className="text-xs text-muted-foreground">
-            See exactly what changed between two versions of your idea.
-          </p>
-        </div>
-        <div className="ml-auto flex flex-wrap items-center gap-2 text-xs">
-          <IterationSelect
-            label="From"
-            value={aIdx}
-            options={allIterations}
-            onChange={setAIdx}
-          />
-          <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />
-          <IterationSelect
-            label="To"
-            value={bIdx}
-            options={allIterations}
-            onChange={setBIdx}
-          />
-        </div>
-      </div>
-
-      <IterationTimeline
-        iterations={allIterations}
-        aIdx={aIdx}
-        bIdx={bIdx}
-        onSelect={(i) => {
-          // Click toggles assignment: nearest endpoint moves to clicked node
-          const distA = Math.abs(i - aIdx);
-          const distB = Math.abs(i - bIdx);
-          if (i === aIdx || i === bIdx) return;
-          if (distA <= distB) setAIdx(i);
-          else setBIdx(i);
-        }}
-      />
-
-
-
-      <div className="grid gap-px bg-border sm:grid-cols-2">
-        <IterationColumn label="From" iteration={a} />
-        <IterationColumn label="To" iteration={b} />
-      </div>
-
-      <div className="border-t border-border px-6 py-6 space-y-6">
-        <ScoreDiffRow a={a} b={b} />
-        {bothHaveAnalysis ? (
-          <>
-            <DiffBlock
-              title="Compliance risks"
-              subtitle="What appeared, vanished or stayed flagged"
-              aItems={a.analysis!.compliance.risks.map((r) => `${r.title} · ${r.severity}`)}
-              bItems={b.analysis!.compliance.risks.map((r) => `${r.title} · ${r.severity}`)}
-            />
-            <DiffBlock
-              title="Differentiation"
-              subtitle="Edges this iteration leans on"
-              aItems={a.analysis!.market.differentiation}
-              bItems={b.analysis!.market.differentiation}
-            />
-            <DiffBlock
-              title="Go-to-market recommendations"
-              subtitle="Ordered moves recommended by the analyst"
-              aItems={a.analysis!.sales.gtm}
-              bItems={b.analysis!.sales.gtm}
-            />
-          </>
-        ) : (
-          <p className="rounded-2xl border border-dashed border-border bg-background/40 px-4 py-3 text-xs text-muted-foreground">
-            Detailed risk and recommendation diffs are only available for iterations run after this update. Re-run vetting on an older version to backfill it.
-          </p>
-        )}
-      </div>
-
-    </motion.section>
-  );
-}
-
-function IterationTimeline({
-  iterations,
-  aIdx,
-  bIdx,
-  onSelect,
-}: {
-  iterations: Iteration[];
-  aIdx: number;
-  bIdx: number;
-  onSelect: (i: number) => void;
-}) {
-  if (iterations.length < 2) return null;
-  const lo = Math.min(aIdx, bIdx);
-  const hi = Math.max(aIdx, bIdx);
-  return (
-    <div className="border-b border-border bg-background/40 px-6 py-5">
-      <div className="mb-3 flex items-center justify-between text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-        <span>Iteration timeline</span>
-        <span>Click a node to set the nearest endpoint</span>
-      </div>
-      <div className="relative">
-        {/* base rail */}
-        <div className="absolute left-2 right-2 top-1/2 h-px -translate-y-1/2 bg-border" />
-        {/* active range */}
-        <div
-          className="absolute top-1/2 h-[2px] -translate-y-1/2 bg-ember/60"
-          style={{
-            left: `calc(${(lo / Math.max(1, iterations.length - 1)) * 100}% + 8px)`,
-            right: `calc(${(1 - hi / Math.max(1, iterations.length - 1)) * 100}% + 8px)`,
-          }}
-        />
-        <ul className="relative flex items-center justify-between">
-          {iterations.map((it, i) => {
-            const isA = i === aIdx;
-            const isB = i === bIdx;
-            const inRange = i > lo && i < hi;
-            return (
-              <li key={it.at} className="flex flex-col items-center gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => onSelect(i)}
-                  aria-label={`Iteration v${i + 1}, score ${it.overall}`}
-                  className={`group relative grid h-7 w-7 place-items-center rounded-full border transition-all ${
-                    isA || isB
-                      ? "border-ember bg-ember text-background shadow-elegant scale-110"
-                      : inRange
-                        ? "border-ember/40 bg-ember/10 text-foreground hover:scale-110"
-                        : "border-border bg-card text-muted-foreground hover:border-ember/60 hover:text-foreground hover:scale-110"
-                  }`}
-                >
-                  <span className="text-[10px] font-semibold tabular-nums">{i + 1}</span>
-                  {(isA || isB) && (
-                    <span className="absolute -top-5 text-[9px] font-semibold uppercase tracking-wider text-ember">
-                      {isA ? "From" : "To"}
-                    </span>
-                  )}
-                </button>
-                <span className="text-[10px] tabular-nums text-muted-foreground">
-                  {it.overall}
-                </span>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
-    </div>
-  );
-}
-
-
-function IterationSelect({
-  label,
-  value,
-  options,
-  onChange,
-}: {
-  label: string;
-  value: number;
-  options: Iteration[];
-  onChange: (n: number) => void;
-}) {
-  return (
-    <label className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/60 px-3 py-1.5">
-      <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
-        {label}
-      </span>
-      <select
-        value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-        className="bg-transparent text-xs focus:outline-none"
-      >
-        {options.map((it, i) => (
-          <option key={it.at} value={i} className="bg-background text-foreground">
-            v{i + 1} · {it.overall}/100
-          </option>
-        ))}
-      </select>
-    </label>
-  );
-}
-
-function IterationColumn({ label, iteration }: { label: string; iteration: Iteration }) {
-  return (
-    <div className="bg-card/60 px-6 py-5">
-      <div className="flex items-center justify-between">
-        <span className="text-[10px] uppercase tracking-[0.2em] text-ember">{label}</span>
-        <span className="text-[11px] text-muted-foreground tabular-nums">
-          {new Date(iteration.at).toLocaleString(undefined, {
-            month: "short",
-            day: "numeric",
-            hour: "numeric",
-            minute: "2-digit",
-          })}
-        </span>
-      </div>
-      <p className="mt-2 text-sm font-medium line-clamp-2">
-        {iteration.analysis?.healthVerdict ?? iteration.thesis ?? "Iteration"}
-      </p>
-      <p className="mt-1 text-xs text-muted-foreground line-clamp-2">"{iteration.idea}"</p>
-    </div>
-  );
-}
-
-function ScoreDiffRow({ a, b }: { a: Iteration; b: Iteration }) {
-  const rows: { label: string; aVal: number; bVal: number; max: number }[] = [
-    { label: "Overall", aVal: a.overall, bVal: b.overall, max: 100 },
-    { label: "Compliance", aVal: a.scores.compliance, bVal: b.scores.compliance, max: 100 },
-    { label: "Market", aVal: a.scores.market, bVal: b.scores.market, max: 100 },
-    { label: "Sales", aVal: a.scores.demand, bVal: b.scores.demand, max: 100 },
-  ];
-  return (
-    <div className="grid gap-2 sm:grid-cols-4">
-      {rows.map((r) => {
-        const delta = r.bVal - r.aVal;
-        const tone: Tone = delta > 0 ? "green" : delta < 0 ? "red" : "amber";
-        return (
-          <div
-            key={r.label}
-            className="rounded-2xl border border-border bg-background/40 p-3"
-          >
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
-              {r.label}
-            </p>
-            <div className="mt-1 flex items-baseline gap-2">
-              <span className="font-display text-2xl font-semibold tabular-nums">
-                {r.bVal}
-              </span>
-              <span className="text-xs text-muted-foreground tabular-nums">
-                from {r.aVal}
-              </span>
-            </div>
-            <span
-              className={
-                "mt-1 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] " +
-                toneClasses(tone)
-              }
-            >
-              {delta > 0 ? "▲" : delta < 0 ? "▼" : "—"} {Math.abs(delta)} pts
-            </span>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-function DiffBlock({
-  title,
-  subtitle,
-  aItems,
-  bItems,
-}: {
-  title: string;
-  subtitle: string;
-  aItems: string[];
-  bItems: string[];
-}) {
-  const aSet = new Set(aItems);
-  const bSet = new Set(bItems);
-  const added = bItems.filter((x) => !aSet.has(x));
-  const removed = aItems.filter((x) => !bSet.has(x));
-  const kept = bItems.filter((x) => aSet.has(x));
-
-  return (
-    <div>
-      <div className="flex items-baseline justify-between gap-3">
-        <h4 className="font-display text-base font-semibold">{title}</h4>
-        <p className="text-[11px] text-muted-foreground">{subtitle}</p>
-      </div>
-      <div className="mt-3 grid gap-2 sm:grid-cols-3">
-        <DiffColumn
-          label="Added"
-          tone="green"
-          icon={<PlusIcon className="h-3 w-3" />}
-          items={added}
-        />
-        <DiffColumn
-          label="Removed"
-          tone="red"
-          icon={<X className="h-3 w-3" />}
-          items={removed}
-        />
-        <DiffColumn
-          label="Unchanged"
-          tone="muted"
-          icon={<Minus className="h-3 w-3" />}
-          items={kept}
-        />
-      </div>
-    </div>
-  );
-}
-
-function DiffColumn({
-  label,
-  tone,
-  icon,
-  items,
-}: {
-  label: string;
-  tone: "green" | "red" | "muted";
-  icon: React.ReactNode;
-  items: string[];
-}) {
-  const toneCls =
-    tone === "green"
-      ? "border-emerald-500/30 bg-emerald-500/5 text-emerald-400"
-      : tone === "red"
-        ? "border-destructive/40 bg-destructive/5 text-destructive"
-        : "border-border bg-background/40 text-muted-foreground";
-  return (
-    <div className="rounded-2xl border border-border bg-background/40 p-3">
-      <div
-        className={
-          "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-wider " +
-          toneCls
-        }
-      >
-        {icon}
-        {label} · {items.length}
-      </div>
-      <ul className="mt-2 space-y-1.5">
-        {items.length === 0 ? (
-          <li className="text-[11px] text-muted-foreground/70 italic">None</li>
-        ) : (
-          items.map((it) => (
-            <li
-              key={it}
-              className="rounded-lg border border-border/60 bg-card/40 px-2 py-1.5 text-xs leading-snug"
-            >
-              {it}
-            </li>
-          ))
-        )}
-      </ul>
-    </div>
   );
 }
 
