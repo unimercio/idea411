@@ -12,6 +12,7 @@ import {
   overallScore,
   timeAgo,
   useProjects,
+  type Iteration,
   type Project,
 } from "@/lib/projects";
 
