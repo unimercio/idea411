@@ -2,7 +2,6 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { motion } from "motion/react";
 import {
   ArrowRight,
-  Box,
   Download,
   FileText,
   Flame,
