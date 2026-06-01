@@ -32,7 +32,7 @@ export function Pricing() {
             Built to scale with every spark.
           </h2>
         </div>
-        <div className="mt-14 grid md:grid-cols-3 gap-4">
+        <div className="mt-14 grid md:grid-cols-2 gap-4">
           {tiers.map((t) => (
             <div
               key={t.name}
@@ -51,7 +51,6 @@ export function Pricing() {
               <p className="font-display text-lg font-semibold">{t.name}</p>
               <div className="mt-4 flex items-baseline gap-1">
                 <span className="font-display text-4xl font-semibold">{t.price}</span>
-                {t.period && <span className="text-sm text-muted-foreground">{t.period}</span>}
               </div>
               <p className="mt-2 text-sm text-muted-foreground">{t.blurb}</p>
               <ul className="mt-6 space-y-3 text-sm">
