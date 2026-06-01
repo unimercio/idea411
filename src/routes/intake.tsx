@@ -143,15 +143,28 @@ function IntakePage() {
         >
           <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-3 py-1 text-xs text-muted-foreground">
             <Sparkles className="h-3.5 w-3.5 text-ember" />
-            Multimodal vetting · text + sketch
+            {refineProject ? `Refining · iteration ${iterationCount}` : "Multimodal vetting · text + sketch"}
           </span>
           <h1 className="mt-6 font-display text-4xl sm:text-5xl font-semibold text-balance leading-[1.05]">
-            Bring the spark. We'll forge the rest.
+            {refineProject ? "Sharpen the concept." : "Bring the spark. We'll forge the rest."}
           </h1>
           <p className="mt-4 text-muted-foreground">
-            Describe your concept and drop a napkin sketch. IdeaForge runs compliance, market fit, and
-            demand scans in seconds.
+            {refineProject
+              ? "Your previous report, scores, and chat history are preserved. Edit the idea below and we'll re-vet it as a new iteration."
+              : "Describe your concept and drop a napkin sketch. IdeaForge runs compliance, market fit, and demand scans in seconds."}
           </p>
+          {refineProject && prevOverall !== null && (
+            <div className="mt-6 inline-flex items-center gap-3 rounded-2xl border border-border bg-card/60 px-4 py-2.5 text-left">
+              <History className="h-4 w-4 text-ember" />
+              <div className="text-xs text-muted-foreground">
+                Previous score{" "}
+                <span className="font-display text-sm font-semibold text-foreground">
+                  {prevOverall}/100
+                </span>{" "}
+                · "{refineProject.title}"
+              </div>
+            </div>
+          )}
         </motion.div>
 
         <motion.form
