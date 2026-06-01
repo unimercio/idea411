@@ -227,8 +227,8 @@ function UnlockScreen() {
             Unlock the full launch kit.
           </h2>
           <p className="mt-2 max-w-xl text-sm text-muted-foreground">
-            Your vetting is free forever. Upgrade to Forge to unlock studio renders, a provisional
-            patent draft, your crowdfund kit, and a live pre-order page.
+            Your vetting is free forever. Upgrade to Forge to unlock a provisional patent draft
+            and your crowdfund campaign kit.
           </p>
         </div>
         <div className="flex flex-col gap-3 sm:flex-row md:flex-col">
