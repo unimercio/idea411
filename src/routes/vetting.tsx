@@ -709,6 +709,22 @@ function CompareIterations({ projectId }: { projectId: string }) {
         </div>
       </div>
 
+      <IterationTimeline
+        iterations={withAnalysis}
+        aIdx={aIdx}
+        bIdx={bIdx}
+        onSelect={(i) => {
+          // Click toggles assignment: nearest endpoint moves to clicked node
+          const distA = Math.abs(i - aIdx);
+          const distB = Math.abs(i - bIdx);
+          if (i === aIdx || i === bIdx) return;
+          if (distA <= distB) setAIdx(i);
+          else setBIdx(i);
+        }}
+      />
+
+
+
       <div className="grid gap-px bg-border sm:grid-cols-2">
         <IterationColumn label="From" iteration={a} />
         <IterationColumn label="To" iteration={b} />
