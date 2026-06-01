@@ -218,12 +218,22 @@ function Shell({ children }: { children: React.ReactNode }) {
   );
 }
 
-function Header({ idea }: { idea: string }) {
+function Header({ idea, projectId }: { idea: string; projectId: string }) {
+  const count = useIterationCount(projectId);
   return (
     <div>
-      <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-3 py-1 text-xs text-muted-foreground">
-        <Sparkles className="h-3.5 w-3.5 text-ember" /> AI vetting & analysis
-      </span>
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-3 py-1 text-xs text-muted-foreground">
+          <Sparkles className="h-3.5 w-3.5 text-ember" /> AI vetting & analysis
+        </span>
+        <span
+          className="inline-flex items-center gap-1.5 rounded-full border border-ember/30 bg-ember/5 px-3 py-1 text-xs text-ember"
+          title="Number of saved iterations for this project"
+        >
+          <GitCompare className="h-3.5 w-3.5" />
+          Iterations: <strong className="font-display tabular-nums">{count}</strong>
+        </span>
+      </div>
       <h1 className="mt-5 font-display text-4xl sm:text-5xl font-semibold text-balance leading-[1.05]">
         Your opportunity report.
       </h1>
