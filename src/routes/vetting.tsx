@@ -121,6 +121,7 @@ function VettingPage() {
         scores,
         overall: Math.round(result.overallScore),
         thesis: result.oneLineThesis,
+        analysis: result,
       });
       updateProject(projectId, {
         analysis: result,
