@@ -734,25 +734,34 @@ function CompareIterations({ projectId }: { projectId: string }) {
 
       <div className="border-t border-border px-6 py-6 space-y-6">
         <ScoreDiffRow a={a} b={b} />
-        <DiffBlock
-          title="Compliance risks"
-          subtitle="What appeared, vanished or stayed flagged"
-          aItems={a.analysis!.compliance.risks.map((r) => `${r.title} · ${r.severity}`)}
-          bItems={b.analysis!.compliance.risks.map((r) => `${r.title} · ${r.severity}`)}
-        />
-        <DiffBlock
-          title="Differentiation"
-          subtitle="Edges this iteration leans on"
-          aItems={a.analysis!.market.differentiation}
-          bItems={b.analysis!.market.differentiation}
-        />
-        <DiffBlock
-          title="Go-to-market recommendations"
-          subtitle="Ordered moves recommended by the analyst"
-          aItems={a.analysis!.sales.gtm}
-          bItems={b.analysis!.sales.gtm}
-        />
+        {bothHaveAnalysis ? (
+          <>
+            <DiffBlock
+              title="Compliance risks"
+              subtitle="What appeared, vanished or stayed flagged"
+              aItems={a.analysis!.compliance.risks.map((r) => `${r.title} · ${r.severity}`)}
+              bItems={b.analysis!.compliance.risks.map((r) => `${r.title} · ${r.severity}`)}
+            />
+            <DiffBlock
+              title="Differentiation"
+              subtitle="Edges this iteration leans on"
+              aItems={a.analysis!.market.differentiation}
+              bItems={b.analysis!.market.differentiation}
+            />
+            <DiffBlock
+              title="Go-to-market recommendations"
+              subtitle="Ordered moves recommended by the analyst"
+              aItems={a.analysis!.sales.gtm}
+              bItems={b.analysis!.sales.gtm}
+            />
+          </>
+        ) : (
+          <p className="rounded-2xl border border-dashed border-border bg-background/40 px-4 py-3 text-xs text-muted-foreground">
+            Detailed risk and recommendation diffs are only available for iterations run after this update. Re-run vetting on an older version to backfill it.
+          </p>
+        )}
       </div>
+
     </motion.section>
   );
 }
