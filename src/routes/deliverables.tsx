@@ -35,7 +35,7 @@ type Item = {
   key: string;
   title: string;
   blurb: string;
-  icon: typeof Box;
+  icon: typeof FileText;
   preview: string;
 };
 
