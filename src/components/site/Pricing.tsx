@@ -63,7 +63,6 @@ export function Pricing() {
               </ul>
               <Link
                 to={t.to}
-                search={(t as { search?: Record<string, string> }).search}
                 className={
                   "mt-8 block text-center w-full rounded-full px-4 py-2.5 text-sm font-medium transition " +
                   (t.featured
