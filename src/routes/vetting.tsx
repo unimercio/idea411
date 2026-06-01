@@ -313,15 +313,6 @@ function ResultsView({
 
       <ChatPanel idea={idea} analysis={analysis} projectId={projectId} />
 
-      <div className="flex flex-wrap justify-end gap-2 pt-4">
-        <Link
-          to="/deliverables"
-          search={{ id: projectId }}
-          className="inline-flex items-center gap-2 rounded-full border border-border bg-background/60 px-5 py-2.5 text-sm hover:bg-accent transition"
-        >
-          Continue to deliverables <ArrowRight className="h-4 w-4" />
-        </Link>
-      </div>
     </div>
   );
 }
