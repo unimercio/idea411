@@ -1,10 +1,16 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { motion } from "motion/react";
-import { ArrowRight, Flame, ImagePlus, Sparkles, X } from "lucide-react";
+import { ArrowRight, Flame, ImagePlus, Sparkles, X, History } from "lucide-react";
 import { z } from "zod";
+import { getProject, overallScore } from "@/lib/projects";
+
+const searchSchema = z.object({
+  refine: z.string().trim().min(1).max(64).optional().catch(undefined),
+});
 
 export const Route = createFileRoute("/intake")({
+  validateSearch: searchSchema,
   head: () => ({
     meta: [
       { title: "New idea — IdeaForge" },
