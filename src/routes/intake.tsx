@@ -1,10 +1,16 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { motion } from "motion/react";
-import { ArrowRight, Flame, ImagePlus, Sparkles, X } from "lucide-react";
+import { ArrowRight, Flame, ImagePlus, Sparkles, X, History } from "lucide-react";
 import { z } from "zod";
+import { getProject, overallScore } from "@/lib/projects";
+
+const searchSchema = z.object({
+  refine: z.string().trim().min(1).max(64).optional().catch(undefined),
+});
 
 export const Route = createFileRoute("/intake")({
+  validateSearch: searchSchema,
   head: () => ({
     meta: [
       { title: "New idea — IdeaForge" },
@@ -31,8 +37,14 @@ const ACCEPTED = ["image/png", "image/jpeg", "image/webp", "image/heic"];
 
 function IntakePage() {
   const navigate = useNavigate();
+  const { refine } = Route.useSearch();
   const fileInput = useRef<HTMLInputElement>(null);
-  const [idea, setIdea] = useState("");
+
+  const refineProject = useMemo(() => (refine ? getProject(refine) : undefined), [refine]);
+  const prevOverall = overallScore(refineProject?.scores);
+  const iterationCount = (refineProject?.iterations?.length ?? 0) + 1;
+
+  const [idea, setIdea] = useState(refineProject?.idea ?? "");
   const [sketch, setSketch] = useState<{ file: File; url: string } | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -76,7 +88,18 @@ function IntakePage() {
     }
     setError(null);
     setSubmitting(true);
-    const { createProject } = await import("@/lib/projects");
+    const { createProject, updateProject, deriveTitle } = await import("@/lib/projects");
+    if (refineProject) {
+      updateProject(refineProject.id, {
+        idea: parsed.data.idea,
+        title: deriveTitle(parsed.data.idea),
+        sketchName: sketch?.file.name ?? refineProject.sketchName,
+        analysis: undefined,
+        status: "vetting",
+      });
+      navigate({ to: "/vetting", search: { id: refineProject.id } });
+      return;
+    }
     const project = createProject({
       idea: parsed.data.idea,
       sketchName: sketch?.file.name,
@@ -120,16 +143,31 @@ function IntakePage() {
         >
           <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-3 py-1 text-xs text-muted-foreground">
             <Sparkles className="h-3.5 w-3.5 text-ember" />
-            Multimodal vetting · text + sketch
+            {refineProject ? `Refining · iteration ${iterationCount}` : "Multimodal vetting · text + sketch"}
           </span>
           <h1 className="mt-6 font-display text-4xl sm:text-5xl font-semibold text-balance leading-[1.05]">
-            Bring the spark. We'll forge the rest.
+            {refineProject ? "Sharpen the concept." : "Bring the spark. We'll forge the rest."}
           </h1>
           <p className="mt-4 text-muted-foreground">
-            Describe your concept and drop a napkin sketch. IdeaForge runs compliance, market fit, and
-            demand scans in seconds.
+            {refineProject
+              ? "Your previous report, scores, and chat history are preserved. Edit the idea below and we'll re-vet it as a new iteration."
+              : "Describe your concept and drop a napkin sketch. IdeaForge runs compliance, market fit, and demand scans in seconds."}
           </p>
+          {refineProject && prevOverall !== null && (
+            <div className="mt-6 inline-flex items-center gap-3 rounded-2xl border border-border bg-card/60 px-4 py-2.5 text-left">
+              <History className="h-4 w-4 text-ember" />
+              <div className="text-xs text-muted-foreground">
+                Previous score{" "}
+                <span className="font-display text-sm font-semibold text-foreground">
+                  {prevOverall}/100
+                </span>{" "}
+                · "{refineProject.title}"
+              </div>
+            </div>
+          )}
         </motion.div>
+
+
 
         <motion.form
           onSubmit={onSubmit}
