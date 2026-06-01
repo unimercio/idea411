@@ -164,7 +164,7 @@ function VettingPage() {
   return (
     <Shell>
       <section className="mx-auto max-w-6xl px-6 pt-14 pb-24">
-        <Header idea={idea} />
+        <Header idea={idea} projectId={projectId} />
 
         {loading && <AnalyzingState />}
         {!loading && error && <ErrorState message={error} onRetry={run} />}
@@ -184,6 +184,17 @@ function VettingPage() {
       </section>
     </Shell>
   );
+}
+
+function useIterationCount(projectId: string) {
+  const [n, setN] = useState(0);
+  useEffect(() => {
+    const refresh = () => setN(getProject(projectId)?.iterations?.length ?? 0);
+    refresh();
+    window.addEventListener("storage", refresh);
+    return () => window.removeEventListener("storage", refresh);
+  }, [projectId]);
+  return n;
 }
 
 function Shell({ children }: { children: React.ReactNode }) {
