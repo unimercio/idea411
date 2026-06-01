@@ -180,7 +180,7 @@ function EmptyState() {
         <Sparkles className="h-5 w-5" />
       </span>
       <p className="mt-5 max-w-md text-sm text-muted-foreground">
-        Drop your first concept to see vetting, renders, and a launch plan appear here.
+        Drop your first concept to see vetting, IP protection, and a launch plan appear here.
       </p>
       <Link
         to="/intake"

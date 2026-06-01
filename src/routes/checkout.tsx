@@ -15,7 +15,7 @@ export const Route = createFileRoute("/checkout")({
   head: () => ({
     meta: [
       { title: "Checkout — IdeaForge" },
-      { name: "description", content: "Unlock renders, patent drafts, crowdfund kits, and pre-order pages." },
+      { name: "description", content: "Unlock provisional patent drafts and crowdfund campaign kits." },
     ],
   }),
   component: CheckoutPage,
@@ -60,8 +60,8 @@ function CheckoutPage() {
             Unlock the full forge.
           </h1>
           <p className="mt-3 max-w-xl text-muted-foreground">
-            Pick a tier to unlock renders, provisional patent drafts, crowdfund kits, and a live
-            pre-order page for every project you ship.
+            Pick a tier to unlock provisional patent drafts and crowdfund campaign kits for every
+            project you ship.
           </p>
 
           <div className="mt-10 grid gap-4 md:grid-cols-3">

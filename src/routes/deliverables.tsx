@@ -2,11 +2,9 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { motion } from "motion/react";
 import {
   ArrowRight,
-  Box,
   Download,
   FileText,
   Flame,
-  Globe,
   Lock,
   Megaphone,
   Sparkles,
@@ -26,7 +24,7 @@ export const Route = createFileRoute("/deliverables")({
       { title: "Deliverables — IdeaForge" },
       {
         name: "description",
-        content: "Renders, patent draft, crowdfund kit, and pre-order page for your concept.",
+        content: "Patent draft and crowdfund campaign kit for your concept.",
       },
     ],
   }),
@@ -37,18 +35,11 @@ type Item = {
   key: string;
   title: string;
   blurb: string;
-  icon: typeof Box;
+  icon: typeof FileText;
   preview: string;
 };
 
 const ITEMS: Item[] = [
-  {
-    key: "renders",
-    title: "Studio renders",
-    blurb: "12 photoreal product shots in your brand environment.",
-    icon: Box,
-    preview: "4K · PNG · CMYK-ready",
-  },
   {
     key: "patent",
     title: "Provisional patent draft",
@@ -62,13 +53,6 @@ const ITEMS: Item[] = [
     blurb: "Pitch video script, reward tiers, and launch sequence.",
     icon: Megaphone,
     preview: "Kickstarter + Indiegogo ready",
-  },
-  {
-    key: "preorder",
-    title: "Pre-order landing page",
-    blurb: "Live, hosted page with email capture and Stripe checkout.",
-    icon: Globe,
-    preview: "Hosted on ideaforge.app",
   },
 ];
 
@@ -124,7 +108,7 @@ function DeliverablesPage() {
         <p className="mt-3 max-w-2xl text-muted-foreground">
           {project
             ? project.idea
-            : "Everything you need to take this concept to market — renders, IP, campaign, and a live pre-order page."}
+            : "Everything you need to take this concept to market — IP protection and a launch-ready crowdfund campaign."}
         </p>
 
         <div className="mt-12 grid gap-5 md:grid-cols-2">
@@ -243,8 +227,8 @@ function UnlockScreen() {
             Unlock the full launch kit.
           </h2>
           <p className="mt-2 max-w-xl text-sm text-muted-foreground">
-            Your vetting is free forever. Upgrade to Forge to unlock studio renders, a provisional
-            patent draft, your crowdfund kit, and a live pre-order page.
+            Your vetting is free forever. Upgrade to Forge to unlock a provisional patent draft
+            and your crowdfund campaign kit.
           </p>
         </div>
         <div className="flex flex-col gap-3 sm:flex-row md:flex-col">

@@ -137,117 +137,12 @@ export async function downloadCrowdfund(p: Project) {
   saveBlob(blob, `${slug(p.title)}-crowdfund-kit.zip`);
 }
 
-/* ───────── Renders (PNG placeholder generated via canvas) ───────── */
-export function downloadRenders(p: Project) {
-  const w = 2048;
-  const h = 1280;
-  const canvas = document.createElement("canvas");
-  canvas.width = w;
-  canvas.height = h;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return;
-
-  // backdrop
-  const grad = ctx.createLinearGradient(0, 0, w, h);
-  grad.addColorStop(0, "#1a1a1a");
-  grad.addColorStop(1, "#2d2d2d");
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, w, h);
-
-  // ember glow
-  const glow = ctx.createRadialGradient(w * 0.7, h * 0.5, 50, w * 0.7, h * 0.5, 900);
-  glow.addColorStop(0, "rgba(232, 93, 58, 0.55)");
-  glow.addColorStop(1, "rgba(232, 93, 58, 0)");
-  ctx.fillStyle = glow;
-  ctx.fillRect(0, 0, w, h);
-
-  // product silhouette (rounded rect)
-  ctx.fillStyle = "rgba(20,20,20,0.85)";
-  ctx.strokeStyle = "rgba(232,93,58,0.9)";
-  ctx.lineWidth = 4;
-  const px = w * 0.18,
-    py = h * 0.28,
-    pw = w * 0.45,
-    ph = h * 0.44,
-    r = 32;
-  ctx.beginPath();
-  ctx.moveTo(px + r, py);
-  ctx.arcTo(px + pw, py, px + pw, py + ph, r);
-  ctx.arcTo(px + pw, py + ph, px, py + ph, r);
-  ctx.arcTo(px, py + ph, px, py, r);
-  ctx.arcTo(px, py, px + pw, py, r);
-  ctx.closePath();
-  ctx.fill();
-  ctx.stroke();
-
-  // text
-  ctx.fillStyle = "#f5f5f5";
-  ctx.font = "600 64px Inter, system-ui, sans-serif";
-  ctx.fillText(p.title, 96, 140);
-  ctx.fillStyle = "#a0a0a0";
-  ctx.font = "400 28px Inter, system-ui, sans-serif";
-  ctx.fillText("IdeaForge studio render · concept v1", 96, 188);
-  ctx.fillStyle = "#e85d3a";
-  ctx.font = "500 24px Inter, system-ui, sans-serif";
-  ctx.fillText(scoreLine(p), 96, h - 96);
-
-  canvas.toBlob((blob) => {
-    if (blob) saveBlob(blob, `${slug(p.title)}-render.png`);
-  }, "image/png");
-}
-
-/* ───────── Pre-order landing page (HTML) ───────── */
-export function downloadPreorder(p: Project) {
-  const esc = (s: string) =>
-    s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
-  const html = `<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>${esc(p.title)} — Pre-order</title>
-<meta name="description" content="${esc(p.idea).slice(0, 155)}" />
-<style>
-  :root { color-scheme: dark; }
-  * { box-sizing: border-box; }
-  body { margin: 0; font-family: Inter, system-ui, sans-serif; background: #1a1a1a; color: #f5f5f5; line-height: 1.5; }
-  .wrap { max-width: 960px; margin: 0 auto; padding: 96px 24px; }
-  .badge { display: inline-block; padding: 6px 12px; border-radius: 999px; background: rgba(232,93,58,0.12); color: #e85d3a; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; }
-  h1 { font-size: clamp(40px, 6vw, 72px); margin: 24px 0 16px; letter-spacing: -0.02em; }
-  p.lead { font-size: 20px; color: #c0c0c0; max-width: 640px; }
-  .score { margin-top: 32px; padding: 20px 24px; border: 1px solid #333; border-radius: 16px; background: #222; font-size: 14px; color: #d0d0d0; }
-  form { margin-top: 40px; display: flex; gap: 12px; flex-wrap: wrap; }
-  input[type=email] { flex: 1 1 280px; padding: 14px 18px; border-radius: 999px; border: 1px solid #333; background: #111; color: #f5f5f5; font-size: 15px; }
-  button { padding: 14px 28px; border-radius: 999px; border: 0; background: linear-gradient(135deg, #e85d3a, #f0865f); color: #1a1a1a; font-weight: 600; font-size: 15px; cursor: pointer; }
-  footer { margin-top: 96px; color: #707070; font-size: 13px; }
-</style>
-</head>
-<body>
-  <main class="wrap">
-    <span class="badge">Pre-order · Limited run</span>
-    <h1>${esc(p.title)}</h1>
-    <p class="lead">${esc(p.idea)}</p>
-    <div class="score"><strong>Vetting summary.</strong> ${esc(scoreLine(p))}</div>
-    <form onsubmit="event.preventDefault(); this.querySelector('button').textContent='Reserved ✓';">
-      <input type="email" required placeholder="you@domain.com" />
-      <button type="submit">Reserve mine — $1 hold</button>
-    </form>
-    <footer>Forged with IdeaForge · ${new Date(p.updatedAt).toLocaleDateString()}</footer>
-  </main>
-</body>
-</html>`;
-  saveBlob(new Blob([html], { type: "text/html;charset=utf-8" }), `${slug(p.title)}-preorder.html`);
-}
-
 export function downloadDeliverable(key: string, p: Project) {
   switch (key) {
-    case "renders":
-      return downloadRenders(p);
     case "patent":
       return downloadPatent(p);
     case "crowdfund":
       return downloadCrowdfund(p);
-    case "preorder":
-      return downloadPreorder(p);
   }
 }
+

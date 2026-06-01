@@ -18,10 +18,8 @@ const tiers = [
     blurb: "The full concept-to-market toolkit.",
     features: [
       "Everything in Spark",
-      "Studio-grade 3D product renders",
       "Provisional patent draft",
       "Crowdfunding campaign kit",
-      "Live pre-order landing page",
     ],
     cta: "Start forging",
     to: "/checkout",
