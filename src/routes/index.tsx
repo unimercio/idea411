@@ -13,12 +13,12 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "IdeaForge turns raw ideas into vetted, visualized, protected, and market-ready products — from a napkin sketch to a live pre-order page.",
+          "IdeaForge turns raw ideas into vetted, protected, and market-ready products — from a napkin sketch to a crowdfund-ready campaign.",
       },
       { property: "og:title", content: "IdeaForge — Concept to market, in one flow" },
       {
         property: "og:description",
-        content: "Vet, visualize, protect, and launch your product idea with an AI innovation team.",
+        content: "Vet, protect, and launch your product idea with an AI innovation team.",
       },
     ],
   }),
