@@ -168,7 +168,7 @@ function VettingPage() {
             idea={idea}
             analysis={analysis}
             projectId={projectId}
-            onRefine={() => navigate({ to: "/intake" })}
+            onRefine={() => navigate({ to: "/intake", search: { refine: projectId } })}
             onRerun={() => {
               startedRef.current = false;
               setAnalysis(undefined);
