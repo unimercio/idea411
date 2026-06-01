@@ -6,7 +6,6 @@ import {
   Download,
   FileText,
   Flame,
-  Globe,
   Lock,
   Megaphone,
   Sparkles,
