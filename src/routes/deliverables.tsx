@@ -26,7 +26,7 @@ export const Route = createFileRoute("/deliverables")({
       { title: "Deliverables — IdeaForge" },
       {
         name: "description",
-        content: "Renders, patent draft, crowdfund kit, and pre-order page for your concept.",
+        content: "Patent draft and crowdfund campaign kit for your concept.",
       },
     ],
   }),
