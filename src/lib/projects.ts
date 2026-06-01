@@ -8,6 +8,14 @@ export type ProjectScores = Record<StageKey, number>;
 
 export type ChatMessage = { role: "user" | "assistant"; content: string };
 
+export type Iteration = {
+  at: number;
+  idea: string;
+  scores: ProjectScores;
+  overall: number;
+  thesis?: string;
+};
+
 export type Project = {
   id: string;
   title: string;
@@ -18,6 +26,7 @@ export type Project = {
   scores?: ProjectScores;
   analysis?: Analysis;
   chat?: ChatMessage[];
+  iterations?: Iteration[];
   status: "draft" | "vetting" | "ready" | "error";
 };
 
