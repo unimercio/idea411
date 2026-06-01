@@ -6,7 +6,6 @@ import {
   Plus,
   Sparkles,
   Trash2,
-  Package,
 } from "lucide-react";
 import {
   deleteProject,
