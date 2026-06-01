@@ -21,6 +21,9 @@ import {
   Minus,
   ArrowDownRight,
   MessageSquare,
+  GitCompare,
+  Plus as PlusIcon,
+  X,
 } from "lucide-react";
 import { z } from "zod";
 import { analyzeIdea, type Analysis } from "@/lib/api/vetting.functions";
