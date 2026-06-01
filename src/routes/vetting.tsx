@@ -636,20 +636,20 @@ function CompareIterations({ projectId }: { projectId: string }) {
     return () => window.removeEventListener("storage", refresh);
   }, [projectId]);
 
-  const withAnalysis = useMemo(
-    () => iterations.filter((it) => !!it.analysis),
-    [iterations],
-  );
+  // Show every iteration in the picker. Diff sections that need full analysis
+  // render conditionally below, so older entries (saved before we tracked
+  // `analysis`) still appear in the timeline and selectors.
+  const allIterations = iterations;
 
-  const [aIdx, setAIdx] = useState<number>(() => Math.max(0, withAnalysis.length - 2));
-  const [bIdx, setBIdx] = useState<number>(() => Math.max(0, withAnalysis.length - 1));
+  const [aIdx, setAIdx] = useState<number>(() => Math.max(0, allIterations.length - 2));
+  const [bIdx, setBIdx] = useState<number>(() => Math.max(0, allIterations.length - 1));
 
   useEffect(() => {
-    setAIdx(Math.max(0, withAnalysis.length - 2));
-    setBIdx(Math.max(0, withAnalysis.length - 1));
-  }, [withAnalysis.length]);
+    setAIdx(Math.max(0, allIterations.length - 2));
+    setBIdx(Math.max(0, allIterations.length - 1));
+  }, [allIterations.length]);
 
-  if (withAnalysis.length < 2) {
+  if (allIterations.length < 2) {
     return (
       <motion.section
         initial={{ opacity: 0, y: 14 }}
@@ -670,8 +670,10 @@ function CompareIterations({ projectId }: { projectId: string }) {
     );
   }
 
-  const a = withAnalysis[aIdx]!;
-  const b = withAnalysis[bIdx]!;
+  const a = allIterations[aIdx]!;
+  const b = allIterations[bIdx]!;
+  const bothHaveAnalysis = !!a.analysis && !!b.analysis;
+
 
   return (
     <motion.section
