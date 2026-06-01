@@ -31,8 +31,8 @@ export function Hero() {
             products.
           </h1>
           <p className="mt-6 text-lg text-muted-foreground text-balance">
-            IdeaForge vets, protects, and launches your concept — from a napkin sketch to a
-            crowdfund-ready campaign — with the rigor of a world-class innovation team.
+            IdeaForge vets your concept — compliance, market fit, and demand — with the rigor of a
+            world-class innovation team, in minutes.
           </p>
         </motion.div>
 
