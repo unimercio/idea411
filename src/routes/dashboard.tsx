@@ -105,13 +105,18 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
         {project.idea}
       </p>
 
-      <div className="mt-6 flex items-end justify-between">
+      <div className="mt-6 flex items-end justify-between gap-4">
         <div>
           <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Forge score</p>
           {score !== null ? (
             <div className="mt-1 flex items-baseline gap-1.5">
               <span className="font-display text-3xl font-semibold">{score}</span>
               <span className="text-xs text-muted-foreground">/100</span>
+              {project.iterations && project.iterations.length > 1 && (
+                <span className="ml-1 text-[10px] uppercase tracking-wider text-muted-foreground">
+                  · {project.iterations.length} iters
+                </span>
+              )}
             </div>
           ) : (
             <div className="mt-1 flex items-center gap-1.5 text-xs text-ember">
@@ -119,11 +124,7 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
             </div>
           )}
         </div>
-        {project.sketchName && (
-          <span className="text-[11px] text-muted-foreground truncate max-w-[40%]">
-            🖼 {project.sketchName}
-          </span>
-        )}
+        <IterationSparkline iterations={project.iterations} />
       </div>
 
       <div className="mt-6 flex items-center gap-2">
