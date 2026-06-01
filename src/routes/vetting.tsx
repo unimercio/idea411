@@ -323,6 +323,8 @@ function ResultsView({
         <SalesPillar data={analysis.sales} />
       </div>
 
+      <CompareIterations projectId={projectId} />
+
       <ChatPanel idea={idea} analysis={analysis} projectId={projectId} />
 
     </div>
