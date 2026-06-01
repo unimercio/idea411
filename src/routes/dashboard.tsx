@@ -184,3 +184,59 @@ function EmptyState() {
     </div>
   );
 }
+
+function IterationSparkline({ iterations }: { iterations?: Iteration[] }) {
+  if (!iterations || iterations.length === 0) return null;
+  const w = 120;
+  const h = 44;
+  const pad = 4;
+  const data = iterations.map((it) => it.overall);
+  const last = data[data.length - 1];
+  const prev = data.length > 1 ? data[data.length - 2] : null;
+  const delta = prev !== null ? last - prev : 0;
+  const min = Math.min(...data, 0);
+  const max = Math.max(...data, 100);
+  const range = Math.max(1, max - min);
+  const pts =
+    data.length === 1
+      ? [
+          [pad, h / 2] as const,
+          [w - pad, h / 2] as const,
+        ]
+      : data.map(
+          (v, i) =>
+            [
+              pad + (i * (w - pad * 2)) / (data.length - 1),
+              h - pad - ((v - min) / range) * (h - pad * 2),
+            ] as const,
+        );
+  const path = pts.map(([x, y], i) => `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
+  const area = `${path} L${(w - pad).toFixed(1)},${h - pad} L${pad},${h - pad} Z`;
+  const trendColor =
+    delta > 0 ? "oklch(0.74 0.16 155)" : delta < 0 ? "oklch(0.68 0.19 38)" : "oklch(0.7 0 0)";
+  return (
+    <div className="flex flex-col items-end gap-1">
+      <svg width={w} height={h} className="overflow-visible" aria-label="Score trend">
+        <defs>
+          <linearGradient id={`spark-${iterations[0].at}`} x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stopColor={trendColor} stopOpacity="0.35" />
+            <stop offset="100%" stopColor={trendColor} stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        <path d={area} fill={`url(#spark-${iterations[0].at})`} />
+        <path d={path} fill="none" stroke={trendColor} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        {pts.map(([x, y], i) => (
+          <circle key={i} cx={x} cy={y} r={i === pts.length - 1 ? 2.5 : 1.5} fill={trendColor} />
+        ))}
+      </svg>
+      {prev !== null && (
+        <span
+          className="text-[10px] tabular-nums"
+          style={{ color: trendColor }}
+        >
+          {delta > 0 ? "▲" : delta < 0 ? "▼" : "—"} {Math.abs(delta)} pts
+        </span>
+      )}
+    </div>
+  );
+}
