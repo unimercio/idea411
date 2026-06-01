@@ -37,8 +37,14 @@ const ACCEPTED = ["image/png", "image/jpeg", "image/webp", "image/heic"];
 
 function IntakePage() {
   const navigate = useNavigate();
+  const { refine } = Route.useSearch();
   const fileInput = useRef<HTMLInputElement>(null);
-  const [idea, setIdea] = useState("");
+
+  const refineProject = useMemo(() => (refine ? getProject(refine) : undefined), [refine]);
+  const prevOverall = overallScore(refineProject?.scores);
+  const iterationCount = (refineProject?.iterations?.length ?? 0) + 1;
+
+  const [idea, setIdea] = useState(refineProject?.idea ?? "");
   const [sketch, setSketch] = useState<{ file: File; url: string } | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -82,7 +88,18 @@ function IntakePage() {
     }
     setError(null);
     setSubmitting(true);
-    const { createProject } = await import("@/lib/projects");
+    const { createProject, updateProject, deriveTitle } = await import("@/lib/projects");
+    if (refineProject) {
+      updateProject(refineProject.id, {
+        idea: parsed.data.idea,
+        title: deriveTitle(parsed.data.idea),
+        sketchName: sketch?.file.name ?? refineProject.sketchName,
+        analysis: undefined,
+        status: "vetting",
+      });
+      navigate({ to: "/vetting", search: { id: refineProject.id } });
+      return;
+    }
     const project = createProject({
       idea: parsed.data.idea,
       sketchName: sketch?.file.name,
