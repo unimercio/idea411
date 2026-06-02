@@ -1,10 +1,13 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import { useServerFn } from "@tanstack/react-start";
+import { useQuery } from "@tanstack/react-query";
 import {
   ArrowRight,
   Flame,
   Plus,
+  Settings,
   Sparkles,
   Trash2,
 } from "lucide-react";
@@ -17,6 +20,7 @@ import {
   type Project,
 } from "@/lib/projects";
 import { supabase } from "@/integrations/supabase/client";
+import { checkAdmin } from "@/lib/api/prompt-templates.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
