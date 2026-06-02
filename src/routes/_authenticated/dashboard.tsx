@@ -246,6 +246,12 @@ function DashboardPage() {
   );
 }
 
+function ShieldIcon({ status }: { status: "admin" | "not-admin" | "error" }) {
+  if (status === "admin") return <ShieldCheck className="h-5 w-5 mt-0.5 shrink-0" />;
+  if (status === "error") return <AlertTriangle className="h-5 w-5 mt-0.5 shrink-0" />;
+  return <ShieldQuestion className="h-5 w-5 mt-0.5 shrink-0" />;
+}
+
 function ProjectCard({ project, index }: { project: Project; index: number }) {
   const navigate = useNavigate();
   const score = overallScore(project.scores);
