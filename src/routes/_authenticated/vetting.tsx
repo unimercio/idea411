@@ -1153,87 +1153,274 @@ function toneStroke(t: Tone): string {
 }
 
 /* ─────────────────────────────── Suggested prompts ─────────────────────────────── */
+/*
+ * Reusable prompt templates. Each template is a single string with {variable}
+ * placeholders that get resolved against the analysis. Templates declare which
+ * variables they REQUIRE — if any required variable is missing for a given
+ * report, the template is skipped automatically. This keeps the prompt library
+ * easy to extend: add a new entry to PROMPT_TEMPLATES and it shows up wherever
+ * its category renders, personalized to the user's report.
+ */
 
-type SuggestionGroup = { label: string; items: string[] };
+type PromptCategory = "strategic" | "compliance" | "market" | "sales";
 
-function buildSuggestions(analysis: Analysis): SuggestionGroup[] {
-  const groups: SuggestionGroup[] = [];
+type TemplateVars = {
+  overallScore?: string;
+  weakestPillar?: string;
+  topRisk?: string;
+  regulation?: string;
+  ipConcern?: string;
+  competitor?: string;
+  indirectCompetitor?: string;
+  upTrend?: string;
+  downTrend?: string;
+  differentiator?: string;
+  barrier?: string;
+  targetCustomer?: string;
+  recommendedPrice?: string;
+  topGtm?: string;
+};
 
-  // Find weakest pillar to lead with
-  const pillars: { key: "compliance" | "market" | "sales"; score: number; label: string }[] = [
+type PromptTemplate = {
+  id: string;
+  category: PromptCategory;
+  template: string;
+  requires?: (keyof TemplateVars)[];
+};
+
+export const PROMPT_TEMPLATES: PromptTemplate[] = [
+  // Strategic / synthesis
+  {
+    id: "strat-leverage",
+    category: "strategic",
+    template:
+      "What's the single highest-leverage change to raise the {overallScore}/100 score?",
+    requires: ["overallScore"],
+  },
+  { id: "strat-steelman", category: "strategic", template: "Steelman the case AGAINST this idea in 5 bullets." },
+  { id: "strat-budget", category: "strategic", template: "If I had $25k and 90 days, what would you do first?" },
+  {
+    id: "strat-kill",
+    category: "strategic",
+    template: "What would a competitor do to kill this in 12 months?",
+  },
+  {
+    id: "strat-weakest",
+    category: "strategic",
+    template: "Why is {weakestPillar} my weakest pillar — and what fixes it fastest?",
+    requires: ["weakestPillar"],
+  },
+
+  // Compliance
+  {
+    id: "comp-derisk",
+    category: "compliance",
+    template: 'How do I de-risk "{topRisk}" before launch?',
+    requires: ["topRisk"],
+  },
+  {
+    id: "comp-cheapest",
+    category: "compliance",
+    template: "What's the cheapest path to {regulation} compliance?",
+    requires: ["regulation"],
+  },
+  {
+    id: "comp-clearance",
+    category: "compliance",
+    template: "Draft a clearance plan for: {ipConcern}",
+    requires: ["ipConcern"],
+  },
+  {
+    id: "comp-checklist",
+    category: "compliance",
+    template: "Build a pre-launch {regulation} checklist with owners and dates.",
+    requires: ["regulation"],
+  },
+  {
+    id: "comp-defer",
+    category: "compliance",
+    template: "Which risks could I defer past MVP without regret?",
+  },
+
+  // Market
+  {
+    id: "mkt-exposed",
+    category: "market",
+    template: "Where am I most exposed against {competitor}?",
+    requires: ["competitor"],
+  },
+  {
+    id: "mkt-wedge",
+    category: "market",
+    template:
+      "What wedge could I take against {competitor} without starting a price war?",
+    requires: ["competitor"],
+  },
+  {
+    id: "mkt-indirect",
+    category: "market",
+    template: "How worried should I be about {indirectCompetitor} as an indirect substitute?",
+    requires: ["indirectCompetitor"],
+  },
+  {
+    id: "mkt-tail",
+    category: "market",
+    template: 'How do I ride the "{upTrend}" tailwind?',
+    requires: ["upTrend"],
+  },
+  {
+    id: "mkt-down",
+    category: "market",
+    template: 'What if "{downTrend}" accelerates?',
+    requires: ["downTrend"],
+  },
+  {
+    id: "mkt-moat",
+    category: "market",
+    template: 'How do I make "{differentiator}" defensible?',
+    requires: ["differentiator"],
+  },
+  {
+    id: "mkt-barrier",
+    category: "market",
+    template: 'What\'s the fastest way past the "{barrier}" barrier?',
+    requires: ["barrier"],
+  },
+  {
+    id: "mkt-bottoms",
+    category: "market",
+    template: "Stress-test my TAM/SAM/SOM with a bottoms-up build.",
+  },
+
+  // Sales & GTM
+  {
+    id: "sales-price",
+    category: "sales",
+    template: "Justify the {recommendedPrice} price point — or argue against it.",
+    requires: ["recommendedPrice"],
+  },
+  {
+    id: "sales-outreach",
+    category: "sales",
+    template: "Write 5 cold-outreach messages for {targetCustomer}.",
+    requires: ["targetCustomer"],
+  },
+  {
+    id: "sales-objections",
+    category: "sales",
+    template: "What objections will {targetCustomer} raise — and how do I handle each?",
+    requires: ["targetCustomer"],
+  },
+  {
+    id: "sales-plan",
+    category: "sales",
+    template: 'Turn "{topGtm}" into a 30-day execution plan.',
+    requires: ["topGtm"],
+  },
+  {
+    id: "sales-interviews",
+    category: "sales",
+    template: "Who should I talk to in my first 10 customer interviews?",
+  },
+  {
+    id: "sales-signals",
+    category: "sales",
+    template: "What signals would tell me to pivot vs. push?",
+  },
+];
+
+const CATEGORY_LABEL: Record<PromptCategory, string> = {
+  strategic: "🎯 Strategic",
+  compliance: "⚖️ Compliance",
+  market: "📊 Market",
+  sales: "💸 Sales & GTM",
+};
+
+export function extractTemplateVars(analysis: Analysis): TemplateVars {
+  const pillars = [
     { key: "compliance", score: analysis.compliance.score, label: "Compliance" },
     { key: "market", score: analysis.market.score, label: "Market" },
-    { key: "sales", score: analysis.sales.score, label: "Sales" },
-  ];
+    { key: "sales", score: analysis.sales.score, label: "Sales & GTM" },
+  ] as const;
   const weakest = [...pillars].sort((a, b) => a.score - b.score)[0];
 
-  // Compliance prompts
-  const topRisk = analysis.compliance.risks[0];
-  const topReg = analysis.compliance.regulations[0];
-  const ipConcern = analysis.compliance.ipConcerns[0];
-  const complianceItems: string[] = [];
-  if (topRisk)
-    complianceItems.push(`How do I de-risk "${topRisk.title}" before launch?`);
-  if (topReg)
-    complianceItems.push(`What's the cheapest path to ${topReg} compliance?`);
-  if (ipConcern) complianceItems.push(`Draft a clearance plan for: ${ipConcern}`);
-  complianceItems.push("Which risks could I defer past MVP without regret?");
-
-  // Market prompts
   const directComp = analysis.market.competitors.find((c) => c.type === "direct");
+  const indirectComp = analysis.market.competitors.find((c) => c.type === "indirect");
   const upTrend = analysis.market.trends.find((t) => t.direction === "up");
   const downTrend = analysis.market.trends.find((t) => t.direction === "down");
-  const differentiator = analysis.market.differentiation[0];
-  const marketItems: string[] = [];
-  if (directComp)
-    marketItems.push(`Where am I most exposed against ${directComp.name}?`);
-  if (upTrend) marketItems.push(`How do I ride the "${upTrend.title}" tailwind?`);
-  if (downTrend) marketItems.push(`What if "${downTrend.title}" accelerates?`);
-  if (differentiator)
-    marketItems.push(`How do I make "${differentiator}" defensible?`);
-  marketItems.push("Stress-test my TAM/SAM/SOM with a bottoms-up build.");
 
-  // Sales prompts
-  const recommendedPrice = analysis.sales.pricing.recommended;
-  const target = analysis.sales.targetCustomer;
-  const topGtm = analysis.sales.gtm[0];
-  const salesItems: string[] = [];
-  if (recommendedPrice)
-    salesItems.push(`Justify the ${recommendedPrice} price point — or argue against it.`);
-  if (target) salesItems.push(`Write 5 outreach messages for ${target}.`);
-  if (topGtm) salesItems.push(`Turn "${topGtm}" into a 30-day execution plan.`);
-  salesItems.push("Who should I talk to in my first 10 customer interviews?");
-  salesItems.push("What signals would tell me to pivot vs. push?");
+  return {
+    overallScore: String(analysis.overallScore),
+    weakestPillar: weakest.label,
+    topRisk: analysis.compliance.risks[0]?.title,
+    regulation: analysis.compliance.regulations[0],
+    ipConcern: analysis.compliance.ipConcerns[0],
+    competitor: directComp?.name,
+    indirectCompetitor: indirectComp?.name,
+    upTrend: upTrend?.title,
+    downTrend: downTrend?.title,
+    differentiator: analysis.market.differentiation[0],
+    barrier: analysis.market.barriers[0],
+    targetCustomer: analysis.sales.targetCustomer,
+    recommendedPrice: analysis.sales.pricing.recommended,
+    topGtm: analysis.sales.gtm[0],
+  };
+}
 
-  // Strategic / synthesis prompts
-  const strategicItems: string[] = [
-    `What's the single highest-leverage change to raise the ${analysis.overallScore}/100 score?`,
-    `Steelman the case AGAINST this idea in 5 bullets.`,
-    `If I had $25k and 90 days, what would you do first?`,
-    `What would a competitor do to kill this in 12 months?`,
-  ];
+export function renderTemplate(template: string, vars: TemplateVars): string | null {
+  let missing = false;
+  const out = template.replace(/\{(\w+)\}/g, (_, key: keyof TemplateVars) => {
+    const v = vars[key];
+    if (!v) {
+      missing = true;
+      return "";
+    }
+    return v;
+  });
+  return missing ? null : out;
+}
 
-  // Lead with the weakest pillar
-  const order: SuggestionGroup[] = [
-    { label: "🎯 Strategic", items: strategicItems.slice(0, 3) },
-    { label: "⚖️ Compliance", items: complianceItems.slice(0, 3) },
-    { label: "📊 Market", items: marketItems.slice(0, 3) },
-    { label: "💸 Sales & GTM", items: salesItems.slice(0, 3) },
-  ];
+type SuggestionGroup = { label: string; category: PromptCategory; items: string[] };
 
-  // Boost weakest pillar to the top (after Strategic)
-  const weakLabel =
-    weakest.key === "compliance"
-      ? "⚖️ Compliance"
-      : weakest.key === "market"
-        ? "📊 Market"
-        : "💸 Sales & GTM";
-  const weakIdx = order.findIndex((g) => g.label === weakLabel);
-  if (weakIdx > 1) {
-    const [g] = order.splice(weakIdx, 1);
-    order.splice(1, 0, g);
+function buildSuggestions(analysis: Analysis): SuggestionGroup[] {
+  const vars = extractTemplateVars(analysis);
+
+  const byCategory: Record<PromptCategory, string[]> = {
+    strategic: [],
+    compliance: [],
+    market: [],
+    sales: [],
+  };
+
+  for (const t of PROMPT_TEMPLATES) {
+    const required = t.requires ?? [];
+    if (required.some((k) => !vars[k])) continue;
+    const filled = renderTemplate(t.template, vars);
+    if (filled) byCategory[t.category].push(filled);
   }
 
-  for (const g of order) groups.push(g);
-  return groups;
+  const order: PromptCategory[] = ["strategic", "compliance", "market", "sales"];
+
+  // Boost the weakest pillar (after Strategic) to the top.
+  const pillars: { cat: PromptCategory; score: number }[] = [
+    { cat: "compliance", score: analysis.compliance.score },
+    { cat: "market", score: analysis.market.score },
+    { cat: "sales", score: analysis.sales.score },
+  ];
+  const weakest = [...pillars].sort((a, b) => a.score - b.score)[0]?.cat;
+  if (weakest) {
+    const idx = order.indexOf(weakest);
+    if (idx > 1) {
+      order.splice(idx, 1);
+      order.splice(1, 0, weakest);
+    }
+  }
+
+  return order
+    .map((cat) => ({
+      label: CATEGORY_LABEL[cat],
+      category: cat,
+      items: byCategory[cat].slice(0, 3),
+    }))
+    .filter((g) => g.items.length > 0);
 }
