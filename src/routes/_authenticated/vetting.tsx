@@ -530,6 +530,65 @@ function MarketPillar({ data }: { data: Analysis["market"] }) {
         <Stat label="SAM" value={data.sam} />
         <Stat label="SOM" value={data.som} />
       </div>
+      {data.sourcedSizing ? (
+        <div className="mt-3 space-y-2 rounded-xl border border-border bg-background/40 p-3">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+              Sourced sizing
+            </span>
+            <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] text-emerald-400">
+              Web-grounded · Perplexity
+            </span>
+          </div>
+          <dl className="space-y-1.5 text-[11px]">
+            {(["tam", "sam", "som"] as const).map((k) => (
+              <div key={k}>
+                <dt className="font-medium uppercase tracking-wider text-foreground">
+                  {k.toUpperCase()} · {data.sourcedSizing![k].value}
+                </dt>
+                <dd className="text-muted-foreground">{data.sourcedSizing![k].methodology}</dd>
+              </div>
+            ))}
+          </dl>
+          {data.sourcedSizing.assumptions.length > 0 && (
+            <div>
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+                Assumptions
+              </div>
+              <ul className="space-y-1 text-[11px] text-muted-foreground">
+                {data.sourcedSizing.assumptions.map((a) => (
+                  <li key={a} className="flex gap-2">
+                    <span className="text-ember">•</span>
+                    <span>{a}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {data.sourcedSizing.sources.length > 0 && (
+            <div>
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+                Sources
+              </div>
+              <ol className="space-y-1 text-[11px]">
+                {data.sourcedSizing.sources.map((s, i) => (
+                  <li key={s.url} className="flex gap-2">
+                    <span className="text-muted-foreground">[{i + 1}]</span>
+                    <a
+                      href={s.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-ember hover:underline truncate"
+                    >
+                      {s.title}
+                    </a>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
+        </div>
+      ) : null}
       <Expandable label="See competitors, trends & differentiation">
         <Section title="Competitor grid">
           <ul className="space-y-2">
