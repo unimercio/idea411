@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { motion } from "motion/react";
-import { ArrowRight, Flame, ImagePlus, Sparkles, X, History } from "lucide-react";
+import { ArrowRight, Flame, ImagePlus, Sparkles, X, History, Mail } from "lucide-react";
 import { z } from "zod";
 import { getProject, overallScore } from "@/lib/projects";
 
