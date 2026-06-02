@@ -838,8 +838,10 @@ function Bubble({ role, content }: { role: "user" | "assistant"; content: string
         {isUser ? (
           <p className="whitespace-pre-wrap">{content}</p>
         ) : (
-          <div className="prose prose-sm prose-invert max-w-none prose-p:my-1.5 prose-ul:my-1.5 prose-li:my-0 prose-headings:font-display prose-strong:text-foreground">
-            <ReactMarkdown>{content}</ReactMarkdown>
+          <div className="max-w-none text-sm leading-relaxed text-foreground/90 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
+            <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+              {content}
+            </ReactMarkdown>
           </div>
         )}
       </div>
