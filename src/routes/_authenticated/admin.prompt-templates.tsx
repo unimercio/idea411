@@ -596,12 +596,110 @@ function EditorDrawer({
             </Field>
           </div>
 
-          <div className="rounded-xl border border-border bg-background/40 p-3">
-            <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-              Preview
-            </p>
-            <p className="mt-1 text-sm">{renderPreview(draft.template || "—")}</p>
+          <div className="rounded-xl border border-border bg-background/40 p-4 space-y-3">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <FlaskConical className="h-4 w-4 text-ember" />
+                <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                  Test sandbox
+                </p>
+              </div>
+              <div className="flex items-center gap-1">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setSandbox(SAMPLE_PAYLOAD)}
+                  title="Load sample analysis payload"
+                >
+                  <Wand2 className="mr-1.5 h-3.5 w-3.5" /> Sample
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  onClick={() =>
+                    setSandbox(Object.fromEntries(sandboxKeys.map((k) => [k, ""])) as SampleVars)
+                  }
+                  title="Clear all sandbox values"
+                >
+                  <RotateCcw className="mr-1.5 h-3.5 w-3.5" /> Clear
+                </Button>
+              </div>
+            </div>
+
+            {sandboxKeys.length === 0 ? (
+              <p className="text-xs text-muted-foreground">
+                Add a <code className="rounded bg-muted px-1 py-0.5">{`{variable}`}</code>{" "}
+                placeholder to the template to populate the sandbox.
+              </p>
+            ) : (
+              <div className="grid gap-2 sm:grid-cols-2">
+                {sandboxKeys.map((k) => {
+                  const isRequired = draft.requires.includes(k);
+                  const isKnown = (KNOWN_VARIABLES as readonly string[]).includes(k);
+                  return (
+                    <label key={k} className="block space-y-1">
+                      <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                        <code className="text-foreground/80">{`{${k}}`}</code>
+                        {isRequired && (
+                          <span className="rounded-full bg-ember/15 px-1.5 py-0.5 text-[9px] uppercase tracking-wide text-ember">
+                            required
+                          </span>
+                        )}
+                        {!isKnown && (
+                          <span className="rounded-full border border-amber-500/40 px-1.5 py-0.5 text-[9px] uppercase tracking-wide text-amber-400">
+                            custom
+                          </span>
+                        )}
+                      </span>
+                      <Input
+                        value={sandbox[k as keyof SampleVars] ?? ""}
+                        onChange={(e) =>
+                          setSandbox({
+                            ...sandbox,
+                            [k]: e.target.value,
+                          } as SampleVars)
+                        }
+                        placeholder={
+                          SAMPLE_PAYLOAD[k as keyof SampleVars] ?? `Sample ${k}`
+                        }
+                        className="h-8 text-xs"
+                      />
+                    </label>
+                  );
+                })}
+              </div>
+            )}
+
+            <div className="border-t border-border/60 pt-3 space-y-2">
+              <div className="flex items-center gap-2">
+                {wouldShow ? (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-400">
+                    <CheckCircle2 className="h-3 w-3" /> Would show to user
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-destructive/40 bg-destructive/10 px-2 py-0.5 text-[10px] font-medium text-destructive">
+                    <EyeOff className="h-3 w-3" />
+                    {draft.template.trim().length === 0
+                      ? "Empty template"
+                      : `Hidden — missing ${missing.map((m) => `{${m}}`).join(", ")}`}
+                  </span>
+                )}
+              </div>
+              <div className="rounded-lg border border-border bg-card/60 px-3 py-2.5">
+                <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                  Rendered prompt
+                </p>
+                <p className="mt-1 text-sm text-foreground">
+                  {draft.template.trim().length === 0
+                    ? "—"
+                    : renderPreview(rendered)}
+                </p>
+              </div>
+            </div>
           </div>
+
         </div>
 
         <div className="flex items-center justify-end gap-2 border-t border-border px-6 py-4">
