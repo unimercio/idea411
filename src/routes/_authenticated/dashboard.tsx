@@ -32,6 +32,21 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 function DashboardPage() {
   const projects = useProjects();
   const navigate = useNavigate();
+  const [isAuthed, setIsAuthed] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      if (mounted) setIsAuthed(!!session);
+    });
+    supabase.auth.getSession().then(({ data }) => {
+      if (mounted) setIsAuthed(!!data.session);
+    });
+    return () => {
+      mounted = false;
+      sub.subscription.unsubscribe();
+    };
+  }, []);
 
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut();
@@ -42,6 +57,7 @@ function DashboardPage() {
     toast.success("Signed out.");
     navigate({ to: "/", replace: true });
   };
+
 
   return (
     <main className="min-h-screen bg-background text-foreground">
