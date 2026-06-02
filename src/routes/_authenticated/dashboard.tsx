@@ -70,12 +70,23 @@ function DashboardPage() {
             IdeaForge
           </Link>
           <div className="flex items-center gap-2">
-            <button
-              onClick={handleSignOut}
-              className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground px-3 py-2"
-            >
-              Sign out
-            </button>
+            {isAuthed === true ? (
+              <button
+                onClick={handleSignOut}
+                className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground px-3 py-2"
+              >
+                Sign out
+              </button>
+            ) : isAuthed === false ? (
+              <Link
+                to="/auth"
+                className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground px-3 py-2"
+              >
+                Sign in
+              </Link>
+            ) : (
+              <span className="inline-flex w-16" aria-hidden />
+            )}
             <Link
               to="/intake"
               className="inline-flex items-center gap-2 rounded-full bg-gradient-ember px-4 py-2 text-sm font-medium text-ember-foreground shadow-ember hover:brightness-110 transition"
