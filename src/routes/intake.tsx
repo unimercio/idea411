@@ -9,7 +9,7 @@ const searchSchema = z.object({
   refine: z.string().trim().min(1).max(64).optional().catch(undefined),
 });
 
-export const Route = createFileRoute("/_authenticated/intake")({
+export const Route = createFileRoute("/intake")({
   validateSearch: searchSchema,
   head: () => ({
     meta: [
