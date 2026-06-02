@@ -28,6 +28,7 @@ import { z } from "zod";
 import { analyzeIdea, type Analysis } from "@/lib/api/vetting.functions";
 import { chatAboutIdea } from "@/lib/api/vetting-chat.functions";
 import { researchMarketSize } from "@/lib/api/market-research.functions";
+import { listPromptTemplates } from "@/lib/api/prompt-templates.functions";
 import {
   createProject,
   getProject,
