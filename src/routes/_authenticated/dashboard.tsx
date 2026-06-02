@@ -1,10 +1,13 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import { useServerFn } from "@tanstack/react-start";
+import { useQuery } from "@tanstack/react-query";
 import {
   ArrowRight,
   Flame,
   Plus,
+  Settings,
   Sparkles,
   Trash2,
 } from "lucide-react";
@@ -17,6 +20,7 @@ import {
   type Project,
 } from "@/lib/projects";
 import { supabase } from "@/integrations/supabase/client";
+import { checkAdmin } from "@/lib/api/prompt-templates.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -48,6 +52,14 @@ function DashboardPage() {
     };
   }, []);
 
+  const checkAdminFn = useServerFn(checkAdmin);
+  const adminQuery = useQuery({
+    queryKey: ["isAdmin"],
+    queryFn: () => checkAdminFn(),
+    enabled: isAuthed === true,
+  });
+  const isAdmin = adminQuery.data?.isAdmin === true;
+
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
@@ -70,6 +82,15 @@ function DashboardPage() {
             IdeaForge
           </Link>
           <div className="flex items-center gap-2">
+            {isAdmin && (
+              <Link
+                to="/admin/prompt-templates"
+                className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground px-3 py-2"
+                title="Manage prompt templates"
+              >
+                <Settings className="h-4 w-4" /> Templates
+              </Link>
+            )}
             {isAuthed === true ? (
               <button
                 onClick={handleSignOut}

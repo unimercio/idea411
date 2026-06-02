@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useServerFn } from "@tanstack/react-start";
+import { useQuery } from "@tanstack/react-query";
 import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import {
@@ -27,6 +28,7 @@ import { z } from "zod";
 import { analyzeIdea, type Analysis } from "@/lib/api/vetting.functions";
 import { chatAboutIdea } from "@/lib/api/vetting-chat.functions";
 import { researchMarketSize } from "@/lib/api/market-research.functions";
+import { listPromptTemplates } from "@/lib/api/prompt-templates.functions";
 import {
   createProject,
   getProject,
@@ -736,7 +738,29 @@ function ChatPanel({
     }
   }
 
-  const suggestionGroups = useMemo(() => buildSuggestions(analysis), [analysis]);
+  const listTemplatesFn = useServerFn(listPromptTemplates);
+  const templatesQuery = useQuery({
+    queryKey: ["promptTemplates", "vetting"],
+    queryFn: () => listTemplatesFn(),
+    staleTime: 5 * 60 * 1000,
+  });
+  const dbTemplates = useMemo(
+    () =>
+      (templatesQuery.data?.templates ?? [])
+        .filter((t) => t.enabled)
+        .map((t) => ({
+          id: t.slug,
+          category: t.category,
+          template: t.template,
+          requires: t.requires as (keyof TemplateVars)[],
+        })),
+    [templatesQuery.data],
+  );
+
+  const suggestionGroups = useMemo(
+    () => buildSuggestions(analysis, dbTemplates.length > 0 ? dbTemplates : undefined),
+    [analysis, dbTemplates],
+  );
   const quickSuggestions = useMemo(
     () => suggestionGroups.flatMap((g) => g.items).slice(0, 3),
     [suggestionGroups],
@@ -1382,7 +1406,11 @@ export function renderTemplate(template: string, vars: TemplateVars): string | n
 
 type SuggestionGroup = { label: string; category: PromptCategory; items: string[] };
 
-function buildSuggestions(analysis: Analysis): SuggestionGroup[] {
+function buildSuggestions(
+  analysis: Analysis,
+  templatesOverride?: PromptTemplate[],
+): SuggestionGroup[] {
+  const templates = templatesOverride ?? PROMPT_TEMPLATES;
   const vars = extractTemplateVars(analysis);
 
   const byCategory: Record<PromptCategory, string[]> = {
@@ -1392,7 +1420,7 @@ function buildSuggestions(analysis: Analysis): SuggestionGroup[] {
     sales: [],
   };
 
-  for (const t of PROMPT_TEMPLATES) {
+  for (const t of templates) {
     const required = t.requires ?? [];
     if (required.some((k) => !vars[k])) continue;
     const filled = renderTemplate(t.template, vars);
