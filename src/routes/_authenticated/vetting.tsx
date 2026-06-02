@@ -1420,7 +1420,7 @@ function buildSuggestions(
     sales: [],
   };
 
-  for (const t of PROMPT_TEMPLATES) {
+  for (const t of templates) {
     const required = t.requires ?? [];
     if (required.some((k) => !vars[k])) continue;
     const filled = renderTemplate(t.template, vars);
