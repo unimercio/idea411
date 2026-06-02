@@ -1,7 +1,10 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Flame } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
+import { checkAdmin } from "@/lib/api/prompt-templates.functions";
 import { toast } from "sonner";
 
 export function Nav() {
@@ -21,6 +24,15 @@ export function Nav() {
       sub.subscription.unsubscribe();
     };
   }, []);
+
+  const checkAdminFn = useServerFn(checkAdmin);
+  const adminQuery = useQuery({
+    queryKey: ["isAdmin"],
+    queryFn: () => checkAdminFn(),
+    enabled: isAuthed === true,
+  });
+  const isAdmin = adminQuery.data?.isAdmin === true;
+
 
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut();
