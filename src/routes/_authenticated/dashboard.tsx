@@ -20,7 +20,7 @@ import {
   type Project,
 } from "@/lib/projects";
 import { supabase } from "@/integrations/supabase/client";
-import { checkAdmin } from "@/lib/api/prompt-templates.functions";
+import { checkAdmin, claimFirstAdmin } from "@/lib/api/prompt-templates.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
