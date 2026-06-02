@@ -53,6 +53,45 @@ VITE_SUPABASE_PROJECT_ID=...
 Do not edit `.env` or files under `src/integrations/supabase/` by hand —
 they are managed automatically.
 
+## Architecture overview
+
+IdeaForge is a single TanStack Start app that drives a **Concept → Market**
+pipeline. The browser renders React routes; all business logic runs in
+TanStack **server functions** (`createServerFn`) that talk to Supabase
+(Postgres + Storage + Auth) and the Lovable AI Gateway.
+
+```mermaid
+flowchart LR
+    U[User] --> Intake[Intake]
+    Intake --> Vet[Vetting Chat]
+    Vet --> Pipe{{Vetting Pipeline}}
+    Pipe --> Strat[Strategic]
+    Pipe --> Comp[Compliance]
+    Pipe --> Mkt[Market]
+    Pipe --> Sales[Demand]
+    Strat & Comp & Mkt & Sales --> Report[Opportunity Report]
+    Pipe -.-> AI[Lovable AI Gateway]
+    Pipe -.-> DB[(Supabase)]
+```
+
+The full architecture diagram (services, server functions, RLS-scoped DB
+access, admin path) is rendered from
+[`docs/architecture.mmd`](docs/architecture.mmd).
+
+**Major services**
+
+| Layer            | Module                                                       | Responsibility                                      |
+| ---------------- | ------------------------------------------------------------ | --------------------------------------------------- |
+| Auth gate        | `src/routes/_authenticated.tsx`                              | Redirects unauthenticated users to `/auth`          |
+| Intake           | `src/routes/_authenticated/intake.tsx`                       | Capture the raw concept                             |
+| Vetting chat     | `src/lib/api/vetting-chat.functions.ts`                      | AI Q&A that refines the concept                     |
+| Vetting pipeline | `src/lib/api/vetting.functions.ts`                           | Runs strategic / compliance / market / sales passes |
+| Market research  | `src/lib/api/market-research.functions.ts`                   | Competitor + trend analysis                         |
+| Prompt admin     | `src/lib/api/prompt-templates.functions.ts`                  | Admin-only CRUD over LLM prompt templates           |
+| User settings    | `src/lib/api/settings.functions.ts`                          | Profile, avatar (Supabase Storage)                  |
+| Data + RBAC      | `supabase/migrations/*`                                      | RLS, `has_role()`, `admin_exists()`, triggers       |
+
+
 ## Project structure
 
 ```
