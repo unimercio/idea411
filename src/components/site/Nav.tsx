@@ -58,6 +58,9 @@ export function Nav() {
             {isAuthed === true && (
               <Link to="/dashboard" className="hover:text-foreground transition-colors">Projects</Link>
             )}
+            {isAdmin && (
+              <Link to="/admin/prompt-templates" className="hover:text-foreground transition-colors">Admin</Link>
+            )}
           </nav>
           <div className="flex items-center gap-2">
             {isAuthed === true ? (
