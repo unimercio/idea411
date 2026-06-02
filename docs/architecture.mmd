@@ -1,0 +1,39 @@
+flowchart TD
+    U[User] -->|signs in| Auth[Auth Route<br/>Email + Google]
+    Auth --> Dash[Dashboard]
+
+    Dash --> Intake[Intake<br/>Capture raw concept]
+    Intake --> Vet[Vetting Chat<br/>AI Q&A refinement]
+    Vet --> Pipe{{Vetting Pipeline}}
+
+    Pipe --> Strat[Strategic Analysis]
+    Pipe --> Comp[Compliance Analysis]
+    Pipe --> Mkt[Market Research]
+    Pipe --> Sales[Demand / Sales Analysis]
+
+    Strat --> Report[Opportunity Report<br/>PDF export]
+    Comp --> Report
+    Mkt --> Report
+    Sales --> Report
+
+    subgraph SF[TanStack Server Functions]
+        VetFn[vetting.functions]
+        ChatFn[vetting-chat.functions]
+        MktFn[market-research.functions]
+        TplFn[prompt-templates.functions]
+        SetFn[settings.functions]
+    end
+
+    Vet -.calls.-> ChatFn
+    Pipe -.calls.-> VetFn
+    Mkt -.calls.-> MktFn
+
+    SF -->|RLS scoped| DB[(Supabase Postgres<br/>profiles · user_roles<br/>prompt_templates · vettings)]
+    SF -->|prompts| AI[Lovable AI Gateway<br/>Gemini / GPT-5]
+    SetFn --> Storage[(Storage: avatars)]
+
+    Admin[Admin Panel<br/>/admin/prompt-templates] -->|has_role admin| TplFn
+    TplFn --> DB
+
+    classDef svc fill:transparent,stroke-width:2px;
+    class SF,Pipe svc;
