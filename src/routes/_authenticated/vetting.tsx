@@ -25,6 +25,7 @@ import {
 import { z } from "zod";
 import { analyzeIdea, type Analysis } from "@/lib/api/vetting.functions";
 import { chatAboutIdea } from "@/lib/api/vetting-chat.functions";
+import { researchMarketSize } from "@/lib/api/market-research.functions";
 import {
   createProject,
   getProject,
@@ -58,6 +59,7 @@ function VettingPage() {
   const { idea: ideaParam, id: idParam } = Route.useSearch();
   const navigate = useNavigate();
   const runAnalysis = useServerFn(analyzeIdea);
+  const runSizing = useServerFn(researchMarketSize);
 
   // Resolve / create project once.
   const projectRef = useRef<{ id: string; idea: string; sketchName?: string } | null>(null);
@@ -106,7 +108,19 @@ function VettingPage() {
     setLoading(true);
     setError(null);
     try {
-      const result = await runAnalysis({ data: { idea, sketchName } });
+      const [result, sizingResult] = await Promise.all([
+        runAnalysis({ data: { idea, sketchName } }),
+        runSizing({ data: { idea } }).catch((err) => {
+          console.warn("Sourced market sizing failed:", err);
+          return null;
+        }),
+      ]);
+      if (sizingResult) {
+        result.market.sourcedSizing = sizingResult;
+        result.market.tam = sizingResult.tam.value;
+        result.market.sam = sizingResult.sam.value;
+        result.market.som = sizingResult.som.value;
+      }
       setAnalysis(result);
       const scores = {
         compliance: Math.round(result.compliance.score * 10),
