@@ -1,11 +1,17 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Flame, Mail } from "lucide-react";
 import { useEffect, useState } from "react";
+import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { toast } from "sonner";
 
+const searchSchema = z.object({
+  redirect: z.string().trim().min(1).max(512).optional().catch(undefined),
+});
+
 export const Route = createFileRoute("/auth")({
+  validateSearch: searchSchema,
   head: () => ({
     meta: [
       { title: "Sign in — IdeaForge" },
@@ -17,6 +23,8 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const navigate = useNavigate();
+  const { redirect: redirectTo } = Route.useSearch();
+  const dest = redirectTo && redirectTo.startsWith("/") ? redirectTo : "/dashboard";
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -26,13 +34,14 @@ function AuthPage() {
   // Redirect when authenticated
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/dashboard", replace: true });
+      if (data.session) navigate({ to: dest, replace: true });
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
-      if (session) navigate({ to: "/dashboard", replace: true });
+      if (session) navigate({ to: dest, replace: true });
     });
     return () => sub.subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, dest]);
+
 
   const friendlyError = (msg: string) => {
     if (/rate limit|after \d+ seconds/i.test(msg)) {
@@ -53,7 +62,7 @@ function AuthPage() {
         const { error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: `${window.location.origin}/dashboard` },
+          options: { emailRedirectTo: `${window.location.origin}${dest}` },
         });
         if (error) throw error;
         setSentTo(email);
@@ -75,7 +84,7 @@ function AuthPage() {
     setLoading(true);
     try {
       const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin + "/dashboard",
+        redirect_uri: window.location.origin + dest,
       });
       if (result.error) {
         toast.error(result.error.message || "Google sign-in failed");
