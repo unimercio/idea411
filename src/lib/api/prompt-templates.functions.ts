@@ -144,12 +144,16 @@ export const checkAdmin = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
-    const { data, error } = await supabase.rpc("has_role", {
-      _user_id: userId,
-      _role: "admin",
-    });
-    if (error) throw new Error(error.message);
-    return { isAdmin: Boolean(data) };
+    const [roleRes, existsRes] = await Promise.all([
+      supabase.rpc("has_role", { _user_id: userId, _role: "admin" }),
+      supabase.rpc("admin_exists"),
+    ]);
+    if (roleRes.error) throw new Error(roleRes.error.message);
+    if (existsRes.error) throw new Error(existsRes.error.message);
+    return {
+      isAdmin: Boolean(roleRes.data),
+      adminExists: Boolean(existsRes.data),
+    };
   });
 
 export const claimFirstAdmin = createServerFn({ method: "POST" })

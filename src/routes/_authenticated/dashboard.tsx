@@ -62,6 +62,7 @@ function DashboardPage() {
     enabled: isAuthed === true,
   });
   const isAdmin = adminQuery.data?.isAdmin === true;
+  const adminExists = adminQuery.data?.adminExists === true;
   const claimFn = useServerFn(claimFirstAdmin);
   const [claiming, setClaiming] = useState(false);
   const handleClaimAdmin = async () => {
@@ -112,7 +113,7 @@ function DashboardPage() {
                 <Settings className="h-4 w-4" /> Templates
               </Link>
             )}
-            {isAuthed === true && !isAdmin && adminQuery.isFetched && (
+            {isAuthed === true && !isAdmin && !adminExists && adminQuery.isFetched && (
               <button
                 onClick={handleClaimAdmin}
                 disabled={claiming}
