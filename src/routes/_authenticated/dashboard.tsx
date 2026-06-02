@@ -59,6 +59,24 @@ function DashboardPage() {
     enabled: isAuthed === true,
   });
   const isAdmin = adminQuery.data?.isAdmin === true;
+  const claimFn = useServerFn(claimFirstAdmin);
+  const [claiming, setClaiming] = useState(false);
+  const handleClaimAdmin = async () => {
+    setClaiming(true);
+    try {
+      const res = await claimFn();
+      if (res.claimed) {
+        toast.success("You are now the admin.");
+        adminQuery.refetch();
+      } else {
+        toast.error("An admin already exists.");
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to claim admin");
+    } finally {
+      setClaiming(false);
+    }
+  };
 
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut();
