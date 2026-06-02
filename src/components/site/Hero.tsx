@@ -1,5 +1,5 @@
 import { motion } from "motion/react";
-import { ArrowRight, Sparkles, Upload } from "lucide-react";
+import { ArrowRight, Sparkles, Upload, Mail } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import heroImg from "@/assets/hero-forge.jpg";
@@ -7,9 +7,11 @@ import heroImg from "@/assets/hero-forge.jpg";
 export function Hero() {
   const navigate = useNavigate();
   const [idea, setIdea] = useState("");
+  const [email, setEmail] = useState("");
   const go = () => {
-    if (typeof window !== "undefined" && idea.trim()) {
-      sessionStorage.setItem("idea-draft", idea.trim());
+    if (typeof window !== "undefined") {
+      if (idea.trim()) sessionStorage.setItem("idea-draft", idea.trim());
+      if (email.trim()) sessionStorage.setItem("idea-email", email.trim());
     }
     navigate({ to: "/intake" });
   };
@@ -63,6 +65,20 @@ export function Hero() {
               placeholder="A modular ceramic cookware system that retains heat 3× longer than cast iron…"
               className="w-full resize-none bg-transparent text-base placeholder:text-muted-foreground/60 focus:outline-none"
             />
+            <div className="mt-4 flex items-center gap-2 rounded-xl border border-border bg-background/40 px-3 py-2 focus-within:border-ember/60">
+              <Mail className="h-4 w-4 text-muted-foreground" />
+              <input
+                id="email"
+                type="email"
+                inputMode="email"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                maxLength={255}
+                placeholder="you@company.com — we'll email you the report link (optional)"
+                className="w-full bg-transparent text-sm placeholder:text-muted-foreground/60 focus:outline-none"
+              />
+            </div>
             <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
               <span className="inline-flex items-center gap-2 rounded-full border border-border bg-secondary/60 px-3 py-1.5 text-xs text-muted-foreground">
                 <Upload className="h-3.5 w-3.5" /> Sketches supported in the next step
@@ -78,7 +94,7 @@ export function Hero() {
             </div>
           </div>
           <p className="px-4 py-3 text-center text-xs text-muted-foreground">
-            No account needed to try · Sign up to save your reports
+            No account needed · Add your email to get the report link sent to you
           </p>
         </motion.div>
 
