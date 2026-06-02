@@ -16,6 +16,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedVettingRouteImport } from './routes/_authenticated/vetting'
 import { Route as AuthenticatedIntakeRouteImport } from './routes/_authenticated/intake'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedAdminPromptTemplatesRouteImport } from './routes/_authenticated/admin.prompt-templates'
 
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
@@ -51,6 +52,12 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedAdminPromptTemplatesRoute =
+  AuthenticatedAdminPromptTemplatesRouteImport.update({
+    id: '/admin/prompt-templates',
+    path: '/admin/prompt-templates',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -59,6 +66,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/intake': typeof AuthenticatedIntakeRoute
   '/vetting': typeof AuthenticatedVettingRoute
+  '/admin/prompt-templates': typeof AuthenticatedAdminPromptTemplatesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -67,6 +75,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/intake': typeof AuthenticatedIntakeRoute
   '/vetting': typeof AuthenticatedVettingRoute
+  '/admin/prompt-templates': typeof AuthenticatedAdminPromptTemplatesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -77,12 +86,27 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/intake': typeof AuthenticatedIntakeRoute
   '/_authenticated/vetting': typeof AuthenticatedVettingRoute
+  '/_authenticated/admin/prompt-templates': typeof AuthenticatedAdminPromptTemplatesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/contact' | '/dashboard' | '/intake' | '/vetting'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/contact'
+    | '/dashboard'
+    | '/intake'
+    | '/vetting'
+    | '/admin/prompt-templates'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/contact' | '/dashboard' | '/intake' | '/vetting'
+  to:
+    | '/'
+    | '/auth'
+    | '/contact'
+    | '/dashboard'
+    | '/intake'
+    | '/vetting'
+    | '/admin/prompt-templates'
   id:
     | '__root__'
     | '/'
@@ -92,6 +116,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/intake'
     | '/_authenticated/vetting'
+    | '/_authenticated/admin/prompt-templates'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -152,6 +177,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/admin/prompt-templates': {
+      id: '/_authenticated/admin/prompt-templates'
+      path: '/admin/prompt-templates'
+      fullPath: '/admin/prompt-templates'
+      preLoaderRoute: typeof AuthenticatedAdminPromptTemplatesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
@@ -159,12 +191,15 @@ interface AuthenticatedRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedIntakeRoute: typeof AuthenticatedIntakeRoute
   AuthenticatedVettingRoute: typeof AuthenticatedVettingRoute
+  AuthenticatedAdminPromptTemplatesRoute: typeof AuthenticatedAdminPromptTemplatesRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedIntakeRoute: AuthenticatedIntakeRoute,
   AuthenticatedVettingRoute: AuthenticatedVettingRoute,
+  AuthenticatedAdminPromptTemplatesRoute:
+    AuthenticatedAdminPromptTemplatesRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
@@ -180,3 +215,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
