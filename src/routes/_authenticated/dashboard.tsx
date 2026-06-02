@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
   ArrowRight,
@@ -31,6 +32,21 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 function DashboardPage() {
   const projects = useProjects();
   const navigate = useNavigate();
+  const [isAuthed, setIsAuthed] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      if (mounted) setIsAuthed(!!session);
+    });
+    supabase.auth.getSession().then(({ data }) => {
+      if (mounted) setIsAuthed(!!data.session);
+    });
+    return () => {
+      mounted = false;
+      sub.subscription.unsubscribe();
+    };
+  }, []);
 
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut();
@@ -41,6 +57,7 @@ function DashboardPage() {
     toast.success("Signed out.");
     navigate({ to: "/", replace: true });
   };
+
 
   return (
     <main className="min-h-screen bg-background text-foreground">
@@ -53,12 +70,23 @@ function DashboardPage() {
             IdeaForge
           </Link>
           <div className="flex items-center gap-2">
-            <button
-              onClick={handleSignOut}
-              className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground px-3 py-2"
-            >
-              Sign out
-            </button>
+            {isAuthed === true ? (
+              <button
+                onClick={handleSignOut}
+                className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground px-3 py-2"
+              >
+                Sign out
+              </button>
+            ) : isAuthed === false ? (
+              <Link
+                to="/auth"
+                className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground px-3 py-2"
+              >
+                Sign in
+              </Link>
+            ) : (
+              <span className="inline-flex w-16" aria-hidden />
+            )}
             <Link
               to="/intake"
               className="inline-flex items-center gap-2 rounded-full bg-gradient-ember px-4 py-2 text-sm font-medium text-ember-foreground shadow-ember hover:brightness-110 transition"
