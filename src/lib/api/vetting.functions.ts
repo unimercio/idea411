@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { sourcedSizingSchema } from "./market-research.functions";
 
 // ───────── Shared analysis schema (mirrors the AI tool-call output) ─────────
 export const severitySchema = z.enum(["low", "medium", "high"]);
@@ -52,6 +53,7 @@ export const analysisSchema = z.object({
       .max(6),
     barriers: z.array(z.string()).max(6),
     differentiation: z.array(z.string()).max(6),
+    sourcedSizing: sourcedSizingSchema.optional(),
   }),
   sales: z.object({
     score: z.number().min(1).max(10),
