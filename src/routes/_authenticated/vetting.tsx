@@ -766,12 +766,38 @@ function ChatPanel({
         className="max-h-[420px] min-h-[140px] overflow-y-auto px-6 py-5 space-y-4"
       >
         {messages.length === 0 && (
-          <div className="flex flex-wrap gap-2">
-            {suggestions.map((s) => (
+          <div className="space-y-4">
+            <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+              Suggested prompts · tailored to your report
+            </p>
+            {suggestionGroups.map((group) => (
+              <div key={group.label} className="space-y-1.5">
+                <p className="text-[11px] font-semibold text-foreground/70">{group.label}</p>
+                <div className="flex flex-wrap gap-2">
+                  {group.items.map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => send(s)}
+                      className="rounded-full border border-border bg-background/60 px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:border-ember/40 hover:bg-background transition text-left"
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        {messages.length > 0 && !sending && quickSuggestions.length > 0 && (
+          <div className="flex flex-wrap gap-2 pt-2">
+            <span className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground self-center">
+              Try
+            </span>
+            {quickSuggestions.map((s) => (
               <button
                 key={s}
                 onClick={() => send(s)}
-                className="rounded-full border border-border bg-background/60 px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:border-ember/40 transition"
+                className="rounded-full border border-border/60 bg-background/40 px-2.5 py-1 text-[11px] text-muted-foreground hover:text-foreground hover:border-ember/40 transition"
               >
                 {s}
               </button>
