@@ -110,7 +110,7 @@ function DashboardPage() {
                 className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground px-3 py-2"
                 title="Manage prompt templates"
               >
-                <Settings className="h-4 w-4" /> Templates
+                <Settings className="h-4 w-4" /> Admin
               </Link>
             )}
             {isAuthed === true && !isAdmin && !adminExists && adminQuery.isFetched && (
