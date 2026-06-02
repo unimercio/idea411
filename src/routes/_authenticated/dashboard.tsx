@@ -15,6 +15,8 @@ import {
   type Iteration,
   type Project,
 } from "@/lib/projects";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
