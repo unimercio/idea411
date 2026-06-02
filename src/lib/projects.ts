@@ -21,6 +21,7 @@ export type Project = {
   title: string;
   idea: string;
   sketchName?: string;
+  email?: string;
   createdAt: number;
   updatedAt: number;
   scores?: ProjectScores;
