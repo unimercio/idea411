@@ -86,6 +86,98 @@ const SAMPLE_PAYLOAD: Required<SampleVars> = {
   topGtm: "Launch on Kickstarter with creator partnerships",
 };
 
+/**
+ * Preset payload scenarios for the sandbox. Each scenario is a partial override
+ * of SAMPLE_PAYLOAD — missing keys are blanked out so admins can quickly see
+ * how templates degrade when expected variables are absent or unknown.
+ */
+type ScenarioPreset = {
+  id: string;
+  label: string;
+  description: string;
+  overrides: SampleVars;
+  /** Keys to explicitly blank (simulating "missing" data). */
+  blanks?: (keyof SampleVars)[];
+};
+
+const SCENARIO_PRESETS: ScenarioPreset[] = [
+  {
+    id: "full",
+    label: "Full payload",
+    description: "Every variable populated with realistic values.",
+    overrides: SAMPLE_PAYLOAD,
+  },
+  {
+    id: "missing-regulation",
+    label: "Missing regulation",
+    description: "Analysis returned no specific regulation hit.",
+    overrides: {},
+    blanks: ["regulation", "ipConcern"],
+  },
+  {
+    id: "unknown-competitor",
+    label: "Unknown competitor",
+    description: "No direct competitor identified by the analyst.",
+    overrides: {},
+    blanks: ["competitor", "indirectCompetitor"],
+  },
+  {
+    id: "weak-market",
+    label: "Weak market signal",
+    description: "No trend data and no clear target customer.",
+    overrides: {},
+    blanks: ["upTrend", "downTrend", "targetCustomer"],
+  },
+  {
+    id: "no-pricing",
+    label: "No pricing/GTM",
+    description: "Sales pillar incomplete — no price or GTM recommendation.",
+    overrides: {},
+    blanks: ["recommendedPrice", "topGtm", "differentiator"],
+  },
+  {
+    id: "low-score",
+    label: "Low overall score",
+    description: "Struggling idea with compliance as weakest pillar.",
+    overrides: {
+      overallScore: "34",
+      weakestPillar: "Compliance",
+      topRisk: "FDA medical-device classification unclear",
+    },
+  },
+  {
+    id: "minimal",
+    label: "Minimal payload",
+    description: "Only the score and weakest pillar are known.",
+    overrides: {
+      overallScore: "58",
+      weakestPillar: "Market",
+    },
+    blanks: [
+      "topRisk",
+      "regulation",
+      "ipConcern",
+      "competitor",
+      "indirectCompetitor",
+      "upTrend",
+      "downTrend",
+      "differentiator",
+      "barrier",
+      "targetCustomer",
+      "recommendedPrice",
+      "topGtm",
+    ],
+  },
+];
+
+function applyScenario(preset: ScenarioPreset): SampleVars {
+  const base: SampleVars = { ...SAMPLE_PAYLOAD, ...preset.overrides };
+  for (const k of preset.blanks ?? []) {
+    base[k] = "";
+  }
+  return base;
+}
+
 function renderTemplateWithVars(
   template: string,
   vars: SampleVars,
@@ -627,6 +719,23 @@ function EditorDrawer({
                 </Button>
               </div>
             </div>
+
+            <div className="flex flex-wrap gap-1.5">
+              {SCENARIO_PRESETS.map((preset) => (
+                <Button
+                  key={preset.id}
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setSandbox(applyScenario(preset))}
+                  title={preset.description}
+                  className="h-7 rounded-full px-2.5 text-[11px]"
+                >
+                  {preset.label}
+                </Button>
+              ))}
+            </div>
+
 
             {sandboxKeys.length === 0 ? (
               <p className="text-xs text-muted-foreground">
