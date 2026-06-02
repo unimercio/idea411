@@ -41,7 +41,7 @@ const search = z.object({
   id: z.string().trim().min(1).max(64).optional().catch(undefined),
 });
 
-export const Route = createFileRoute("/_authenticated/vetting")({
+export const Route = createFileRoute("/vetting")({
   validateSearch: search,
   head: () => ({
     meta: [

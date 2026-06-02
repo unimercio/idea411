@@ -9,16 +9,20 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as IntakeRouteImport } from './routes/intake'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthenticatedVettingRouteImport } from './routes/_authenticated/vetting'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
-import { Route as AuthenticatedIntakeRouteImport } from './routes/_authenticated/intake'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAdminPromptTemplatesRouteImport } from './routes/_authenticated/admin.prompt-templates'
 
+const IntakeRoute = IntakeRouteImport.update({
+  id: '/intake',
+  path: '/intake',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
@@ -38,19 +42,9 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedVettingRoute = AuthenticatedVettingRouteImport.update({
-  id: '/vetting',
-  path: '/vetting',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedIntakeRoute = AuthenticatedIntakeRouteImport.update({
-  id: '/intake',
-  path: '/intake',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
@@ -69,20 +63,18 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
+  '/intake': typeof IntakeRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/intake': typeof AuthenticatedIntakeRoute
   '/settings': typeof AuthenticatedSettingsRoute
-  '/vetting': typeof AuthenticatedVettingRoute
   '/admin/prompt-templates': typeof AuthenticatedAdminPromptTemplatesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
+  '/intake': typeof IntakeRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/intake': typeof AuthenticatedIntakeRoute
   '/settings': typeof AuthenticatedSettingsRoute
-  '/vetting': typeof AuthenticatedVettingRoute
   '/admin/prompt-templates': typeof AuthenticatedAdminPromptTemplatesRoute
 }
 export interface FileRoutesById {
@@ -91,10 +83,9 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
+  '/intake': typeof IntakeRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
-  '/_authenticated/intake': typeof AuthenticatedIntakeRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
-  '/_authenticated/vetting': typeof AuthenticatedVettingRoute
   '/_authenticated/admin/prompt-templates': typeof AuthenticatedAdminPromptTemplatesRoute
 }
 export interface FileRouteTypes {
@@ -103,20 +94,18 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/contact'
-    | '/dashboard'
     | '/intake'
+    | '/dashboard'
     | '/settings'
-    | '/vetting'
     | '/admin/prompt-templates'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
     | '/contact'
-    | '/dashboard'
     | '/intake'
+    | '/dashboard'
     | '/settings'
-    | '/vetting'
     | '/admin/prompt-templates'
   id:
     | '__root__'
@@ -124,10 +113,9 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/contact'
+    | '/intake'
     | '/_authenticated/dashboard'
-    | '/_authenticated/intake'
     | '/_authenticated/settings'
-    | '/_authenticated/vetting'
     | '/_authenticated/admin/prompt-templates'
   fileRoutesById: FileRoutesById
 }
@@ -136,10 +124,18 @@ export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   AuthRoute: typeof AuthRoute
   ContactRoute: typeof ContactRoute
+  IntakeRoute: typeof IntakeRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/intake': {
+      id: '/intake'
+      path: '/intake'
+      fullPath: '/intake'
+      preLoaderRoute: typeof IntakeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/contact': {
       id: '/contact'
       path: '/contact'
@@ -168,25 +164,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/vetting': {
-      id: '/_authenticated/vetting'
-      path: '/vetting'
-      fullPath: '/vetting'
-      preLoaderRoute: typeof AuthenticatedVettingRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/settings': {
       id: '/_authenticated/settings'
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof AuthenticatedSettingsRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/intake': {
-      id: '/_authenticated/intake'
-      path: '/intake'
-      fullPath: '/intake'
-      preLoaderRoute: typeof AuthenticatedIntakeRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/dashboard': {
@@ -208,17 +190,13 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
-  AuthenticatedIntakeRoute: typeof AuthenticatedIntakeRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
-  AuthenticatedVettingRoute: typeof AuthenticatedVettingRoute
   AuthenticatedAdminPromptTemplatesRoute: typeof AuthenticatedAdminPromptTemplatesRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
-  AuthenticatedIntakeRoute: AuthenticatedIntakeRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
-  AuthenticatedVettingRoute: AuthenticatedVettingRoute,
   AuthenticatedAdminPromptTemplatesRoute:
     AuthenticatedAdminPromptTemplatesRoute,
 }
@@ -232,7 +210,18 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   AuthRoute: AuthRoute,
   ContactRoute: ContactRoute,
+  IntakeRoute: IntakeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
