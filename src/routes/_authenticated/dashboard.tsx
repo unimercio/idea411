@@ -4,10 +4,13 @@ import { motion, AnimatePresence } from "motion/react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import {
+  AlertTriangle,
   ArrowRight,
   Flame,
   Plus,
   Settings,
+  ShieldCheck,
+  ShieldQuestion,
   Sparkles,
   Trash2,
 } from "lucide-react";
