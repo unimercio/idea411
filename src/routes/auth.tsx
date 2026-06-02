@@ -21,6 +21,7 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [sentTo, setSentTo] = useState<string | null>(null);
 
   // Redirect when authenticated
   useEffect(() => {
@@ -33,8 +34,19 @@ function AuthPage() {
     return () => sub.subscription.unsubscribe();
   }, [navigate]);
 
+  const friendlyError = (msg: string) => {
+    if (/rate limit|after \d+ seconds/i.test(msg)) {
+      return "We just sent you a confirmation email. Please wait a minute before trying again, and check your inbox (including spam).";
+    }
+    if (/already registered|already exists/i.test(msg)) {
+      return "An account with that email already exists. Try signing in instead.";
+    }
+    return msg;
+  };
+
   const handleEmail = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
     setLoading(true);
     try {
       if (mode === "signup") {
@@ -44,18 +56,20 @@ function AuthPage() {
           options: { emailRedirectTo: `${window.location.origin}/dashboard` },
         });
         if (error) throw error;
-        toast.success("Check your email to confirm your account.");
+        setSentTo(email);
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         toast.success("Signed in.");
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Authentication failed");
+      const msg = err instanceof Error ? err.message : "Authentication failed";
+      toast.error(friendlyError(msg));
     } finally {
       setLoading(false);
     }
   };
+
 
   const handleGoogle = async () => {
     setLoading(true);
