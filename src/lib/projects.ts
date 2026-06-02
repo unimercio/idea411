@@ -66,13 +66,14 @@ export function deriveTitle(idea: string): string {
   return words.length < firstSentence.length ? `${words}…` : words;
 }
 
-export function createProject(input: { idea: string; sketchName?: string }): Project {
+export function createProject(input: { idea: string; sketchName?: string; email?: string }): Project {
   const now = Date.now();
   const project: Project = {
     id: cryptoRandomId(),
     title: deriveTitle(input.idea),
     idea: input.idea,
     sketchName: input.sketchName,
+    email: input.email,
     createdAt: now,
     updatedAt: now,
     status: "vetting",
