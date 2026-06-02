@@ -122,6 +122,15 @@ function DashboardPage() {
                 <Sparkles className="h-4 w-4" /> {claiming ? "Claiming…" : "Claim admin"}
               </button>
             )}
+            {isAuthed === true && (
+              <Link
+                to="/settings"
+                className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground px-3 py-2"
+                title="Account settings"
+              >
+                <Settings className="h-4 w-4" /> Settings
+              </Link>
+            )}
             {isAuthed === true ? (
               <button
                 onClick={handleSignOut}
