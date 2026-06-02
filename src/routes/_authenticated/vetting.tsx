@@ -736,12 +736,11 @@ function ChatPanel({
     }
   }
 
-  const suggestions = [
-    "Why is the compliance risk where it is?",
-    "How can I improve market viability?",
-    "What changes would lift sales potential?",
-    "Who should I talk to in the first 10 customer interviews?",
-  ];
+  const suggestionGroups = useMemo(() => buildSuggestions(analysis), [analysis]);
+  const quickSuggestions = useMemo(
+    () => suggestionGroups.flatMap((g) => g.items).slice(0, 3),
+    [suggestionGroups],
+  );
 
   return (
     <motion.section
