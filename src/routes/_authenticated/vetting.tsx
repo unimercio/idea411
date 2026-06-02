@@ -1406,7 +1406,11 @@ export function renderTemplate(template: string, vars: TemplateVars): string | n
 
 type SuggestionGroup = { label: string; category: PromptCategory; items: string[] };
 
-function buildSuggestions(analysis: Analysis): SuggestionGroup[] {
+function buildSuggestions(
+  analysis: Analysis,
+  templatesOverride?: PromptTemplate[],
+): SuggestionGroup[] {
+  const templates = templatesOverride ?? PROMPT_TEMPLATES;
   const vars = extractTemplateVars(analysis);
 
   const byCategory: Record<PromptCategory, string[]> = {
