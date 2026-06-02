@@ -49,17 +49,19 @@ export function Nav() {
             <Link to="/contact" className="hover:text-foreground transition-colors">Contact</Link>
           </nav>
           <div className="flex items-center gap-2">
-            {isAuthed ? (
+            {isAuthed === true ? (
               <button
                 onClick={handleSignOut}
                 className="hidden sm:inline-flex items-center text-sm text-muted-foreground hover:text-foreground px-3 py-1.5"
               >
                 Sign out
               </button>
-            ) : (
+            ) : isAuthed === false ? (
               <Link to="/auth" className="hidden sm:inline-flex items-center text-sm text-muted-foreground hover:text-foreground px-3 py-1.5">
                 Sign in
               </Link>
+            ) : (
+              <span className="hidden sm:inline-flex w-16" aria-hidden />
             )}
             <Link
               to="/intake"
