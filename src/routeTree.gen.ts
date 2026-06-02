@@ -14,6 +14,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedVettingRouteImport } from './routes/_authenticated/vetting'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedIntakeRouteImport } from './routes/_authenticated/intake'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAdminPromptTemplatesRouteImport } from './routes/_authenticated/admin.prompt-templates'
@@ -42,6 +43,11 @@ const AuthenticatedVettingRoute = AuthenticatedVettingRouteImport.update({
   path: '/vetting',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedIntakeRoute = AuthenticatedIntakeRouteImport.update({
   id: '/intake',
   path: '/intake',
@@ -65,6 +71,7 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/intake': typeof AuthenticatedIntakeRoute
+  '/settings': typeof AuthenticatedSettingsRoute
   '/vetting': typeof AuthenticatedVettingRoute
   '/admin/prompt-templates': typeof AuthenticatedAdminPromptTemplatesRoute
 }
@@ -74,6 +81,7 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/intake': typeof AuthenticatedIntakeRoute
+  '/settings': typeof AuthenticatedSettingsRoute
   '/vetting': typeof AuthenticatedVettingRoute
   '/admin/prompt-templates': typeof AuthenticatedAdminPromptTemplatesRoute
 }
@@ -85,6 +93,7 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/intake': typeof AuthenticatedIntakeRoute
+  '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/vetting': typeof AuthenticatedVettingRoute
   '/_authenticated/admin/prompt-templates': typeof AuthenticatedAdminPromptTemplatesRoute
 }
@@ -96,6 +105,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/dashboard'
     | '/intake'
+    | '/settings'
     | '/vetting'
     | '/admin/prompt-templates'
   fileRoutesByTo: FileRoutesByTo
@@ -105,6 +115,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/dashboard'
     | '/intake'
+    | '/settings'
     | '/vetting'
     | '/admin/prompt-templates'
   id:
@@ -115,6 +126,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/_authenticated/dashboard'
     | '/_authenticated/intake'
+    | '/_authenticated/settings'
     | '/_authenticated/vetting'
     | '/_authenticated/admin/prompt-templates'
   fileRoutesById: FileRoutesById
@@ -163,6 +175,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedVettingRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/intake': {
       id: '/_authenticated/intake'
       path: '/intake'
@@ -190,6 +209,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedIntakeRoute: typeof AuthenticatedIntakeRoute
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedVettingRoute: typeof AuthenticatedVettingRoute
   AuthenticatedAdminPromptTemplatesRoute: typeof AuthenticatedAdminPromptTemplatesRoute
 }
@@ -197,6 +217,7 @@ interface AuthenticatedRouteChildren {
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedIntakeRoute: AuthenticatedIntakeRoute,
+  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedVettingRoute: AuthenticatedVettingRoute,
   AuthenticatedAdminPromptTemplatesRoute:
     AuthenticatedAdminPromptTemplatesRoute,
@@ -215,3 +236,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
