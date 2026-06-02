@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { motion } from "motion/react";
-import { ArrowRight, Flame, ImagePlus, Sparkles, X, History } from "lucide-react";
+import { ArrowRight, Flame, ImagePlus, Sparkles, X, History, Mail } from "lucide-react";
 import { z } from "zod";
 import { getProject, overallScore } from "@/lib/projects";
 
@@ -30,6 +30,13 @@ const ideaSchema = z.object({
     .trim()
     .min(20, { message: "Tell us a little more — at least 20 characters." })
     .max(2000, { message: "Keep it under 2000 characters." }),
+  email: z
+    .string()
+    .trim()
+    .max(255)
+    .email({ message: "Enter a valid email address." })
+    .optional()
+    .or(z.literal("").transform(() => undefined)),
 });
 
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024; // 8 MB
@@ -45,6 +52,7 @@ function IntakePage() {
   const iterationCount = (refineProject?.iterations?.length ?? 0) + 1;
 
   const [idea, setIdea] = useState(refineProject?.idea ?? "");
+  const [email, setEmail] = useState(refineProject?.email ?? "");
   const [sketch, setSketch] = useState<{ file: File; url: string } | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -81,7 +89,7 @@ function IntakePage() {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const parsed = ideaSchema.safeParse({ idea });
+    const parsed = ideaSchema.safeParse({ idea, email });
     if (!parsed.success) {
       setError(parsed.error.issues[0].message);
       return;
@@ -94,6 +102,7 @@ function IntakePage() {
         idea: parsed.data.idea,
         title: deriveTitle(parsed.data.idea),
         sketchName: sketch?.file.name ?? refineProject.sketchName,
+        email: parsed.data.email ?? refineProject.email,
         analysis: undefined,
         status: "vetting",
       });
@@ -103,6 +112,7 @@ function IntakePage() {
     const project = createProject({
       idea: parsed.data.idea,
       sketchName: sketch?.file.name,
+      email: parsed.data.email,
     });
     navigate({ to: "/vetting", search: { id: project.id } });
   };
@@ -250,6 +260,29 @@ function IntakePage() {
                 className="hidden"
                 onChange={(e) => onPickFile(e.target.files?.[0] ?? undefined)}
               />
+            </div>
+
+            <div className="mt-6">
+              <label htmlFor="email" className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+                Email <span className="normal-case text-muted-foreground/60">— optional, so we can send you the report</span>
+              </label>
+              <div className="mt-2 flex items-center gap-2 rounded-xl border border-border bg-background/40 px-3 py-2 focus-within:border-ember/60">
+                <Mail className="h-4 w-4 text-muted-foreground" />
+                <input
+                  id="email"
+                  type="email"
+                  inputMode="email"
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  maxLength={255}
+                  placeholder="you@company.com"
+                  className="w-full bg-transparent text-sm placeholder:text-muted-foreground/60 focus:outline-none"
+                />
+              </div>
+              <p className="mt-1.5 text-[11px] text-muted-foreground">
+                We'll email a link to your vetting report so you can pick it back up after a refresh.
+              </p>
             </div>
 
             {error && (
