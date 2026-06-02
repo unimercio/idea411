@@ -262,6 +262,29 @@ function IntakePage() {
               />
             </div>
 
+            <div className="mt-6">
+              <label htmlFor="email" className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+                Email <span className="normal-case text-muted-foreground/60">— optional, so we can send you the report</span>
+              </label>
+              <div className="mt-2 flex items-center gap-2 rounded-xl border border-border bg-background/40 px-3 py-2 focus-within:border-ember/60">
+                <Mail className="h-4 w-4 text-muted-foreground" />
+                <input
+                  id="email"
+                  type="email"
+                  inputMode="email"
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  maxLength={255}
+                  placeholder="you@company.com"
+                  className="w-full bg-transparent text-sm placeholder:text-muted-foreground/60 focus:outline-none"
+                />
+              </div>
+              <p className="mt-1.5 text-[11px] text-muted-foreground">
+                We'll email a link to your vetting report so you can pick it back up after a refresh.
+              </p>
+            </div>
+
             {error && (
               <p className="mt-4 text-sm text-ember" role="alert">
                 {error}
