@@ -109,6 +109,16 @@ function DashboardPage() {
                 <Settings className="h-4 w-4" /> Templates
               </Link>
             )}
+            {isAuthed === true && !isAdmin && adminQuery.isFetched && (
+              <button
+                onClick={handleClaimAdmin}
+                disabled={claiming}
+                className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground px-3 py-2 disabled:opacity-50"
+                title="Become the admin (only works if no admin exists yet)"
+              >
+                <Sparkles className="h-4 w-4" /> {claiming ? "Claiming…" : "Claim admin"}
+              </button>
+            )}
             {isAuthed === true ? (
               <button
                 onClick={handleSignOut}
