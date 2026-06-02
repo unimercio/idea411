@@ -20,7 +20,7 @@ import {
   type Project,
 } from "@/lib/projects";
 import { supabase } from "@/integrations/supabase/client";
-import { checkAdmin } from "@/lib/api/prompt-templates.functions";
+import { checkAdmin, claimFirstAdmin } from "@/lib/api/prompt-templates.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -59,6 +59,24 @@ function DashboardPage() {
     enabled: isAuthed === true,
   });
   const isAdmin = adminQuery.data?.isAdmin === true;
+  const claimFn = useServerFn(claimFirstAdmin);
+  const [claiming, setClaiming] = useState(false);
+  const handleClaimAdmin = async () => {
+    setClaiming(true);
+    try {
+      const res = await claimFn();
+      if (res.claimed) {
+        toast.success("You are now the admin.");
+        adminQuery.refetch();
+      } else {
+        toast.error("An admin already exists.");
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to claim admin");
+    } finally {
+      setClaiming(false);
+    }
+  };
 
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut();
@@ -90,6 +108,16 @@ function DashboardPage() {
               >
                 <Settings className="h-4 w-4" /> Templates
               </Link>
+            )}
+            {isAuthed === true && !isAdmin && adminQuery.isFetched && (
+              <button
+                onClick={handleClaimAdmin}
+                disabled={claiming}
+                className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground px-3 py-2 disabled:opacity-50"
+                title="Become the admin (only works if no admin exists yet)"
+              >
+                <Sparkles className="h-4 w-4" /> {claiming ? "Claiming…" : "Claim admin"}
+              </button>
             )}
             {isAuthed === true ? (
               <button
