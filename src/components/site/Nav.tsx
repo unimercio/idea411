@@ -43,10 +43,9 @@ export function Nav() {
             IdeaForge
           </Link>
           <nav className="hidden md:flex items-center gap-7 text-sm text-muted-foreground">
-            <a href="/#flow" className="hover:text-foreground transition-colors">How it works</a>
-            <a href="/#pricing" className="hover:text-foreground transition-colors">Pricing</a>
-            <Link to="/dashboard" className="hover:text-foreground transition-colors">Projects</Link>
-            <Link to="/contact" className="hover:text-foreground transition-colors">Contact</Link>
+            {isAuthed === true && (
+              <Link to="/dashboard" className="hover:text-foreground transition-colors">Projects</Link>
+            )}
           </nav>
           <div className="flex items-center gap-2">
             {isAuthed === true ? (
