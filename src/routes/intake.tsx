@@ -30,6 +30,13 @@ const ideaSchema = z.object({
     .trim()
     .min(20, { message: "Tell us a little more — at least 20 characters." })
     .max(2000, { message: "Keep it under 2000 characters." }),
+  email: z
+    .string()
+    .trim()
+    .max(255)
+    .email({ message: "Enter a valid email address." })
+    .optional()
+    .or(z.literal("").transform(() => undefined)),
 });
 
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024; // 8 MB
