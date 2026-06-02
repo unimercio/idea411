@@ -738,7 +738,29 @@ function ChatPanel({
     }
   }
 
-  const suggestionGroups = useMemo(() => buildSuggestions(analysis), [analysis]);
+  const listTemplatesFn = useServerFn(listPromptTemplates);
+  const templatesQuery = useQuery({
+    queryKey: ["promptTemplates", "vetting"],
+    queryFn: () => listTemplatesFn(),
+    staleTime: 5 * 60 * 1000,
+  });
+  const dbTemplates = useMemo(
+    () =>
+      (templatesQuery.data?.templates ?? [])
+        .filter((t) => t.enabled)
+        .map((t) => ({
+          id: t.slug,
+          category: t.category,
+          template: t.template,
+          requires: t.requires as (keyof TemplateVars)[],
+        })),
+    [templatesQuery.data],
+  );
+
+  const suggestionGroups = useMemo(
+    () => buildSuggestions(analysis, dbTemplates.length > 0 ? dbTemplates : undefined),
+    [analysis, dbTemplates],
+  );
   const quickSuggestions = useMemo(
     () => suggestionGroups.flatMap((g) => g.items).slice(0, 3),
     [suggestionGroups],
