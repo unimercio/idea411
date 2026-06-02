@@ -6,14 +6,20 @@ import { toast } from "sonner";
 
 export function Nav() {
   const navigate = useNavigate();
-  const [isAuthed, setIsAuthed] = useState(false);
+  const [isAuthed, setIsAuthed] = useState<boolean | null>(null);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setIsAuthed(!!data.session));
+    let mounted = true;
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
-      setIsAuthed(!!session);
+      if (mounted) setIsAuthed(!!session);
     });
-    return () => sub.subscription.unsubscribe();
+    supabase.auth.getSession().then(({ data }) => {
+      if (mounted) setIsAuthed(!!data.session);
+    });
+    return () => {
+      mounted = false;
+      sub.subscription.unsubscribe();
+    };
   }, []);
 
   const handleSignOut = async () => {
@@ -43,17 +49,19 @@ export function Nav() {
             <Link to="/contact" className="hover:text-foreground transition-colors">Contact</Link>
           </nav>
           <div className="flex items-center gap-2">
-            {isAuthed ? (
+            {isAuthed === true ? (
               <button
                 onClick={handleSignOut}
                 className="hidden sm:inline-flex items-center text-sm text-muted-foreground hover:text-foreground px-3 py-1.5"
               >
                 Sign out
               </button>
-            ) : (
+            ) : isAuthed === false ? (
               <Link to="/auth" className="hidden sm:inline-flex items-center text-sm text-muted-foreground hover:text-foreground px-3 py-1.5">
                 Sign in
               </Link>
+            ) : (
+              <span className="hidden sm:inline-flex w-16" aria-hidden />
             )}
             <Link
               to="/intake"
