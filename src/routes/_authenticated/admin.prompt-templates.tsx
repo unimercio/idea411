@@ -62,6 +62,47 @@ const CATEGORY_LABEL: Record<PromptCategory, string> = {
   sales: "💸 Sales & GTM",
 };
 
+/**
+ * Realistic sample values used by the editor sandbox to preview a template
+ * against a plausible analysis payload. Mirrors the shape of TemplateVars in
+ * vetting.tsx so the same render logic produces the same output users would see.
+ */
+type SampleVars = Partial<Record<(typeof KNOWN_VARIABLES)[number], string>>;
+
+const SAMPLE_PAYLOAD: Required<SampleVars> = {
+  overallScore: "72",
+  weakestPillar: "Compliance",
+  topRisk: "Battery shipping & UN 38.3 certification",
+  regulation: "FCC Part 15",
+  ipConcern: "Trademark conflict with 'ForgeKit' (USPTO Class 9)",
+  competitor: "Anker",
+  indirectCompetitor: "Apple MagSafe Battery Pack",
+  upTrend: "On-the-go remote work",
+  downTrend: "Pandemic-era electronics spending",
+  differentiator: "Modular hot-swap battery system",
+  barrier: "Hardware capex & supply-chain lead times",
+  targetCustomer: "Digital nomads aged 25–40 with $80k+ income",
+  recommendedPrice: "$129",
+  topGtm: "Launch on Kickstarter with creator partnerships",
+};
+
+function renderTemplateWithVars(
+  template: string,
+  vars: SampleVars,
+  required: string[],
+): { rendered: string; missing: string[] } {
+  const missing: string[] = [];
+  const rendered = template.replace(/\{(\w+)\}/g, (_, key: string) => {
+    const v = vars[key as keyof SampleVars];
+    if (!v) {
+      if (required.includes(key)) missing.push(key);
+      return `{${key}}`;
+    }
+    return v;
+  });
+  return { rendered, missing };
+}
+
 type Draft = {
   id?: string;
   slug: string;
