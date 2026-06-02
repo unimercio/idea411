@@ -2,7 +2,8 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useServerFn } from "@tanstack/react-start";
-import ReactMarkdown from "react-markdown";
+import ReactMarkdown, { type Components } from "react-markdown";
+import remarkGfm from "remark-gfm";
 import {
   ArrowRight,
   ChevronDown,
@@ -837,14 +838,72 @@ function Bubble({ role, content }: { role: "user" | "assistant"; content: string
         {isUser ? (
           <p className="whitespace-pre-wrap">{content}</p>
         ) : (
-          <div className="prose prose-sm prose-invert max-w-none prose-p:my-1.5 prose-ul:my-1.5 prose-li:my-0 prose-headings:font-display prose-strong:text-foreground">
-            <ReactMarkdown>{content}</ReactMarkdown>
+          <div className="max-w-none text-sm leading-relaxed text-foreground/90 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
+            <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+              {content}
+            </ReactMarkdown>
           </div>
         )}
       </div>
     </div>
   );
 }
+
+
+
+const markdownComponents: Components = {
+  p: ({ children }) => <p className="my-2 first:mt-0 last:mb-0">{children}</p>,
+  h1: ({ children }) => (
+    <h3 className="font-display text-base font-semibold mt-3 mb-1.5 first:mt-0">{children}</h3>
+  ),
+  h2: ({ children }) => (
+    <h3 className="font-display text-base font-semibold mt-3 mb-1.5 first:mt-0">{children}</h3>
+  ),
+  h3: ({ children }) => (
+    <h4 className="font-display text-sm font-semibold mt-3 mb-1 first:mt-0">{children}</h4>
+  ),
+  h4: ({ children }) => (
+    <h4 className="font-display text-sm font-semibold mt-2 mb-1 first:mt-0">{children}</h4>
+  ),
+  ul: ({ children }) => <ul className="my-2 ml-4 list-disc space-y-1 marker:text-ember/70">{children}</ul>,
+  ol: ({ children }) => <ol className="my-2 ml-4 list-decimal space-y-1 marker:text-ember/70">{children}</ol>,
+  li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+  strong: ({ children }) => <strong className="font-semibold text-foreground">{children}</strong>,
+  em: ({ children }) => <em className="italic">{children}</em>,
+  a: ({ href, children }) => (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      className="text-ember underline underline-offset-2 hover:text-ember/80"
+    >
+      {children}
+    </a>
+  ),
+  code: ({ children }) => (
+    <code className="rounded bg-muted/60 px-1 py-0.5 font-mono text-[0.85em]">{children}</code>
+  ),
+  pre: ({ children }) => (
+    <pre className="my-2 overflow-x-auto rounded-lg border border-border bg-muted/40 p-3 text-xs font-mono">
+      {children}
+    </pre>
+  ),
+  blockquote: ({ children }) => (
+    <blockquote className="my-2 border-l-2 border-ember/50 pl-3 italic text-foreground/80">
+      {children}
+    </blockquote>
+  ),
+  hr: () => <hr className="my-3 border-border" />,
+  table: ({ children }) => (
+    <div className="my-2 overflow-x-auto">
+      <table className="w-full border-collapse text-xs">{children}</table>
+    </div>
+  ),
+  th: ({ children }) => (
+    <th className="border border-border bg-muted/40 px-2 py-1 text-left font-semibold">{children}</th>
+  ),
+  td: ({ children }) => <td className="border border-border px-2 py-1">{children}</td>,
+};
 
 /* ─────────────────────────────── Bits ─────────────────────────────── */
 
