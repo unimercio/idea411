@@ -82,6 +82,15 @@ function DashboardPage() {
             IdeaForge
           </Link>
           <div className="flex items-center gap-2">
+            {isAdmin && (
+              <Link
+                to="/admin/prompt-templates"
+                className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground px-3 py-2"
+                title="Manage prompt templates"
+              >
+                <Settings className="h-4 w-4" /> Templates
+              </Link>
+            )}
             {isAuthed === true ? (
               <button
                 onClick={handleSignOut}
