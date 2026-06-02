@@ -60,6 +60,11 @@ function IntakePage() {
       setIdea(draft);
       sessionStorage.removeItem("idea-draft");
     }
+    const emailDraft = sessionStorage.getItem("idea-email");
+    if (emailDraft) {
+      setEmail(emailDraft);
+      sessionStorage.removeItem("idea-email");
+    }
   }, [refineProject]);
   const [email, setEmail] = useState(refineProject?.email ?? "");
   const [sketch, setSketch] = useState<{ file: File; url: string } | null>(null);
