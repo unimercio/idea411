@@ -434,6 +434,40 @@ function EditorDrawer({
     [draft.template],
   );
 
+  // Sandbox state — sample values used to preview the rendered prompt.
+  const [sandbox, setSandbox] = useState<SampleVars>(SAMPLE_PAYLOAD);
+
+  // Show inputs for every variable referenced by the template OR declared as
+  // required. Auto-seed unknown (custom) variables from the sample payload
+  // when they appear, so the sandbox feels alive as you type new placeholders.
+  const sandboxKeys = useMemo(() => {
+    const set = new Set<string>([...usedVars, ...draft.requires]);
+    return Array.from(set);
+  }, [usedVars, draft.requires]);
+
+  useEffect(() => {
+    setSandbox((prev) => {
+      const next = { ...prev };
+      let changed = false;
+      for (const k of sandboxKeys) {
+        if (next[k as keyof SampleVars] === undefined) {
+          const fallback = SAMPLE_PAYLOAD[k as keyof SampleVars];
+          if (fallback) {
+            next[k as keyof SampleVars] = fallback;
+            changed = true;
+          }
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, [sandboxKeys]);
+
+  const { rendered, missing } = useMemo(
+    () => renderTemplateWithVars(draft.template, sandbox, draft.requires),
+    [draft.template, sandbox, draft.requires],
+  );
+  const wouldShow = missing.length === 0 && draft.template.trim().length > 0;
+
   const toggleRequire = (v: string) => {
     onChange({
       ...draft,
@@ -442,6 +476,7 @@ function EditorDrawer({
         : [...draft.requires, v],
     });
   };
+
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-background/70 backdrop-blur-sm sm:items-center">
