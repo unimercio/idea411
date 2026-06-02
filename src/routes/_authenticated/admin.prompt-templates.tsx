@@ -720,6 +720,23 @@ function EditorDrawer({
               </div>
             </div>
 
+            <div className="flex flex-wrap gap-1.5">
+              {SCENARIO_PRESETS.map((preset) => (
+                <Button
+                  key={preset.id}
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setSandbox(applyScenario(preset))}
+                  title={preset.description}
+                  className="h-7 rounded-full px-2.5 text-[11px]"
+                >
+                  {preset.label}
+                </Button>
+              ))}
+            </div>
+
+
             {sandboxKeys.length === 0 ? (
               <p className="text-xs text-muted-foreground">
                 Add a <code className="rounded bg-muted px-1 py-0.5">{`{variable}`}</code>{" "}
