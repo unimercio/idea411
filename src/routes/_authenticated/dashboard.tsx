@@ -52,6 +52,14 @@ function DashboardPage() {
     };
   }, []);
 
+  const checkAdminFn = useServerFn(checkAdmin);
+  const adminQuery = useQuery({
+    queryKey: ["isAdmin"],
+    queryFn: () => checkAdminFn(),
+    enabled: isAuthed === true,
+  });
+  const isAdmin = adminQuery.data?.isAdmin === true;
+
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
