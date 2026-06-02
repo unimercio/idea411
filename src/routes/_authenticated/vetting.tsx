@@ -1151,3 +1151,89 @@ function toneStroke(t: Tone): string {
   if (t === "amber") return "oklch(0.78 0.16 75)";
   return "oklch(0.68 0.19 38)";
 }
+
+/* ─────────────────────────────── Suggested prompts ─────────────────────────────── */
+
+type SuggestionGroup = { label: string; items: string[] };
+
+function buildSuggestions(analysis: Analysis): SuggestionGroup[] {
+  const groups: SuggestionGroup[] = [];
+
+  // Find weakest pillar to lead with
+  const pillars: { key: "compliance" | "market" | "sales"; score: number; label: string }[] = [
+    { key: "compliance", score: analysis.compliance.score, label: "Compliance" },
+    { key: "market", score: analysis.market.score, label: "Market" },
+    { key: "sales", score: analysis.sales.score, label: "Sales" },
+  ];
+  const weakest = [...pillars].sort((a, b) => a.score - b.score)[0];
+
+  // Compliance prompts
+  const topRisk = analysis.compliance.risks[0];
+  const topReg = analysis.compliance.regulations[0];
+  const ipConcern = analysis.compliance.ipConcerns[0];
+  const complianceItems: string[] = [];
+  if (topRisk)
+    complianceItems.push(`How do I de-risk "${topRisk.title}" before launch?`);
+  if (topReg)
+    complianceItems.push(`What's the cheapest path to ${topReg} compliance?`);
+  if (ipConcern) complianceItems.push(`Draft a clearance plan for: ${ipConcern}`);
+  complianceItems.push("Which risks could I defer past MVP without regret?");
+
+  // Market prompts
+  const directComp = analysis.market.competitors.find((c) => c.type === "direct");
+  const upTrend = analysis.market.trends.find((t) => t.direction === "up");
+  const downTrend = analysis.market.trends.find((t) => t.direction === "down");
+  const differentiator = analysis.market.differentiation[0];
+  const marketItems: string[] = [];
+  if (directComp)
+    marketItems.push(`Where am I most exposed against ${directComp.name}?`);
+  if (upTrend) marketItems.push(`How do I ride the "${upTrend.title}" tailwind?`);
+  if (downTrend) marketItems.push(`What if "${downTrend.title}" accelerates?`);
+  if (differentiator)
+    marketItems.push(`How do I make "${differentiator}" defensible?`);
+  marketItems.push("Stress-test my TAM/SAM/SOM with a bottoms-up build.");
+
+  // Sales prompts
+  const recommendedPrice = analysis.sales.pricing.recommended;
+  const target = analysis.sales.targetCustomer;
+  const topGtm = analysis.sales.gtm[0];
+  const salesItems: string[] = [];
+  if (recommendedPrice)
+    salesItems.push(`Justify the ${recommendedPrice} price point — or argue against it.`);
+  if (target) salesItems.push(`Write 5 outreach messages for ${target}.`);
+  if (topGtm) salesItems.push(`Turn "${topGtm}" into a 30-day execution plan.`);
+  salesItems.push("Who should I talk to in my first 10 customer interviews?");
+  salesItems.push("What signals would tell me to pivot vs. push?");
+
+  // Strategic / synthesis prompts
+  const strategicItems: string[] = [
+    `What's the single highest-leverage change to raise the ${analysis.overallScore}/100 score?`,
+    `Steelman the case AGAINST this idea in 5 bullets.`,
+    `If I had $25k and 90 days, what would you do first?`,
+    `What would a competitor do to kill this in 12 months?`,
+  ];
+
+  // Lead with the weakest pillar
+  const order: SuggestionGroup[] = [
+    { label: "🎯 Strategic", items: strategicItems.slice(0, 3) },
+    { label: "⚖️ Compliance", items: complianceItems.slice(0, 3) },
+    { label: "📊 Market", items: marketItems.slice(0, 3) },
+    { label: "💸 Sales & GTM", items: salesItems.slice(0, 3) },
+  ];
+
+  // Boost weakest pillar to the top (after Strategic)
+  const weakLabel =
+    weakest.key === "compliance"
+      ? "⚖️ Compliance"
+      : weakest.key === "market"
+        ? "📊 Market"
+        : "💸 Sales & GTM";
+  const weakIdx = order.findIndex((g) => g.label === weakLabel);
+  if (weakIdx > 1) {
+    const [g] = order.splice(weakIdx, 1);
+    order.splice(1, 0, g);
+  }
+
+  for (const g of order) groups.push(g);
+  return groups;
+}
