@@ -52,6 +52,7 @@ function IntakePage() {
   const iterationCount = (refineProject?.iterations?.length ?? 0) + 1;
 
   const [idea, setIdea] = useState(refineProject?.idea ?? "");
+  const [email, setEmail] = useState(refineProject?.email ?? "");
   const [sketch, setSketch] = useState<{ file: File; url: string } | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [error, setError] = useState<string | null>(null);
