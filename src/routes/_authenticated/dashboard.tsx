@@ -4,10 +4,13 @@ import { motion, AnimatePresence } from "motion/react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import {
+  AlertTriangle,
   ArrowRight,
   Flame,
   Plus,
   Settings,
+  ShieldCheck,
+  ShieldQuestion,
   Sparkles,
   Trash2,
 } from "lucide-react";
@@ -146,6 +149,74 @@ function DashboardPage() {
         </div>
       </header>
 
+      {isAuthed === true && adminQuery.isFetched && (
+        <div className="mx-auto max-w-7xl px-6 pt-6">
+          {(() => {
+            const err = adminQuery.error instanceof Error ? adminQuery.error.message : null;
+            const status: "admin" | "not-admin" | "error" = err
+              ? "error"
+              : isAdmin
+                ? "admin"
+                : "not-admin";
+            const styles = {
+              admin: "border-emerald-500/30 bg-emerald-500/10 text-emerald-300",
+              "not-admin": "border-ember/30 bg-ember/10 text-ember",
+              error: "border-destructive/40 bg-destructive/10 text-destructive",
+            }[status];
+            return (
+              <div
+                className={`flex items-start gap-3 rounded-2xl border px-4 py-3 text-sm ${styles}`}
+                role="status"
+              >
+                <ShieldIcon status={status} />
+                <div className="min-w-0 flex-1">
+                  {status === "admin" && (
+                    <>
+                      <p className="font-medium text-foreground">You are an admin.</p>
+                      <p className="text-muted-foreground">
+                        The <strong className="text-foreground">Templates</strong> link in the
+                        header opens the prompt-template editor.
+                      </p>
+                    </>
+                  )}
+                  {status === "not-admin" && (
+                    <>
+                      <p className="font-medium text-foreground">
+                        You're signed in, but not recognized as an admin.
+                      </p>
+                      <p className="text-muted-foreground">
+                        The <strong className="text-foreground">Templates</strong> link only
+                        appears for admins. An admin already exists for this workspace, so
+                        <em> Claim admin</em> will be rejected — ask the current admin to grant
+                        you the role.
+                      </p>
+                    </>
+                  )}
+                  {status === "error" && (
+                    <>
+                      <p className="font-medium text-foreground">
+                        Couldn't verify your admin status.
+                      </p>
+                      <p className="text-muted-foreground break-words">
+                        {err ?? "Unknown error"}.{" "}
+                        <button
+                          onClick={() => adminQuery.refetch()}
+                          className="underline underline-offset-2 hover:text-foreground"
+                        >
+                          Retry
+                        </button>
+                      </p>
+                    </>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+      )}
+
+
+
       <section className="mx-auto max-w-7xl px-6 py-16">
         <div className="flex items-end justify-between flex-wrap gap-4">
           <div>
@@ -173,6 +244,12 @@ function DashboardPage() {
       </section>
     </main>
   );
+}
+
+function ShieldIcon({ status }: { status: "admin" | "not-admin" | "error" }) {
+  if (status === "admin") return <ShieldCheck className="h-5 w-5 mt-0.5 shrink-0" />;
+  if (status === "error") return <AlertTriangle className="h-5 w-5 mt-0.5 shrink-0" />;
+  return <ShieldQuestion className="h-5 w-5 mt-0.5 shrink-0" />;
 }
 
 function ProjectCard({ project, index }: { project: Project; index: number }) {
