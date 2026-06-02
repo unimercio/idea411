@@ -89,7 +89,7 @@ function IntakePage() {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const parsed = ideaSchema.safeParse({ idea });
+    const parsed = ideaSchema.safeParse({ idea, email });
     if (!parsed.success) {
       setError(parsed.error.issues[0].message);
       return;
@@ -102,6 +102,7 @@ function IntakePage() {
         idea: parsed.data.idea,
         title: deriveTitle(parsed.data.idea),
         sketchName: sketch?.file.name ?? refineProject.sketchName,
+        email: parsed.data.email ?? refineProject.email,
         analysis: undefined,
         status: "vetting",
       });
@@ -111,6 +112,7 @@ function IntakePage() {
     const project = createProject({
       idea: parsed.data.idea,
       sketchName: sketch?.file.name,
+      email: parsed.data.email,
     });
     navigate({ to: "/vetting", search: { id: project.id } });
   };
