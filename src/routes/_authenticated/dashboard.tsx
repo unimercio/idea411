@@ -30,6 +30,17 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 
 function DashboardPage() {
   const projects = useProjects();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Signed out.");
+    navigate({ to: "/", replace: true });
+  };
 
   return (
     <main className="min-h-screen bg-background text-foreground">
@@ -41,12 +52,20 @@ function DashboardPage() {
             </span>
             IdeaForge
           </Link>
-          <Link
-            to="/intake"
-            className="inline-flex items-center gap-2 rounded-full bg-gradient-ember px-4 py-2 text-sm font-medium text-ember-foreground shadow-ember hover:brightness-110 transition"
-          >
-            <Plus className="h-4 w-4" /> New idea
-          </Link>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleSignOut}
+              className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground px-3 py-2"
+            >
+              Sign out
+            </button>
+            <Link
+              to="/intake"
+              className="inline-flex items-center gap-2 rounded-full bg-gradient-ember px-4 py-2 text-sm font-medium text-ember-foreground shadow-ember hover:brightness-110 transition"
+            >
+              <Plus className="h-4 w-4" /> New idea
+            </Link>
+          </div>
         </div>
       </header>
 
