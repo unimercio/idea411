@@ -1,9 +1,18 @@
 import { motion } from "motion/react";
 import { ArrowRight, Sparkles, Upload } from "lucide-react";
-import { Link } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
 import heroImg from "@/assets/hero-forge.jpg";
 
 export function Hero() {
+  const navigate = useNavigate();
+  const [idea, setIdea] = useState("");
+  const go = () => {
+    if (typeof window !== "undefined" && idea.trim()) {
+      sessionStorage.setItem("idea-draft", idea.trim());
+    }
+    navigate({ to: "/intake" });
+  };
   return (
     <section className="relative pt-36 pb-24 overflow-hidden">
       <div
@@ -31,8 +40,8 @@ export function Hero() {
             products.
           </h1>
           <p className="mt-6 text-lg text-muted-foreground text-balance">
-            IdeaForge vets your concept — compliance, market fit, and demand — with the rigor of a
-            world-class innovation team, in minutes.
+            Try it free — drop in your concept and get an instant vetting report.
+            Create an account to save and refine your ideas.
           </p>
         </motion.div>
 
@@ -49,21 +58,27 @@ export function Hero() {
             <textarea
               id="idea"
               rows={4}
+              value={idea}
+              onChange={(e) => setIdea(e.target.value)}
               placeholder="A modular ceramic cookware system that retains heat 3× longer than cast iron…"
               className="w-full resize-none bg-transparent text-base placeholder:text-muted-foreground/60 focus:outline-none"
             />
             <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-              <button className="inline-flex items-center gap-2 rounded-full border border-border bg-secondary/60 px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground transition">
-                <Upload className="h-3.5 w-3.5" /> Attach sketch
-              </button>
-              <Link to="/intake" className="group inline-flex items-center gap-2 rounded-full bg-gradient-ember px-5 py-2.5 text-sm font-medium text-ember-foreground shadow-ember hover:brightness-110 transition">
-                Vet my idea
+              <span className="inline-flex items-center gap-2 rounded-full border border-border bg-secondary/60 px-3 py-1.5 text-xs text-muted-foreground">
+                <Upload className="h-3.5 w-3.5" /> Sketches supported in the next step
+              </span>
+              <button
+                type="button"
+                onClick={go}
+                className="group inline-flex items-center gap-2 rounded-full bg-gradient-ember px-5 py-2.5 text-sm font-medium text-ember-foreground shadow-ember hover:brightness-110 transition"
+              >
+                Try it free
                 <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
-              </Link>
+              </button>
             </div>
           </div>
           <p className="px-4 py-3 text-center text-xs text-muted-foreground">
-            Free idea intake and basic vetting · No credit card required
+            No account needed to try · Sign up to save your reports
           </p>
         </motion.div>
 
