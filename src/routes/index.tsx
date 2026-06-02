@@ -1,24 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Nav } from "@/components/site/Nav";
 import { Hero } from "@/components/site/Hero";
-import { Flow } from "@/components/site/Flow";
-import { Showcase } from "@/components/site/Showcase";
-import { Pricing } from "@/components/site/Pricing";
 import { Footer } from "@/components/site/Footer";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "IdeaForge — Concept to market, in one flow" },
+      { title: "IdeaForge — Vet your idea in minutes" },
       {
         name: "description",
         content:
-          "IdeaForge vets raw concepts with compliance, market, and demand analysis — turning sparks into actionable opportunity reports.",
+          "Drop your concept and get an instant vetting report. Free to try — no account needed.",
       },
-      { property: "og:title", content: "IdeaForge — Concept to market, in one flow" },
+      { property: "og:title", content: "IdeaForge — Vet your idea in minutes" },
       {
         property: "og:description",
-        content: "Vet your product idea with an AI innovation team.",
+        content: "Try the idea intake free. Create an account to save your reports.",
       },
     ],
   }),
@@ -30,9 +27,6 @@ function Index() {
     <main className="min-h-screen bg-background text-foreground">
       <Nav />
       <Hero />
-      <Flow />
-      <Showcase />
-      <Pricing />
       <Footer />
     </main>
   );

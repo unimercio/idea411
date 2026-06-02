@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "motion/react";
 import { ArrowRight, Flame, ImagePlus, Sparkles, X, History, Mail } from "lucide-react";
 import { z } from "zod";
@@ -52,6 +52,15 @@ function IntakePage() {
   const iterationCount = (refineProject?.iterations?.length ?? 0) + 1;
 
   const [idea, setIdea] = useState(refineProject?.idea ?? "");
+  useEffect(() => {
+    if (refineProject) return;
+    if (typeof window === "undefined") return;
+    const draft = sessionStorage.getItem("idea-draft");
+    if (draft) {
+      setIdea(draft);
+      sessionStorage.removeItem("idea-draft");
+    }
+  }, [refineProject]);
   const [email, setEmail] = useState(refineProject?.email ?? "");
   const [sketch, setSketch] = useState<{ file: File; url: string } | null>(null);
   const [dragOver, setDragOver] = useState(false);
