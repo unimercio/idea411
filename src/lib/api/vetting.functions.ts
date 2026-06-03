@@ -317,6 +317,16 @@ async function callPillar<T>(opts: {
   } catch {
     throw new Error(`AI returned malformed JSON for ${opts.label}. Please retry.`);
   }
+  // Clamp common numeric fields the AI sometimes returns out of range.
+  if (raw && typeof raw === "object") {
+    const r = raw as Record<string, unknown>;
+    if (typeof r.score === "number") {
+      r.score = Math.min(10, Math.max(1, Math.round(r.score)));
+    }
+    if (typeof r.overallScore === "number") {
+      r.overallScore = Math.min(100, Math.max(0, Math.round(r.overallScore)));
+    }
+  }
   const parsed = opts.schema.safeParse(raw);
   if (!parsed.success) {
     console.error(`${opts.label} schema mismatch:`, parsed.error.format());
