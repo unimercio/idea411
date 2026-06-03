@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { toast } from "sonner";
+import { PasswordStrength } from "@/components/site/PasswordStrength";
 
 const searchSchema = z.object({
   redirect: z.string().trim().min(1).max(512).optional().catch(undefined),
@@ -327,6 +328,9 @@ function AuthPage() {
                     <p id="password-error" role="alert" className="mt-1.5 px-3 text-xs text-destructive">
                       {passwordError}
                     </p>
+                  )}
+                  {password.length > 0 && (
+                    <PasswordStrength password={password} showMeter={mode === "signup"} />
                   )}
                   {mode === "signup" && !passwordError && password.length > 0 && (
                     <ul id="password-rules" className="mt-2 space-y-0.5 px-3 text-xs">
