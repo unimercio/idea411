@@ -1,7 +1,9 @@
 import { Link } from "@tanstack/react-router";
 import { Flame } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export function Footer() {
+  const { t } = useTranslation();
   return (
     <footer className="border-t border-border py-10">
       <div className="mx-auto max-w-7xl px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -12,7 +14,7 @@ export function Footer() {
           IdeaForge
         </Link>
         <p className="text-xs text-muted-foreground">
-          © {new Date().getFullYear()} IdeaForge Labs.
+          {t("footer.copyright", { year: new Date().getFullYear() })}
         </p>
       </div>
     </footer>
