@@ -248,7 +248,10 @@ function IntakePage() {
                 <Wand2 className="h-3.5 w-3.5 text-ember" />
                 {refining ? "Refining…" : "Refine with AI"}
               </button>
-              <span className="text-[11px] text-muted-foreground">{chars}/4000</span>
+              <span className={"text-[11px] " + (chars > 0 && chars < 400 ? "text-ember" : "text-muted-foreground")}>
+                {chars > 0 && chars < 400 ? "Tip: 400+ characters gives sharper results · " : ""}
+                {chars}/1200
+              </span>
             </div>
             {refineHint && (
               <p className="mt-2 rounded-lg border border-ember/30 bg-ember/5 px-3 py-2 text-xs text-foreground/80">
