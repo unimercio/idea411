@@ -4,11 +4,13 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Flame, Save, Upload, Trash2, User } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { getMySettings, updateMySettings } from "@/lib/api/settings.functions";
+import { SUPPORTED_LANGUAGES, applyLanguage } from "@/i18n";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({
