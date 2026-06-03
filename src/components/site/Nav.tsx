@@ -69,17 +69,17 @@ export function Nav() {
               </>
             )}
           </nav>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2">
             <LanguageSwitcher />
             {isAuthed === true ? (
               <button
                 onClick={handleSignOut}
-                className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground px-3 py-1.5"
+                className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground px-2 sm:px-3 py-1.5"
               >
                 {t("common.signOut")}
               </button>
             ) : isAuthed === false ? (
-              <Link to="/auth" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground px-3 py-1.5">
+              <Link to="/auth" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground px-2 sm:px-3 py-1.5">
                 {t("common.signIn")}
               </Link>
             ) : (
@@ -87,7 +87,7 @@ export function Nav() {
             )}
             <Link
               to="/intake"
-              className="inline-flex items-center rounded-full bg-gradient-ember px-4 py-2 text-sm font-medium text-ember-foreground shadow-ember hover:brightness-110 transition"
+              className="inline-flex items-center rounded-full bg-gradient-ember px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-ember-foreground shadow-ember hover:brightness-110 transition whitespace-nowrap"
             >
               {t("common.startForging")}
             </Link>
