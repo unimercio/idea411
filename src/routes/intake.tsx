@@ -73,6 +73,29 @@ function IntakePage() {
   const [dragOver, setDragOver] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [refining, setRefining] = useState(false);
+  const [refineHint, setRefineHint] = useState<string | null>(null);
+  const refineFn = useServerFn(refineIdea);
+
+  const onRefine = async () => {
+    if (idea.trim().length < 5) {
+      setError("Write a bit more before refining (5+ characters).");
+      return;
+    }
+    setError(null);
+    setRefineHint(null);
+    setRefining(true);
+    try {
+      const result = await refineFn({ data: { idea: idea.trim() } });
+      setIdea(result.refined);
+      if (result.question) setRefineHint(result.question);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Couldn't refine the idea. Try again.");
+    } finally {
+      setRefining(false);
+    }
+  };
+
 
   const onPickFile = useCallback((file: File | undefined) => {
     if (!file) return;
