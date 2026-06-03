@@ -59,7 +59,10 @@ export function Nav() {
               <Link to="/dashboard" className="hover:text-foreground transition-colors">Projects</Link>
             )}
             {isAdmin && (
-              <Link to="/admin/prompt-templates" className="hover:text-foreground transition-colors">Admin</Link>
+              <>
+                <Link to="/admin/prompt-templates" className="hover:text-foreground transition-colors">Prompts</Link>
+                <Link to="/admin/skills" className="hover:text-foreground transition-colors">Skills</Link>
+              </>
             )}
           </nav>
           <div className="flex items-center gap-2">
