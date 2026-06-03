@@ -93,8 +93,10 @@ access, admin path) is rendered from
 | Vetting pipeline | `src/lib/api/vetting.functions.ts`                           | Runs strategic / compliance / market / sales passes |
 | Market research  | `src/lib/api/market-research.functions.ts`                   | Competitor + trend analysis                         |
 | Prompt admin     | `src/lib/api/prompt-templates.functions.ts`                  | Admin-only CRUD over LLM prompt templates           |
+| Skills admin     | `src/lib/api/skills.functions.ts`                            | Admin-only CRUD over reusable skill definitions     |
+| User admin       | `src/lib/api/admin-users.functions.ts`                       | List users, toggle admin, password resets, deletion, audit log |
 | User settings    | `src/lib/api/settings.functions.ts`                          | Profile, avatar (Supabase Storage)                  |
-| Data + RBAC      | `supabase/migrations/*`                                      | RLS, `has_role()`, `admin_exists()`, triggers       |
+| Data + RBAC      | `supabase/migrations/*`                                      | RLS, `has_role()`, `admin_exists()`, `admin_audit_log`, triggers |
 
 
 ## Project structure
