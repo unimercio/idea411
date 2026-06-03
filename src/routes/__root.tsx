@@ -71,7 +71,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { title: "Lovable App" },
       { name: "description", content: "IdeaSpark Studio transforms your ideas into market-ready products with AI-driven vetting, IP protection, and launch tools." },
       { name: "author", content: "Lovable" },
@@ -84,12 +84,22 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:description", content: "IdeaSpark Studio transforms your ideas into market-ready products with AI-driven vetting, IP protection, and launch tools." },
       { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/37450616-a4ec-4966-aa27-f73c7013f2a8/id-preview-bc0491ee--db0225c5-7897-4f73-a19c-fc240b555b95.lovable.app-1780062987758.png" },
       { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/37450616-a4ec-4966-aa27-f73c7013f2a8/id-preview-bc0491ee--db0225c5-7897-4f73-a19c-fc240b555b95.lovable.app-1780062987758.png" },
+      // PWA
+      { name: "theme-color", content: "#1c1a18" },
+      { name: "application-name", content: "IdeaForge" },
+      { name: "mobile-web-app-capable", content: "yes" },
+      // iOS
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title", content: "IdeaForge" },
+      { name: "format-detection", content: "telephone=no" },
     ],
     links: [
-      {
-        rel: "stylesheet",
-        href: appCss,
-      },
+      { rel: "stylesheet", href: appCss },
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32.png" },
+      { rel: "icon", type: "image/png", sizes: "192x192", href: "/icons/icon-192.png" },
+      { rel: "apple-touch-icon", sizes: "180x180", href: "/icons/apple-touch-icon.png" },
     ],
   }),
   shellComponent: RootShell,
