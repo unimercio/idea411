@@ -172,23 +172,23 @@ function SettingsPage() {
             to="/dashboard"
             className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
           >
-            <ArrowLeft className="h-4 w-4" /> Back to projects
+            <ArrowLeft className="h-4 w-4" /> {t("common.backToProjects")}
           </Link>
         </div>
       </header>
 
       <section className="mx-auto max-w-3xl px-6 py-10">
         <div className="mb-8">
-          <h1 className="font-display text-3xl font-semibold tracking-tight">Settings</h1>
+          <h1 className="font-display text-3xl font-semibold tracking-tight">{t("settings.title")}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Personal details used across your IdeaForge experience.
+            {t("settings.subtitle")}
           </p>
         </div>
 
         <div className="rounded-2xl border border-border bg-card p-6 shadow-elegant">
-          <h2 className="font-display text-lg font-semibold">Profile</h2>
+          <h2 className="font-display text-lg font-semibold">{t("settings.profile")}</h2>
           <p className="text-sm text-muted-foreground mb-6">
-            Tell us a bit about yourself.
+            {t("settings.profileSubtitle")}
           </p>
 
           {error && (
@@ -229,7 +229,7 @@ function SettingsPage() {
                     disabled={uploading || mutation.isPending}
                   >
                     <Upload className="h-4 w-4 mr-2" />
-                    {uploading ? "Uploading…" : avatarPath ? "Change avatar" : "Upload avatar"}
+                    {uploading ? t("settings.uploading") : avatarPath ? t("settings.changeAvatar") : t("settings.uploadAvatar")}
                   </Button>
                   {avatarPath && (
                     <Button
@@ -239,17 +239,17 @@ function SettingsPage() {
                       onClick={handleRemoveAvatar}
                       disabled={uploading || mutation.isPending}
                     >
-                      <Trash2 className="h-4 w-4 mr-2" /> Remove
+                      <Trash2 className="h-4 w-4 mr-2" /> {t("intake.remove")}
                     </Button>
                   )}
                 </div>
-                <p className="text-xs text-muted-foreground">PNG, JPG, or GIF. Max 2MB.</p>
+                <p className="text-xs text-muted-foreground">{t("settings.avatarHelp")}</p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div className="space-y-2">
-                <Label htmlFor="first_name">First name</Label>
+                <Label htmlFor="first_name">{t("settings.firstName")}</Label>
                 <Input
                   id="first_name"
                   value={firstName}
@@ -262,7 +262,7 @@ function SettingsPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="title">Title</Label>
+                <Label htmlFor="title">{t("settings.userTitle")}</Label>
                 <Input
                   id="title"
                   value={title}
@@ -275,7 +275,7 @@ function SettingsPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="company">Company</Label>
+                <Label htmlFor="company">{t("settings.company")}</Label>
                 <Input
                   id="company"
                   value={company}
@@ -288,7 +288,7 @@ function SettingsPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="website">Website</Label>
+                <Label htmlFor="website">{t("settings.website")}</Label>
                 <Input
                   id="website"
                   type="url"
@@ -300,6 +300,24 @@ function SettingsPage() {
                   autoComplete="url"
                 />
               </div>
+
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="language">{t("common.language")}</Label>
+                <select
+                  id="language"
+                  value={language}
+                  onChange={(e) => setLanguage(e.target.value)}
+                  disabled={isLoading || mutation.isPending}
+                  className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                >
+                  {SUPPORTED_LANGUAGES.map((l) => (
+                    <option key={l.code} value={l.code}>
+                      {l.native} — {l.label}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-muted-foreground">{t("common.languageHelp")}</p>
+              </div>
             </div>
 
             <div className="flex items-center justify-end gap-3 pt-2">
@@ -309,7 +327,7 @@ function SettingsPage() {
                 className="bg-gradient-ember text-ember-foreground shadow-ember hover:brightness-110"
               >
                 <Save className="h-4 w-4 mr-2" />
-                {mutation.isPending ? "Saving…" : "Save changes"}
+                {mutation.isPending ? t("common.saving") : t("common.save")}
               </Button>
             </div>
           </form>
