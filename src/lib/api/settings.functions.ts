@@ -2,6 +2,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
+const SUPPORTED_LANGS = ["en", "es", "zh", "hi", "ar"] as const;
+
 const updateSchema = z.object({
   first_name: z.string().trim().max(100).nullable().optional(),
   title: z.string().trim().max(150).nullable().optional(),
@@ -15,7 +17,10 @@ const updateSchema = z.object({
     .optional()
     .or(z.literal("")),
   avatar_url: z.string().trim().max(500).nullable().optional(),
+  language: z.enum(SUPPORTED_LANGS).optional(),
 });
+
+const languageSchema = z.object({ language: z.enum(SUPPORTED_LANGS) });
 
 export const getMySettings = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
