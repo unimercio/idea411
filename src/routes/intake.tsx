@@ -1,9 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "motion/react";
-import { ArrowRight, Flame, ImagePlus, Sparkles, X, History, Mail } from "lucide-react";
+import { ArrowRight, Flame, ImagePlus, Sparkles, X, History, Mail, Wand2 } from "lucide-react";
 import { z } from "zod";
 import { getProject, overallScore } from "@/lib/projects";
+import { refineIdea } from "@/lib/api/vetting.functions";
 
 const searchSchema = z.object({
   refine: z.string().trim().min(1).max(64).optional().catch(undefined),
