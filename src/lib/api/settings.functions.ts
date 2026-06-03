@@ -61,7 +61,8 @@ export const updateMySettings = createServerFn({ method: "POST" })
     if (data.language) payload.language = data.language;
     const { error } = await supabase
       .from("profiles")
-      .upsert(payload, { onConflict: "user_id" });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .upsert(payload as any, { onConflict: "user_id" });
     if (error) throw new Error(error.message);
     return { ok: true };
   });
