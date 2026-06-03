@@ -1,11 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Flame, Menu } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Flame } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -54,72 +48,50 @@ export function Nav() {
   };
 
   return (
-    <header className="fixed inset-x-2 top-3 z-50 overflow-x-clip sm:inset-x-6 sm:top-5">
-      <div className="mx-auto w-full max-w-7xl">
-        <div className="glass flex w-full max-w-full items-center justify-between rounded-full border border-border px-2 sm:px-5 py-2 sm:py-3 shadow-elegant gap-1 sm:gap-2 min-w-0 overflow-hidden">
-          <Link to="/" className="flex items-center gap-1.5 sm:gap-2 font-display text-sm sm:text-lg font-semibold tracking-tight shrink-0 min-w-0">
-            <span className="grid h-6 w-6 sm:h-7 sm:w-7 place-items-center rounded-md bg-gradient-ember text-ember-foreground shadow-ember shrink-0">
-              <Flame className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+    <header className="fixed top-0 inset-x-0 z-50">
+      <div className="mx-auto max-w-7xl px-6 pt-5">
+        <div className="glass flex items-center justify-between rounded-full border border-border px-5 py-3 shadow-elegant">
+          <Link to="/" className="flex items-center gap-2 font-display text-lg font-semibold tracking-tight">
+            <span className="grid h-7 w-7 place-items-center rounded-md bg-gradient-ember text-ember-foreground shadow-ember">
+              <Flame className="h-4 w-4" />
             </span>
-            <span className="hidden sm:inline">IdeaForge</span>
+            IdeaForge
           </Link>
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              className="inline-flex items-center justify-center rounded-full p-2 text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors shrink-0"
-              aria-label={t("common.menu", { defaultValue: "Menu" })}
-            >
-              <Menu className="h-4 w-4" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" sideOffset={8} collisionPadding={12} className="w-48 z-[60]">
-              <DropdownMenuItem asChild>
-                <Link to="/">{t("common.home", { defaultValue: "Home" })}</Link>
-              </DropdownMenuItem>
-              {isAuthed === true && (
-                <DropdownMenuItem asChild>
-                  <Link to="/dashboard">{t("common.dashboard")}</Link>
-                </DropdownMenuItem>
-              )}
-              {isAdmin && (
-                <>
-                  <DropdownMenuItem asChild>
-                    <Link to="/admin/prompt-templates">{t("nav.prompts")}</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/admin/skills">{t("nav.skills")}</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/admin/users">{t("nav.users")}</Link>
-                  </DropdownMenuItem>
-                </>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <div className="flex items-center gap-1 sm:gap-2 min-w-0 shrink justify-end">
-            <div className="hidden sm:block">
-              <LanguageSwitcher compact />
-            </div>
+          <nav className="hidden md:flex items-center gap-7 text-sm text-muted-foreground">
+            {isAuthed === true && (
+              <Link to="/dashboard" className="hover:text-foreground transition-colors">{t("common.dashboard")}</Link>
+            )}
+            {isAdmin && (
+              <>
+                <Link to="/admin/prompt-templates" className="hover:text-foreground transition-colors">{t("nav.prompts")}</Link>
+                <Link to="/admin/skills" className="hover:text-foreground transition-colors">{t("nav.skills")}</Link>
+                <Link to="/admin/users" className="hover:text-foreground transition-colors">{t("nav.users")}</Link>
+              </>
+            )}
+          </nav>
+          <div className="flex items-center gap-2">
+            <LanguageSwitcher />
             {isAuthed === true ? (
               <button
                 onClick={handleSignOut}
-                className="inline-flex items-center text-xs sm:text-sm text-muted-foreground hover:text-foreground px-1 sm:px-3 py-1.5 whitespace-nowrap"
+                className="hidden sm:inline-flex items-center text-sm text-muted-foreground hover:text-foreground px-3 py-1.5"
               >
                 {t("common.signOut")}
               </button>
             ) : isAuthed === false ? (
-              <Link to="/auth" className="inline-flex items-center text-xs sm:text-sm text-muted-foreground hover:text-foreground px-1 sm:px-3 py-1.5 whitespace-nowrap">
+              <Link to="/auth" className="hidden sm:inline-flex items-center text-sm text-muted-foreground hover:text-foreground px-3 py-1.5">
                 {t("common.signIn")}
               </Link>
-            ) : null}
+            ) : (
+              <span className="hidden sm:inline-flex w-16" aria-hidden />
+            )}
             <Link
               to="/intake"
-              className="inline-flex items-center rounded-full bg-gradient-ember px-2.5 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-ember-foreground shadow-ember hover:brightness-110 transition whitespace-nowrap shrink-0"
+              className="inline-flex items-center rounded-full bg-gradient-ember px-4 py-2 text-sm font-medium text-ember-foreground shadow-ember hover:brightness-110 transition"
             >
-              <span className="sm:hidden">{t("common.startForgingShort", { defaultValue: "Forge" })}</span>
-              <span className="hidden sm:inline">{t("common.startForging")}</span>
+              {t("common.startForging")}
             </Link>
           </div>
-
         </div>
       </div>
     </header>
