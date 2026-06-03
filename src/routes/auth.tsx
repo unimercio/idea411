@@ -264,7 +264,11 @@ function AuthPage() {
                 {mode === "signin" ? t("auth.newHere") : t("auth.alreadyHave")}{" "}
                 <button
                   type="button"
-                  onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
+                  onClick={() => {
+                    setMode(mode === "signin" ? "signup" : "signin");
+                    setConfirmPassword("");
+                    setFieldError(null);
+                  }}
                   className="text-foreground hover:underline"
                 >
                   {mode === "signin" ? t("auth.createAccountLink") : t("auth.signInLink")}
