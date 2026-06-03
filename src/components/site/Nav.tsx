@@ -1,5 +1,11 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Flame } from "lucide-react";
+import { Flame, Menu } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -57,18 +63,36 @@ export function Nav() {
             </span>
             <span className="hidden sm:inline">IdeaForge</span>
           </Link>
-          <nav className="hidden md:flex items-center gap-7 text-sm text-muted-foreground">
-            {isAuthed === true && (
-              <Link to="/dashboard" className="hover:text-foreground transition-colors">{t("common.dashboard")}</Link>
-            )}
-            {isAdmin && (
-              <>
-                <Link to="/admin/prompt-templates" className="hover:text-foreground transition-colors">{t("nav.prompts")}</Link>
-                <Link to="/admin/skills" className="hover:text-foreground transition-colors">{t("nav.skills")}</Link>
-                <Link to="/admin/users" className="hover:text-foreground transition-colors">{t("nav.users")}</Link>
-              </>
-            )}
-          </nav>
+          {(isAuthed === true || isAdmin) && (
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                className="inline-flex items-center justify-center rounded-full p-2 text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors shrink-0"
+                aria-label={t("common.menu", { defaultValue: "Menu" })}
+              >
+                <Menu className="h-4 w-4" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-48">
+                {isAuthed === true && (
+                  <DropdownMenuItem asChild>
+                    <Link to="/dashboard">{t("common.dashboard")}</Link>
+                  </DropdownMenuItem>
+                )}
+                {isAdmin && (
+                  <>
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin/prompt-templates">{t("nav.prompts")}</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin/skills">{t("nav.skills")}</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin/users">{t("nav.users")}</Link>
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
           <div className="flex items-center gap-1 sm:gap-2 min-w-0 shrink justify-end">
             <div className="hidden sm:block">
               <LanguageSwitcher compact />
