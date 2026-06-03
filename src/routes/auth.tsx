@@ -235,6 +235,21 @@ function AuthPage() {
                   placeholder={t("auth.passwordPlaceholder")}
                   className="w-full rounded-full border border-border bg-background/60 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                 />
+                {mode === "signup" && (
+                  <input
+                    type="password"
+                    required
+                    minLength={6}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder={t("auth.confirmPasswordPlaceholder")}
+                    aria-invalid={!!confirmPassword && confirmPassword !== password}
+                    className="w-full rounded-full border border-border bg-background/60 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring aria-[invalid=true]:border-destructive"
+                  />
+                )}
+                {fieldError && (
+                  <p role="alert" className="text-xs text-destructive px-1">{fieldError}</p>
+                )}
                 <button
                   type="submit"
                   disabled={loading}
