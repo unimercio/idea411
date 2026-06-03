@@ -70,7 +70,7 @@ export function Nav() {
             >
               <Menu className="h-4 w-4" />
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-48">
+            <DropdownMenuContent align="start" sideOffset={8} collisionPadding={12} className="w-48 z-[60]">
               <DropdownMenuItem asChild>
                 <Link to="/">{t("common.home", { defaultValue: "Home" })}</Link>
               </DropdownMenuItem>
