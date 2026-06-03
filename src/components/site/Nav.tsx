@@ -31,7 +31,7 @@ export function Nav() {
     queryFn: () => checkAdminFn(),
     enabled: isAuthed === true,
   });
-  const isAdmin = adminQuery.data?.isAdmin === true;
+  const isAdmin = isAuthed === true && adminQuery.data?.isAdmin === true;
 
 
   const handleSignOut = async () => {

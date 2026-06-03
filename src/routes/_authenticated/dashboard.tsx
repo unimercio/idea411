@@ -62,7 +62,7 @@ function DashboardPage() {
     queryFn: () => checkAdminFn(),
     enabled: isAuthed === true,
   });
-  const isAdmin = adminQuery.data?.isAdmin === true;
+  const isAdmin = isAuthed === true && adminQuery.data?.isAdmin === true;
   const adminExists = adminQuery.data?.adminExists === true;
   const claimFn = useServerFn(claimFirstAdmin);
   const [claiming, setClaiming] = useState(false);
