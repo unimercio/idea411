@@ -2,9 +2,11 @@ import { motion } from "motion/react";
 import { ArrowRight, Sparkles, Upload, Mail } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import heroImg from "@/assets/hero-forge.jpg";
 
 export function Hero() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [idea, setIdea] = useState("");
   const [email, setEmail] = useState("");
@@ -34,16 +36,15 @@ export function Hero() {
         >
           <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-3 py-1 text-xs text-muted-foreground">
             <Sparkles className="h-3.5 w-3.5 text-ember" />
-            Concept to market — in one flow
+            {t("hero.badge")}
           </span>
           <h1 className="mt-6 font-display text-5xl sm:text-6xl md:text-7xl font-semibold text-balance leading-[1.02]">
-            Forge ideas into{" "}
-            <span className="bg-gradient-ember bg-clip-text text-transparent">market-ready</span>{" "}
-            products.
+            {t("hero.title1")}{" "}
+            <span className="bg-gradient-ember bg-clip-text text-transparent">{t("hero.titleAccent")}</span>{" "}
+            {t("hero.title2")}
           </h1>
           <p className="mt-6 text-lg text-muted-foreground text-balance">
-            Try it free — drop in your concept and get an instant vetting report.
-            Create an account to save and refine your ideas.
+            {t("hero.subtitle")}
           </p>
         </motion.div>
 
@@ -56,13 +57,13 @@ export function Hero() {
           className="relative mx-auto mt-12 max-w-3xl rounded-3xl border border-border bg-card/80 p-2 shadow-elegant"
         >
           <div className="rounded-[1.25rem] bg-background/60 p-5">
-            <label className="sr-only" htmlFor="idea">Describe your idea</label>
+            <label className="sr-only" htmlFor="idea">{t("intake.concept")}</label>
             <textarea
               id="idea"
               rows={4}
               value={idea}
               onChange={(e) => setIdea(e.target.value)}
-              placeholder="A modular ceramic cookware system that retains heat 3× longer than cast iron…"
+              placeholder={t("hero.ideaPlaceholder")}
               className="w-full resize-none bg-transparent text-base placeholder:text-muted-foreground/60 focus:outline-none"
             />
             <div className="mt-4 flex items-center gap-2 rounded-xl border border-border bg-background/40 px-3 py-2 focus-within:border-ember/60">
@@ -75,26 +76,26 @@ export function Hero() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 maxLength={255}
-                placeholder="you@company.com — we'll email you the report link (optional)"
+                placeholder={t("hero.emailPlaceholder")}
                 className="w-full bg-transparent text-sm placeholder:text-muted-foreground/60 focus:outline-none"
               />
             </div>
             <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
               <span className="inline-flex items-center gap-2 rounded-full border border-border bg-secondary/60 px-3 py-1.5 text-xs text-muted-foreground">
-                <Upload className="h-3.5 w-3.5" /> Sketches supported in the next step
+                <Upload className="h-3.5 w-3.5" /> {t("hero.sketchesNote")}
               </span>
               <button
                 type="button"
                 onClick={go}
                 className="group inline-flex items-center gap-2 rounded-full bg-gradient-ember px-5 py-2.5 text-sm font-medium text-ember-foreground shadow-ember hover:brightness-110 transition"
               >
-                Try it free
+                {t("hero.tryFree")}
                 <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
               </button>
             </div>
           </div>
           <p className="px-4 py-3 text-center text-xs text-muted-foreground">
-            No account needed · Add your email to get the report link sent to you
+            {t("hero.noAccount")}
           </p>
         </motion.div>
 
