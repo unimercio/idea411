@@ -55,18 +55,7 @@ function AuditLogPage() {
   }
 
   if (!adminQ.data?.isAdmin) {
-    return (
-      <main className="mx-auto max-w-xl px-6 py-24">
-        <Link to="/dashboard" className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground">
-          <ArrowLeft className="h-3.5 w-3.5" /> Back
-        </Link>
-        <div className="mt-8 rounded-2xl border border-border bg-card/80 p-8 shadow-elegant">
-          <ShieldCheck className="h-6 w-6 text-ember" />
-          <h1 className="mt-3 font-display text-2xl font-semibold">Admin only</h1>
-          <p className="mt-2 text-sm text-muted-foreground">You need the admin role to view the audit log.</p>
-        </div>
-      </main>
-    );
+    return <NotAuthorized area="the admin audit log" />;
   }
 
   return (
