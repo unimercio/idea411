@@ -199,11 +199,7 @@ function DashboardPage() {
                 <div className="min-w-0 flex-1">
                   {status === "admin" && (
                     <>
-                      <p className="font-medium text-foreground">You are an admin.</p>
-                      <p className="text-muted-foreground">
-                        The <strong className="text-foreground">Templates</strong> link in the
-                        header opens the prompt-template editor.
-                      </p>
+                      <p className="font-medium text-foreground">You are an Admin</p>
                     </>
                   )}
                   {status === "not-admin" && (
