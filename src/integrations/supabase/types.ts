@@ -95,6 +95,7 @@ export type Database = {
           company: string | null
           created_at: string
           first_name: string | null
+          language: string
           title: string | null
           updated_at: string
           user_id: string
@@ -105,6 +106,7 @@ export type Database = {
           company?: string | null
           created_at?: string
           first_name?: string | null
+          language?: string
           title?: string | null
           updated_at?: string
           user_id: string
@@ -115,6 +117,7 @@ export type Database = {
           company?: string | null
           created_at?: string
           first_name?: string | null
+          language?: string
           title?: string | null
           updated_at?: string
           user_id?: string

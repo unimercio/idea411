@@ -4,11 +4,13 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Flame, Save, Upload, Trash2, User } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { getMySettings, updateMySettings } from "@/lib/api/settings.functions";
+import { SUPPORTED_LANGUAGES, applyLanguage } from "@/i18n";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({
@@ -23,6 +25,7 @@ export const Route = createFileRoute("/_authenticated/settings")({
 const MAX_AVATAR_BYTES = 2 * 1024 * 1024; // 2MB
 
 function SettingsPage() {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const getFn = useServerFn(getMySettings);
   const updateFn = useServerFn(updateMySettings);
@@ -36,6 +39,7 @@ function SettingsPage() {
   const [title, setTitle] = useState("");
   const [company, setCompany] = useState("");
   const [website, setWebsite] = useState("");
+  const [language, setLanguage] = useState<string>("en");
   const [avatarPath, setAvatarPath] = useState("");
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -48,6 +52,7 @@ function SettingsPage() {
       setCompany(data.company ?? "");
       setWebsite(data.website ?? "");
       setAvatarPath(data.avatar_url ?? "");
+      setLanguage(data.language ?? "en");
     }
   }, [data]);
 
@@ -76,9 +81,11 @@ function SettingsPage() {
       company: string;
       website: string;
       avatar_url: string;
+      language: string;
     }) => updateFn({ data: vars }),
-    onSuccess: () => {
-      toast.success("Settings saved.");
+    onSuccess: (_d, vars) => {
+      toast.success(t("settings.saved"));
+      applyLanguage(vars.language);
       qc.invalidateQueries({ queryKey: ["my-settings"] });
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Failed to save"),
@@ -147,6 +154,7 @@ function SettingsPage() {
       company: company.trim(),
       website: website.trim(),
       avatar_url: avatarPath,
+      language,
     });
   };
 
@@ -164,23 +172,23 @@ function SettingsPage() {
             to="/dashboard"
             className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
           >
-            <ArrowLeft className="h-4 w-4" /> Back to projects
+            <ArrowLeft className="h-4 w-4" /> {t("common.backToProjects")}
           </Link>
         </div>
       </header>
 
       <section className="mx-auto max-w-3xl px-6 py-10">
         <div className="mb-8">
-          <h1 className="font-display text-3xl font-semibold tracking-tight">Settings</h1>
+          <h1 className="font-display text-3xl font-semibold tracking-tight">{t("settings.title")}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Personal details used across your IdeaForge experience.
+            {t("settings.subtitle")}
           </p>
         </div>
 
         <div className="rounded-2xl border border-border bg-card p-6 shadow-elegant">
-          <h2 className="font-display text-lg font-semibold">Profile</h2>
+          <h2 className="font-display text-lg font-semibold">{t("settings.profile")}</h2>
           <p className="text-sm text-muted-foreground mb-6">
-            Tell us a bit about yourself.
+            {t("settings.profileSubtitle")}
           </p>
 
           {error && (
@@ -221,7 +229,7 @@ function SettingsPage() {
                     disabled={uploading || mutation.isPending}
                   >
                     <Upload className="h-4 w-4 mr-2" />
-                    {uploading ? "Uploading…" : avatarPath ? "Change avatar" : "Upload avatar"}
+                    {uploading ? t("settings.uploading") : avatarPath ? t("settings.changeAvatar") : t("settings.uploadAvatar")}
                   </Button>
                   {avatarPath && (
                     <Button
@@ -231,17 +239,17 @@ function SettingsPage() {
                       onClick={handleRemoveAvatar}
                       disabled={uploading || mutation.isPending}
                     >
-                      <Trash2 className="h-4 w-4 mr-2" /> Remove
+                      <Trash2 className="h-4 w-4 mr-2" /> {t("intake.remove")}
                     </Button>
                   )}
                 </div>
-                <p className="text-xs text-muted-foreground">PNG, JPG, or GIF. Max 2MB.</p>
+                <p className="text-xs text-muted-foreground">{t("settings.avatarHelp")}</p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div className="space-y-2">
-                <Label htmlFor="first_name">First name</Label>
+                <Label htmlFor="first_name">{t("settings.firstName")}</Label>
                 <Input
                   id="first_name"
                   value={firstName}
@@ -254,7 +262,7 @@ function SettingsPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="title">Title</Label>
+                <Label htmlFor="title">{t("settings.userTitle")}</Label>
                 <Input
                   id="title"
                   value={title}
@@ -267,7 +275,7 @@ function SettingsPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="company">Company</Label>
+                <Label htmlFor="company">{t("settings.company")}</Label>
                 <Input
                   id="company"
                   value={company}
@@ -280,7 +288,7 @@ function SettingsPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="website">Website</Label>
+                <Label htmlFor="website">{t("settings.website")}</Label>
                 <Input
                   id="website"
                   type="url"
@@ -292,6 +300,24 @@ function SettingsPage() {
                   autoComplete="url"
                 />
               </div>
+
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="language">{t("common.language")}</Label>
+                <select
+                  id="language"
+                  value={language}
+                  onChange={(e) => setLanguage(e.target.value)}
+                  disabled={isLoading || mutation.isPending}
+                  className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                >
+                  {SUPPORTED_LANGUAGES.map((l) => (
+                    <option key={l.code} value={l.code}>
+                      {l.native} — {l.label}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-muted-foreground">{t("common.languageHelp")}</p>
+              </div>
             </div>
 
             <div className="flex items-center justify-end gap-3 pt-2">
@@ -301,7 +327,7 @@ function SettingsPage() {
                 className="bg-gradient-ember text-ember-foreground shadow-ember hover:brightness-110"
               >
                 <Save className="h-4 w-4 mr-2" />
-                {mutation.isPending ? "Saving…" : "Save changes"}
+                {mutation.isPending ? t("common.saving") : t("common.save")}
               </Button>
             </div>
           </form>
