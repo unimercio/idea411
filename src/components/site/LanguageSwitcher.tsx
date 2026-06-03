@@ -5,11 +5,13 @@ import { useEffect, useState } from "react";
 import { SUPPORTED_LANGUAGES, applyLanguage } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { updateMyLanguage } from "@/lib/api/settings.functions";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
   const { i18n } = useTranslation();
   const [isAuthed, setIsAuthed] = useState(false);
   const updateLang = useServerFn(updateMyLanguage);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     let mounted = true;
@@ -40,7 +42,7 @@ export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
     <label
       className={
         "inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground " +
-        (compact ? "px-1" : "px-2")
+        (compact ? "px-1" : "px-1 sm:px-2")
       }
     >
       <Globe className="h-4 w-4" aria-hidden />
@@ -53,11 +55,11 @@ export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
       >
         {SUPPORTED_LANGUAGES.map((l) => (
           <option key={l.code} value={l.code} className="bg-background text-foreground">
-            <span className="hidden sm:inline">{l.native}</span>
-            {l.native}
+            {isMobile ? l.code.toUpperCase() : l.native}
           </option>
         ))}
       </select>
     </label>
   );
 }
+
