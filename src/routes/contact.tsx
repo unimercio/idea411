@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Flame, Mail } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export const Route = createFileRoute("/contact")({
   head: () => ({
@@ -12,6 +13,7 @@ export const Route = createFileRoute("/contact")({
 });
 
 function ContactPage() {
+  const { t } = useTranslation();
   return (
     <main className="min-h-screen bg-background text-foreground">
       <header className="border-b border-border">
@@ -25,14 +27,11 @@ function ContactPage() {
         </div>
       </header>
       <section className="mx-auto max-w-3xl px-6 py-24">
-        <p className="text-xs uppercase tracking-[0.2em] text-ember">Talk to us</p>
+        <p className="text-xs uppercase tracking-[0.2em] text-ember">{t("contact.eyebrow")}</p>
         <h1 className="mt-3 font-display text-5xl font-semibold text-balance">
-          Let's forge something remarkable.
+          {t("contact.title")}
         </h1>
-        <p className="mt-4 text-lg text-muted-foreground">
-          For Atelier plans, partnerships, or press — drop us a line and we'll be in touch within one
-          business day.
-        </p>
+        <p className="mt-4 text-lg text-muted-foreground">{t("contact.subtitle")}</p>
         <a
           href="mailto:hello@ideaforge.app"
           className="mt-8 inline-flex items-center gap-2 rounded-full bg-gradient-ember px-5 py-2.5 text-sm font-medium text-ember-foreground shadow-ember hover:brightness-110 transition"

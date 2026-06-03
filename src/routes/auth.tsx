@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Flame, Mail } from "lucide-react";
 import { useEffect, useState } from "react";
 import { z } from "zod";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { toast } from "sonner";
@@ -22,6 +23,7 @@ export const Route = createFileRoute("/auth")({
 });
 
 function AuthPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { redirect: redirectTo } = Route.useSearch();
   const dest = redirectTo && redirectTo.startsWith("/") ? redirectTo : "/dashboard";
@@ -31,7 +33,6 @@ function AuthPage() {
   const [loading, setLoading] = useState(false);
   const [sentTo, setSentTo] = useState<string | null>(null);
 
-  // Redirect when authenticated
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) navigate({ to: dest, replace: true });
@@ -42,14 +43,9 @@ function AuthPage() {
     return () => sub.subscription.unsubscribe();
   }, [navigate, dest]);
 
-
   const friendlyError = (msg: string) => {
-    if (/rate limit|after \d+ seconds/i.test(msg)) {
-      return "We just sent you a confirmation email. Please wait a minute before trying again, and check your inbox (including spam).";
-    }
-    if (/already registered|already exists/i.test(msg)) {
-      return "An account with that email already exists. Try signing in instead.";
-    }
+    if (/rate limit|after \d+ seconds/i.test(msg)) return t("auth.errRateLimit");
+    if (/already registered|already exists/i.test(msg)) return t("auth.errExists");
     return msg;
   };
 
@@ -69,16 +65,15 @@ function AuthPage() {
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        toast.success("Signed in.");
+        toast.success(t("auth.signedIn"));
       }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Authentication failed";
+      const msg = err instanceof Error ? err.message : t("auth.errAuth");
       toast.error(friendlyError(msg));
     } finally {
       setLoading(false);
     }
   };
-
 
   const handleGoogle = async () => {
     setLoading(true);
@@ -87,12 +82,11 @@ function AuthPage() {
         redirect_uri: window.location.origin + dest,
       });
       if (result.error) {
-        toast.error(result.error.message || "Google sign-in failed");
+        toast.error(result.error.message || t("auth.errGoogle"));
         setLoading(false);
       }
-      // If redirected or session set, listener handles navigation.
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Google sign-in failed");
+      toast.error(err instanceof Error ? err.message : t("auth.errGoogle"));
       setLoading(false);
     }
   };
@@ -112,14 +106,11 @@ function AuthPage() {
               <div className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-gradient-ember text-ember-foreground shadow-ember">
                 <Mail className="h-5 w-5" />
               </div>
-              <h1 className="mt-5 font-display text-2xl font-semibold">Check your email</h1>
+              <h1 className="mt-5 font-display text-2xl font-semibold">{t("auth.checkEmail")}</h1>
               <p className="mt-2 text-sm text-muted-foreground">
-                We sent a confirmation link to <span className="text-foreground">{sentTo}</span>.
-                Click it to activate your account, then return here to sign in.
+                {t("auth.checkEmailBody", { email: sentTo })}
               </p>
-              <p className="mt-4 text-xs text-muted-foreground">
-                Didn't get it? Check your spam folder. You can request a new link in about a minute.
-              </p>
+              <p className="mt-4 text-xs text-muted-foreground">{t("auth.checkEmailSpam")}</p>
               <button
                 type="button"
                 onClick={() => {
@@ -129,16 +120,16 @@ function AuthPage() {
                 }}
                 className="mt-6 inline-flex items-center justify-center rounded-full border border-border bg-secondary/60 px-4 py-2 text-sm hover:bg-accent transition"
               >
-                Back to sign in
+                {t("auth.backToSignIn")}
               </button>
             </div>
           ) : (
             <>
               <h1 className="font-display text-2xl font-semibold text-center">
-                {mode === "signin" ? "Welcome back" : "Create your account"}
+                {mode === "signin" ? t("auth.welcomeBack") : t("auth.createAccount")}
               </h1>
               <p className="mt-2 text-center text-sm text-muted-foreground">
-                {mode === "signin" ? "Sign in to continue forging." : "Start forging your ideas today."}
+                {mode === "signin" ? t("auth.signInSubtitle") : t("auth.signUpSubtitle")}
               </p>
 
               <button
@@ -149,12 +140,12 @@ function AuthPage() {
                 <svg className="h-4 w-4" viewBox="0 0 24 24" aria-hidden>
                   <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.24 1.42-1.7 4.16-5.5 4.16-3.31 0-6-2.74-6-6.12 0-3.38 2.69-6.12 6-6.12 1.88 0 3.14.8 3.86 1.49l2.63-2.54C16.84 3.36 14.66 2.4 12 2.4 6.76 2.4 2.5 6.66 2.5 11.9c0 5.24 4.26 9.5 9.5 9.5 5.48 0 9.12-3.85 9.12-9.27 0-.62-.07-1.1-.16-1.58H12z" />
                 </svg>
-                Continue with Google
+                {t("auth.continueGoogle")}
               </button>
 
               <div className="my-6 flex items-center gap-3 text-xs text-muted-foreground">
                 <div className="h-px flex-1 bg-border" />
-                or
+                {t("common.or")}
                 <div className="h-px flex-1 bg-border" />
               </div>
 
@@ -164,7 +155,7 @@ function AuthPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@domain.com"
+                  placeholder={t("auth.emailPlaceholder")}
                   className="w-full rounded-full border border-border bg-background/60 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                 />
                 <input
@@ -173,7 +164,7 @@ function AuthPage() {
                   minLength={6}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Password (min 6 chars)"
+                  placeholder={t("auth.passwordPlaceholder")}
                   className="w-full rounded-full border border-border bg-background/60 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                 />
                 <button
@@ -182,18 +173,18 @@ function AuthPage() {
                   className="w-full inline-flex items-center justify-center gap-2 rounded-full bg-gradient-ember px-4 py-2.5 text-sm font-medium text-ember-foreground shadow-ember hover:brightness-110 transition disabled:opacity-50"
                 >
                   <Mail className="h-4 w-4" />
-                  {loading ? "Please wait…" : mode === "signin" ? "Sign in" : "Create account"}
+                  {loading ? t("auth.pleaseWait") : mode === "signin" ? t("auth.signInBtn") : t("auth.createBtn")}
                 </button>
               </form>
 
               <p className="mt-6 text-center text-xs text-muted-foreground">
-                {mode === "signin" ? "New here?" : "Already have an account?"}{" "}
+                {mode === "signin" ? t("auth.newHere") : t("auth.alreadyHave")}{" "}
                 <button
                   type="button"
                   onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
                   className="text-foreground hover:underline"
                 >
-                  {mode === "signin" ? "Create an account" : "Sign in"}
+                  {mode === "signin" ? t("auth.createAccountLink") : t("auth.signInLink")}
                 </button>
               </p>
             </>
@@ -201,7 +192,7 @@ function AuthPage() {
         </div>
 
         <p className="mt-6 text-center text-xs text-muted-foreground">
-          <Link to="/" className="hover:text-foreground transition">← Back to home</Link>
+          <Link to="/" className="hover:text-foreground transition">{t("common.backToHome")}</Link>
         </p>
       </div>
     </main>
