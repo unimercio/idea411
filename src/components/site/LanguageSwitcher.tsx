@@ -48,7 +48,7 @@ export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
       <select
         value={i18n.language?.slice(0, 2) || "en"}
         onChange={(e) => onChange(e.target.value)}
-        className="bg-transparent text-sm focus:outline-none cursor-pointer uppercase"
+        className="bg-transparent text-sm focus:outline-none cursor-pointer uppercase w-[3.25rem] appearance-none"
         aria-label="Language"
       >
         {SUPPORTED_LANGUAGES.map((l) => (
