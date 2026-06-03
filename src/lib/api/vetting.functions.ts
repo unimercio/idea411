@@ -266,7 +266,7 @@ async function callPillar<T>(opts: {
   skill: ResolvedSkill;
   baseSystem: string;
   userPrompt: string;
-  tool: typeof STRATEGIC_TOOL;
+  tool: { type: "function"; function: { name: string; description: string; parameters: unknown } };
   schema: z.ZodType<T>;
   label: string;
 }): Promise<T> {
