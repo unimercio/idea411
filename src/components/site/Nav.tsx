@@ -49,9 +49,9 @@ export function Nav() {
 
   return (
     <header className="fixed top-0 inset-x-0 z-50">
-      <div className="mx-auto max-w-7xl px-6 pt-5">
-        <div className="glass flex items-center justify-between rounded-full border border-border px-5 py-3 shadow-elegant">
-          <Link to="/" className="flex items-center gap-2 font-display text-lg font-semibold tracking-tight">
+      <div className="mx-auto max-w-7xl px-3 sm:px-6 pt-5">
+        <div className="glass flex items-center justify-between rounded-full border border-border px-3 sm:px-5 py-3 shadow-elegant gap-2">
+          <Link to="/" className="flex items-center gap-2 font-display text-base sm:text-lg font-semibold tracking-tight shrink-0">
             <span className="grid h-7 w-7 place-items-center rounded-md bg-gradient-ember text-ember-foreground shadow-ember">
               <Flame className="h-4 w-4" />
             </span>
