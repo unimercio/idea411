@@ -25,7 +25,12 @@ actionable opportunity report.
 - 📊 Market research and opportunity reports (with PDF export)
 - 🔐 Email + Google authentication
 - 👤 User profile settings (name, title, company, website, avatar)
-- 🛡️ Role-based admin panel with editable prompt templates
+- 🛡️ Role-based admin panel:
+  - Editable prompt templates
+  - Skills management
+  - User management (grant/revoke admin, password resets, account deletion)
+  - Audit log of sensitive admin actions (role changes, password resets, deletions)
+- 📱 Installable PWA (Web, Android, iOS) with standalone mode and branded icons
 - 🎨 Themed design system with semantic tokens
 
 ## Getting started
