@@ -429,6 +429,91 @@ function PillarChip({
 
 /* ─────────────────────────────── Pillars ─────────────────────────────── */
 
+/**
+ * Render pillar body text with light formatting:
+ * - splits on blank lines into paragraphs
+ * - lines starting with "- ", "* ", "• " or "1. " become list items
+ * - inline **bold** → <strong>
+ * - "Label: value" at the start of a line bolds the label
+ */
+function FormattedBody({ text, className = "" }: { text: string; className?: string }) {
+  const blocks = text
+    .replace(/\r\n/g, "\n")
+    .split(/\n{2,}/)
+    .map((b) => b.trim())
+    .filter(Boolean);
+
+  const renderInline = (s: string, keyPrefix: string) => {
+    const parts = s.split(/(\*\*[^*]+\*\*)/g);
+    return parts.map((p, i) =>
+      p.startsWith("**") && p.endsWith("**") ? (
+        <strong key={`${keyPrefix}-${i}`} className="text-foreground font-medium">
+          {p.slice(2, -2)}
+        </strong>
+      ) : (
+        <span key={`${keyPrefix}-${i}`}>{p}</span>
+      ),
+    );
+  };
+
+  const renderLine = (line: string, keyPrefix: string) => {
+    const labelMatch = line.match(/^([A-Z][A-Za-z0-9 /&'-]{1,40}):\s+(.*)$/);
+    if (labelMatch) {
+      return (
+        <>
+          <strong className="text-foreground font-medium">{labelMatch[1]}:</strong>{" "}
+          {renderInline(labelMatch[2], keyPrefix)}
+        </>
+      );
+    }
+    return renderInline(line, keyPrefix);
+  };
+
+  return (
+    <div className={`space-y-2 text-sm text-muted-foreground leading-relaxed ${className}`}>
+      {blocks.map((block, bi) => {
+        const lines = block.split("\n").map((l) => l.trim()).filter(Boolean);
+        const isList = lines.every((l) => /^([-*•]|\d+\.)\s+/.test(l));
+        if (isList && lines.length > 1) {
+          const ordered = /^\d+\.\s+/.test(lines[0]);
+          const items = lines.map((l) => l.replace(/^([-*•]|\d+\.)\s+/, ""));
+          return ordered ? (
+            <ol key={bi} className="ml-1 space-y-1.5">
+              {items.map((it, i) => (
+                <li key={i} className="flex gap-2">
+                  <span className="text-ember font-medium shrink-0">{i + 1}.</span>
+                  <span>{renderLine(it, `b${bi}-i${i}`)}</span>
+                </li>
+              ))}
+            </ol>
+          ) : (
+            <ul key={bi} className="ml-1 space-y-1.5">
+              {items.map((it, i) => (
+                <li key={i} className="flex gap-2">
+                  <span className="text-ember shrink-0">•</span>
+                  <span>{renderLine(it, `b${bi}-i${i}`)}</span>
+                </li>
+              ))}
+            </ul>
+          );
+        }
+        return (
+          <p key={bi}>
+            {lines.map((l, i) => (
+              <span key={i}>
+                {renderLine(l, `b${bi}-l${i}`)}
+                {i < lines.length - 1 ? " " : null}
+              </span>
+            ))}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
+
+
+
 function PillarCard({
   index,
   icon: Icon,
@@ -459,7 +544,8 @@ function PillarCard({
         <ScoreGauge value={score} max={10} tone={tone} />
       </div>
       <h3 className="mt-5 font-display text-xl font-semibold">{title}</h3>
-      <p className="mt-1.5 text-sm text-muted-foreground">{summary}</p>
+      <FormattedBody text={summary} className="mt-2" />
+
       <div className="mt-5 flex-1">{children}</div>
     </motion.article>
   );
