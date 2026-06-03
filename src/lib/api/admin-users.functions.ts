@@ -11,6 +11,17 @@ export type AdminUserRow = {
   roles: string[];
 };
 
+export type AuditLogEntry = {
+  id: string;
+  action: string;
+  actor_user_id: string | null;
+  actor_email: string | null;
+  target_user_id: string | null;
+  target_email: string | null;
+  details: Record<string, unknown>;
+  created_at: string;
+};
+
 async function assertAdmin(supabase: any, userId: string) {
   const { data, error } = await supabase.rpc("has_role", {
     _user_id: userId,
@@ -18,6 +29,38 @@ async function assertAdmin(supabase: any, userId: string) {
   });
   if (error) throw new Error(error.message);
   if (!data) throw new Error("Forbidden: admin role required");
+}
+
+async function recordAudit(
+  admin: any,
+  entry: {
+    action: string;
+    actor_user_id: string;
+    actor_email: string | null;
+    target_user_id?: string | null;
+    target_email?: string | null;
+    details?: Record<string, unknown>;
+  },
+) {
+  const { error } = await admin.from("admin_audit_log").insert({
+    action: entry.action,
+    actor_user_id: entry.actor_user_id,
+    actor_email: entry.actor_email,
+    target_user_id: entry.target_user_id ?? null,
+    target_email: entry.target_email ?? null,
+    details: entry.details ?? {},
+  });
+  if (error) console.error("audit log insert failed", error);
+}
+
+async function getActorEmail(admin: any, actorId: string): Promise<string | null> {
+  const { data } = await admin.auth.admin.getUserById(actorId);
+  return data?.user?.email ?? null;
+}
+
+async function getTargetEmail(admin: any, targetId: string): Promise<string | null> {
+  const { data } = await admin.auth.admin.getUserById(targetId);
+  return data?.user?.email ?? null;
 }
 
 export const listUsers = createServerFn({ method: "GET" })
@@ -28,7 +71,6 @@ export const listUsers = createServerFn({ method: "GET" })
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    // List auth users (first 200 for now)
     const { data: usersData, error: usersErr } = await supabaseAdmin.auth.admin.listUsers({
       page: 1,
       perPage: 200,
@@ -78,7 +120,6 @@ export const setUserAdmin = createServerFn({ method: "POST" })
       if (error) throw new Error(error.message);
     } else {
       if (data.targetUserId === userId) {
-        // prevent self-demotion if last admin
         const { count, error: cErr } = await supabaseAdmin
           .from("user_roles")
           .select("*", { count: "exact", head: true })
@@ -95,6 +136,20 @@ export const setUserAdmin = createServerFn({ method: "POST" })
         .eq("role", "admin");
       if (error) throw new Error(error.message);
     }
+
+    const [actorEmail, targetEmail] = await Promise.all([
+      getActorEmail(supabaseAdmin, userId),
+      getTargetEmail(supabaseAdmin, data.targetUserId),
+    ]);
+    await recordAudit(supabaseAdmin, {
+      action: data.makeAdmin ? "role.admin.grant" : "role.admin.revoke",
+      actor_user_id: userId,
+      actor_email: actorEmail,
+      target_user_id: data.targetUserId,
+      target_email: targetEmail,
+      details: { role: "admin" },
+    });
+
     return { ok: true };
   });
 
@@ -110,6 +165,17 @@ export const sendPasswordReset = createServerFn({ method: "POST" })
       redirectTo: data.redirectTo,
     });
     if (error) throw new Error(error.message);
+
+    const actorEmail = await getActorEmail(supabaseAdmin, userId);
+    await recordAudit(supabaseAdmin, {
+      action: "password_reset.send",
+      actor_user_id: userId,
+      actor_email: actorEmail,
+      target_user_id: null,
+      target_email: data.email,
+      details: { redirectTo: data.redirectTo ?? null },
+    });
+
     return { ok: true };
   });
 
@@ -124,7 +190,36 @@ export const deleteUser = createServerFn({ method: "POST" })
     }
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    // Capture target email BEFORE deletion
+    const targetEmail = await getTargetEmail(supabaseAdmin, data.targetUserId);
+
     const { error } = await supabaseAdmin.auth.admin.deleteUser(data.targetUserId);
     if (error) throw new Error(error.message);
+
+    const actorEmail = await getActorEmail(supabaseAdmin, userId);
+    await recordAudit(supabaseAdmin, {
+      action: "user.delete",
+      actor_user_id: userId,
+      actor_email: actorEmail,
+      target_user_id: data.targetUserId,
+      target_email: targetEmail,
+    });
+
     return { ok: true };
+  });
+
+export const listAuditLog = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+    await assertAdmin(supabase, userId);
+
+    const { data, error } = await supabase
+      .from("admin_audit_log")
+      .select("id, action, actor_user_id, actor_email, target_user_id, target_email, details, created_at")
+      .order("created_at", { ascending: false })
+      .limit(200);
+    if (error) throw new Error(error.message);
+    return { entries: (data ?? []) as AuditLogEntry[] };
   });
