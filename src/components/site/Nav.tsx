@@ -74,16 +74,16 @@ export function Nav() {
             {isAuthed === true ? (
               <button
                 onClick={handleSignOut}
-                className="hidden sm:inline-flex items-center text-sm text-muted-foreground hover:text-foreground px-3 py-1.5"
+                className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground px-3 py-1.5"
               >
                 {t("common.signOut")}
               </button>
             ) : isAuthed === false ? (
-              <Link to="/auth" className="hidden sm:inline-flex items-center text-sm text-muted-foreground hover:text-foreground px-3 py-1.5">
+              <Link to="/auth" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground px-3 py-1.5">
                 {t("common.signIn")}
               </Link>
             ) : (
-              <span className="hidden sm:inline-flex w-16" aria-hidden />
+              <span className="inline-flex w-16" aria-hidden />
             )}
             <Link
               to="/intake"
