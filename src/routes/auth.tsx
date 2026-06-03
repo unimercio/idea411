@@ -248,24 +248,100 @@ function AuthPage() {
                 <div className="h-px flex-1 bg-border" />
               </div>
 
-              <form onSubmit={handleEmail} className="space-y-3">
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder={t("auth.emailPlaceholder")}
-                  className="w-full rounded-full border border-border bg-background/60 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                />
-                <input
-                  type="password"
-                  required
-                  minLength={6}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder={t("auth.passwordPlaceholder")}
-                  className="w-full rounded-full border border-border bg-background/60 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                />
+              <form onSubmit={handleEmail} noValidate className="space-y-3">
+                {formError && (
+                  <div
+                    role="alert"
+                    className="flex gap-2 rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+                  >
+                    <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                    <div className="flex-1 space-y-2">
+                      <p>{formError.message}</p>
+                      {formError.action === "resend" && (
+                        <button
+                          type="button"
+                          onClick={handleResendConfirmation}
+                          disabled={resending || !email}
+                          className="inline-flex items-center rounded-full border border-destructive/40 bg-background/40 px-3 py-1 text-xs font-medium text-foreground hover:bg-accent disabled:opacity-50"
+                        >
+                          {resending ? "Sending…" : "Resend confirmation email"}
+                        </button>
+                      )}
+                      {formError.action === "switch-signup" && (
+                        <button
+                          type="button"
+                          onClick={() => setMode("signup")}
+                          className="inline-flex items-center rounded-full border border-destructive/40 bg-background/40 px-3 py-1 text-xs font-medium text-foreground hover:bg-accent"
+                        >
+                          Create an account instead
+                        </button>
+                      )}
+                      {formError.action === "switch-signin" && (
+                        <button
+                          type="button"
+                          onClick={() => setMode("signin")}
+                          className="inline-flex items-center rounded-full border border-destructive/40 bg-background/40 px-3 py-1 text-xs font-medium text-foreground hover:bg-accent"
+                        >
+                          Sign in instead
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder={t("auth.emailPlaceholder")}
+                    aria-invalid={!!emailError}
+                    aria-describedby={emailError ? "email-error" : undefined}
+                    className={`w-full rounded-full border bg-background/60 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring ${
+                      emailError ? "border-destructive focus:ring-destructive" : "border-border"
+                    }`}
+                  />
+                  {emailError && (
+                    <p id="email-error" role="alert" className="mt-1.5 px-3 text-xs text-destructive">
+                      {emailError}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <input
+                    type="password"
+                    required
+                    minLength={mode === "signup" ? 8 : 6}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder={t("auth.passwordPlaceholder")}
+                    aria-invalid={!!passwordError}
+                    aria-describedby={passwordError ? "password-error" : mode === "signup" ? "password-rules" : undefined}
+                    className={`w-full rounded-full border bg-background/60 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring ${
+                      passwordError ? "border-destructive focus:ring-destructive" : "border-border"
+                    }`}
+                  />
+                  {passwordError && (
+                    <p id="password-error" role="alert" className="mt-1.5 px-3 text-xs text-destructive">
+                      {passwordError}
+                    </p>
+                  )}
+                  {mode === "signup" && !passwordError && password.length > 0 && (
+                    <ul id="password-rules" className="mt-2 space-y-0.5 px-3 text-xs">
+                      {passwordRules.map((r) => (
+                        <li key={r.label} className={r.ok ? "text-muted-foreground" : "text-muted-foreground/70"}>
+                          <span className={`mr-1.5 ${r.ok ? "text-ember" : "text-muted-foreground/50"}`}>
+                            {r.ok ? "✓" : "○"}
+                          </span>
+                          {r.label}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+
                 <button
                   type="submit"
                   disabled={loading}
