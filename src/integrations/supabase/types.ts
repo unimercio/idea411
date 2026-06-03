@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      model_skills: {
+        Row: {
+          component: Database["public"]["Enums"]["skill_component"]
+          created_at: string
+          created_by: string | null
+          enabled: boolean
+          id: string
+          is_default: boolean
+          model: string
+          name: string
+          sort_order: number
+          system_preamble: string
+          updated_at: string
+        }
+        Insert: {
+          component: Database["public"]["Enums"]["skill_component"]
+          created_at?: string
+          created_by?: string | null
+          enabled?: boolean
+          id?: string
+          is_default?: boolean
+          model: string
+          name: string
+          sort_order?: number
+          system_preamble?: string
+          updated_at?: string
+        }
+        Update: {
+          component?: Database["public"]["Enums"]["skill_component"]
+          created_at?: string
+          created_by?: string | null
+          enabled?: boolean
+          id?: string
+          is_default?: boolean
+          model?: string
+          name?: string
+          sort_order?: number
+          system_preamble?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -125,6 +167,14 @@ export type Database = {
     Enums: {
       app_role: "admin" | "user"
       prompt_category: "strategic" | "compliance" | "market" | "sales"
+      skill_component:
+        | "vetting_strategic"
+        | "vetting_compliance"
+        | "vetting_market"
+        | "vetting_sales"
+        | "chat"
+        | "market_research"
+        | "intake_refine"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -254,6 +304,15 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "user"],
       prompt_category: ["strategic", "compliance", "market", "sales"],
+      skill_component: [
+        "vetting_strategic",
+        "vetting_compliance",
+        "vetting_market",
+        "vetting_sales",
+        "chat",
+        "market_research",
+        "intake_refine",
+      ],
     },
   },
 } as const
