@@ -3,11 +3,14 @@ import { Flame } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { checkAdmin } from "@/lib/api/prompt-templates.functions";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 import { toast } from "sonner";
 
 export function Nav() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [isAuthed, setIsAuthed] = useState<boolean | null>(null);
 
