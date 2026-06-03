@@ -1,0 +1,74 @@
+{
+  "common": {
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "startForging": "Start forging",
+    "newIdea": "New idea",
+    "settings": "Settings",
+    "dashboard": "Projects",
+    "backToProjects": "Back to projects",
+    "save": "Save changes",
+    "saving": "Saving…",
+    "language": "Language",
+    "languageHelp": "Choose the language used across the IdeaForge interface."
+  },
+  "nav": {
+    "prompts": "Prompts",
+    "skills": "Skills",
+    "users": "Users"
+  },
+  "footer": {
+    "copyright": "© {{year}} IdeaForge Labs."
+  },
+  "hero": {
+    "badge": "Concept to market — in one flow",
+    "title1": "Forge ideas into",
+    "titleAccent": "market-ready",
+    "title2": "products.",
+    "subtitle": "Try it free — drop in your concept and get an instant vetting report. Create an account to save and refine your ideas.",
+    "ideaPlaceholder": "A modular ceramic cookware system that retains heat 3× longer than cast iron…",
+    "emailPlaceholder": "you@company.com — we'll email you the report link (optional)",
+    "sketchesNote": "Sketches supported in the next step",
+    "tryFree": "Try it free",
+    "noAccount": "No account needed · Add your email to get the report link sent to you"
+  },
+  "intake": {
+    "skipDashboard": "Skip to dashboard →",
+    "title": "Bring the spark. We'll forge the rest.",
+    "titleRefine": "Sharpen the concept.",
+    "subtitle": "Describe your concept and drop a napkin sketch. IdeaForge runs compliance, market fit, and demand scans in seconds.",
+    "subtitleRefine": "Your previous report, scores, and chat history are preserved. Edit the idea below and we'll re-vet it as a new iteration.",
+    "concept": "The concept",
+    "refineAI": "Refine with AI",
+    "refining": "Refining…",
+    "tipChars": "Tip: 400+ characters gives sharper results · ",
+    "sketch": "Napkin sketch",
+    "optional": "— optional",
+    "dropSketch": "Drop your sketch here, or",
+    "browse": "browse",
+    "sketchFormats": "PNG, JPEG or WEBP · up to 8 MB",
+    "email": "Email",
+    "emailOptional": "— optional, so we can send you the report",
+    "emailHelp": "We'll email a link to your vetting report so you can pick it back up after a refresh.",
+    "privacy": "Your idea stays private. Vetting takes ~20 seconds.",
+    "runVetting": "Run vetting",
+    "forging": "Forging…",
+    "remove": "Remove"
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Personal details used across your IdeaForge experience.",
+    "profile": "Profile",
+    "profileSubtitle": "Tell us a bit about yourself.",
+    "firstName": "First name",
+    "userTitle": "Title",
+    "company": "Company",
+    "website": "Website",
+    "uploadAvatar": "Upload avatar",
+    "changeAvatar": "Change avatar",
+    "uploading": "Uploading…",
+    "avatarHelp": "PNG, JPG, or GIF. Max 2MB.",
+    "saved": "Settings saved.",
+    "languageSaved": "Language updated."
+  }
+}

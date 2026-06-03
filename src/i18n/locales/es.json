@@ -1,0 +1,74 @@
+{
+  "common": {
+    "signIn": "Iniciar sesión",
+    "signOut": "Cerrar sesión",
+    "startForging": "Empezar a forjar",
+    "newIdea": "Nueva idea",
+    "settings": "Ajustes",
+    "dashboard": "Proyectos",
+    "backToProjects": "Volver a proyectos",
+    "save": "Guardar cambios",
+    "saving": "Guardando…",
+    "language": "Idioma",
+    "languageHelp": "Elige el idioma que se usa en toda la interfaz de IdeaForge."
+  },
+  "nav": {
+    "prompts": "Prompts",
+    "skills": "Habilidades",
+    "users": "Usuarios"
+  },
+  "footer": {
+    "copyright": "© {{year}} IdeaForge Labs."
+  },
+  "hero": {
+    "badge": "Del concepto al mercado — en un solo flujo",
+    "title1": "Forja ideas en",
+    "titleAccent": "productos listos",
+    "title2": "para el mercado.",
+    "subtitle": "Pruébalo gratis — escribe tu concepto y obtén un informe de evaluación al instante. Crea una cuenta para guardar y refinar tus ideas.",
+    "ideaPlaceholder": "Un sistema modular de utensilios de cerámica que retiene el calor 3× más que el hierro fundido…",
+    "emailPlaceholder": "tucorreo@empresa.com — te enviaremos el enlace del informe (opcional)",
+    "sketchesNote": "Los bocetos se aceptan en el siguiente paso",
+    "tryFree": "Pruébalo gratis",
+    "noAccount": "Sin cuenta · Añade tu correo para recibir el enlace del informe"
+  },
+  "intake": {
+    "skipDashboard": "Saltar al panel →",
+    "title": "Trae la chispa. Nosotros forjamos el resto.",
+    "titleRefine": "Afina el concepto.",
+    "subtitle": "Describe tu concepto y sube un boceto. IdeaForge analiza cumplimiento, encaje de mercado y demanda en segundos.",
+    "subtitleRefine": "Tu informe, puntuaciones y chat anteriores se conservan. Edita la idea abajo y la re-evaluaremos como una nueva iteración.",
+    "concept": "El concepto",
+    "refineAI": "Refinar con IA",
+    "refining": "Refinando…",
+    "tipChars": "Consejo: 400+ caracteres dan mejores resultados · ",
+    "sketch": "Boceto",
+    "optional": "— opcional",
+    "dropSketch": "Suelta tu boceto aquí, o",
+    "browse": "examinar",
+    "sketchFormats": "PNG, JPEG o WEBP · hasta 8 MB",
+    "email": "Correo",
+    "emailOptional": "— opcional, para enviarte el informe",
+    "emailHelp": "Te enviaremos un enlace a tu informe para que puedas retomarlo más tarde.",
+    "privacy": "Tu idea es privada. La evaluación tarda ~20 segundos.",
+    "runVetting": "Evaluar",
+    "forging": "Forjando…",
+    "remove": "Quitar"
+  },
+  "settings": {
+    "title": "Ajustes",
+    "subtitle": "Datos personales usados en tu experiencia con IdeaForge.",
+    "profile": "Perfil",
+    "profileSubtitle": "Cuéntanos un poco sobre ti.",
+    "firstName": "Nombre",
+    "userTitle": "Cargo",
+    "company": "Empresa",
+    "website": "Sitio web",
+    "uploadAvatar": "Subir avatar",
+    "changeAvatar": "Cambiar avatar",
+    "uploading": "Subiendo…",
+    "avatarHelp": "PNG, JPG o GIF. Máx 2MB.",
+    "saved": "Ajustes guardados.",
+    "languageSaved": "Idioma actualizado."
+  }
+}
