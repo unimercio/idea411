@@ -13,6 +13,7 @@ import {
   ShieldQuestion,
   Sparkles,
   Trash2,
+  Users,
 } from "lucide-react";
 import {
   deleteProject,
@@ -119,6 +120,13 @@ function DashboardPage() {
                   title="Manage model skills"
                 >
                   <Sparkles className="h-4 w-4" /> Skills
+                </Link>
+                <Link
+                  to="/admin/users"
+                  className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground px-3 py-2"
+                  title="Manage users"
+                >
+                  <Users className="h-4 w-4" /> Users
                 </Link>
               </>
             )}

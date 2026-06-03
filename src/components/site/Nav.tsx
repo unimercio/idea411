@@ -62,6 +62,7 @@ export function Nav() {
               <>
                 <Link to="/admin/prompt-templates" className="hover:text-foreground transition-colors">Prompts</Link>
                 <Link to="/admin/skills" className="hover:text-foreground transition-colors">Skills</Link>
+                <Link to="/admin/users" className="hover:text-foreground transition-colors">Users</Link>
               </>
             )}
           </nav>
