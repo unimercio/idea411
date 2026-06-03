@@ -79,7 +79,7 @@ export function Nav() {
                 {t("common.signOut")}
               </button>
             ) : isAuthed === false ? (
-              <Link to="/auth" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground px-2 sm:px-3 py-1.5">
+              <Link to="/auth" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground px-2 sm:px-3 py-1.5 whitespace-nowrap">
                 {t("common.signIn")}
               </Link>
             ) : (
