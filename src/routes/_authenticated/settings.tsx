@@ -25,6 +25,7 @@ export const Route = createFileRoute("/_authenticated/settings")({
 const MAX_AVATAR_BYTES = 2 * 1024 * 1024; // 2MB
 
 function SettingsPage() {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const getFn = useServerFn(getMySettings);
   const updateFn = useServerFn(updateMySettings);
@@ -38,6 +39,7 @@ function SettingsPage() {
   const [title, setTitle] = useState("");
   const [company, setCompany] = useState("");
   const [website, setWebsite] = useState("");
+  const [language, setLanguage] = useState<string>("en");
   const [avatarPath, setAvatarPath] = useState("");
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -50,6 +52,7 @@ function SettingsPage() {
       setCompany(data.company ?? "");
       setWebsite(data.website ?? "");
       setAvatarPath(data.avatar_url ?? "");
+      setLanguage(data.language ?? "en");
     }
   }, [data]);
 
