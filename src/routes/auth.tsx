@@ -328,6 +328,9 @@ function AuthPage() {
                       {passwordError}
                     </p>
                   )}
+                  {password.length > 0 && (
+                    <PasswordStrength password={password} showMeter={mode === "signup"} />
+                  )}
                   {mode === "signup" && !passwordError && password.length > 0 && (
                     <ul id="password-rules" className="mt-2 space-y-0.5 px-3 text-xs">
                       {passwordRules.map((r) => (
