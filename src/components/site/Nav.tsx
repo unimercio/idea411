@@ -69,22 +69,22 @@ export function Nav() {
               </>
             )}
           </nav>
-          <div className="flex items-center gap-0.5 sm:gap-2 min-w-0 shrink">
-            <LanguageSwitcher compact />
+          <div className="flex items-center gap-1 sm:gap-2 min-w-0 shrink justify-end">
+            <div className="hidden sm:block">
+              <LanguageSwitcher compact />
+            </div>
             {isAuthed === true ? (
               <button
                 onClick={handleSignOut}
-                className="inline-flex items-center text-xs sm:text-sm text-muted-foreground hover:text-foreground px-1.5 sm:px-3 py-1.5 whitespace-nowrap"
+                className="inline-flex items-center text-xs sm:text-sm text-muted-foreground hover:text-foreground px-1 sm:px-3 py-1.5 whitespace-nowrap"
               >
                 {t("common.signOut")}
               </button>
             ) : isAuthed === false ? (
-              <Link to="/auth" className="inline-flex items-center text-xs sm:text-sm text-muted-foreground hover:text-foreground px-1.5 sm:px-3 py-1.5 whitespace-nowrap">
+              <Link to="/auth" className="inline-flex items-center text-xs sm:text-sm text-muted-foreground hover:text-foreground px-1 sm:px-3 py-1.5 whitespace-nowrap">
                 {t("common.signIn")}
               </Link>
-            ) : (
-              <span className="inline-flex w-8 sm:w-16" aria-hidden />
-            )}
+            ) : null}
             <Link
               to="/intake"
               className="inline-flex items-center rounded-full bg-gradient-ember px-2.5 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-ember-foreground shadow-ember hover:brightness-110 transition whitespace-nowrap shrink-0"
@@ -93,6 +93,7 @@ export function Nav() {
               <span className="hidden sm:inline">{t("common.startForging")}</span>
             </Link>
           </div>
+
         </div>
       </div>
     </header>
