@@ -63,36 +63,38 @@ export function Nav() {
             </span>
             <span className="hidden sm:inline">IdeaForge</span>
           </Link>
-          {(isAuthed === true || isAdmin) && (
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                className="inline-flex items-center justify-center rounded-full p-2 text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors shrink-0"
-                aria-label={t("common.menu", { defaultValue: "Menu" })}
-              >
-                <Menu className="h-4 w-4" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-48">
-                {isAuthed === true && (
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              className="inline-flex items-center justify-center rounded-full p-2 text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors shrink-0"
+              aria-label={t("common.menu", { defaultValue: "Menu" })}
+            >
+              <Menu className="h-4 w-4" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-48">
+              <DropdownMenuItem asChild>
+                <Link to="/">{t("common.home", { defaultValue: "Home" })}</Link>
+              </DropdownMenuItem>
+              {isAuthed === true && (
+                <DropdownMenuItem asChild>
+                  <Link to="/dashboard">{t("common.dashboard")}</Link>
+                </DropdownMenuItem>
+              )}
+              {isAdmin && (
+                <>
                   <DropdownMenuItem asChild>
-                    <Link to="/dashboard">{t("common.dashboard")}</Link>
+                    <Link to="/admin/prompt-templates">{t("nav.prompts")}</Link>
                   </DropdownMenuItem>
-                )}
-                {isAdmin && (
-                  <>
-                    <DropdownMenuItem asChild>
-                      <Link to="/admin/prompt-templates">{t("nav.prompts")}</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link to="/admin/skills">{t("nav.skills")}</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link to="/admin/users">{t("nav.users")}</Link>
-                    </DropdownMenuItem>
-                  </>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
+                  <DropdownMenuItem asChild>
+                    <Link to="/admin/skills">{t("nav.skills")}</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/admin/users">{t("nav.users")}</Link>
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           <div className="flex items-center gap-1 sm:gap-2 min-w-0 shrink justify-end">
             <div className="hidden sm:block">
               <LanguageSwitcher compact />
