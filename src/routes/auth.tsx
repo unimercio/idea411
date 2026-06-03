@@ -44,8 +44,16 @@ function AuthPage() {
   }, [navigate, dest]);
 
   const friendlyError = (msg: string) => {
-    if (/rate limit|after \d+ seconds/i.test(msg)) return t("auth.errRateLimit");
-    if (/already registered|already exists/i.test(msg)) return t("auth.errExists");
+    if (/rate limit|after \d+ seconds|too many/i.test(msg)) return t("auth.errRateLimit");
+    if (/already registered|already exists|user.*exists/i.test(msg)) return t("auth.errExists");
+    if (/weak.?password|pwned|compromised|leaked|haveibeenpwned/i.test(msg))
+      return "That password is too weak or has appeared in a known data breach. Try a longer, unique password (12+ chars, mix of letters, numbers, symbols).";
+    if (/password.*(short|length|at least)/i.test(msg))
+      return "Password is too short. Use at least 6 characters (a longer passphrase is recommended).";
+    if (/email.*not.*confirmed|confirm.*email|email_not_confirmed/i.test(msg))
+      return "Please confirm your email first — check your inbox (and spam folder) for the confirmation link.";
+    if (/invalid.*credentials|invalid login/i.test(msg))
+      return "Email or password is incorrect. If you just signed up, confirm your email first. New here? Create an account below.";
     return msg;
   };
 
