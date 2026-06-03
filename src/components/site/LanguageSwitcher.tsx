@@ -5,13 +5,11 @@ import { useEffect, useState } from "react";
 import { SUPPORTED_LANGUAGES, applyLanguage } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { updateMyLanguage } from "@/lib/api/settings.functions";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
   const { i18n } = useTranslation();
   const [isAuthed, setIsAuthed] = useState(false);
   const updateLang = useServerFn(updateMyLanguage);
-  const isMobile = useIsMobile();
 
   useEffect(() => {
     let mounted = true;
@@ -41,7 +39,7 @@ export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
   return (
     <label
       className={
-        "inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground " +
+        "inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground " +
         (compact ? "px-1" : "px-1 sm:px-2")
       }
     >
@@ -50,16 +48,17 @@ export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
       <select
         value={i18n.language?.slice(0, 2) || "en"}
         onChange={(e) => onChange(e.target.value)}
-        className="bg-transparent text-sm focus:outline-none cursor-pointer"
+        className="bg-transparent text-sm focus:outline-none cursor-pointer uppercase"
         aria-label="Language"
       >
         {SUPPORTED_LANGUAGES.map((l) => (
           <option key={l.code} value={l.code} className="bg-background text-foreground">
-            {isMobile ? l.code.toUpperCase() : l.native}
+            {l.code.toUpperCase()} — {l.native}
           </option>
         ))}
       </select>
     </label>
   );
 }
+
 
