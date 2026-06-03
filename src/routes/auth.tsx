@@ -163,17 +163,33 @@ function AuthPage() {
                 {t("auth.checkEmailBody", { email: sentTo })}
               </p>
               <p className="mt-4 text-xs text-muted-foreground">{t("auth.checkEmailSpam")}</p>
-              <button
-                type="button"
-                onClick={() => {
-                  setSentTo(null);
-                  setMode("signin");
-                  setPassword("");
-                }}
-                className="mt-6 inline-flex items-center justify-center rounded-full border border-border bg-secondary/60 px-4 py-2 text-sm hover:bg-accent transition"
-              >
-                {t("auth.backToSignIn")}
-              </button>
+              <div className="mt-6 flex flex-col gap-2">
+                <button
+                  type="button"
+                  onClick={handleResend}
+                  disabled={resending || resendCooldown > 0}
+                  className="inline-flex items-center justify-center rounded-full bg-gradient-ember px-4 py-2 text-sm font-medium text-ember-foreground shadow-ember hover:brightness-110 transition disabled:opacity-50"
+                >
+                  {resending
+                    ? t("auth.resending")
+                    : resendCooldown > 0
+                      ? t("auth.resendCooldown", { seconds: resendCooldown })
+                      : t("auth.resendEmail")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSentTo(null);
+                    setMode("signin");
+                    setPassword("");
+                    setConfirmPassword("");
+                    setFieldError(null);
+                  }}
+                  className="inline-flex items-center justify-center rounded-full border border-border bg-secondary/60 px-4 py-2 text-sm hover:bg-accent transition"
+                >
+                  {t("auth.backToSignIn")}
+                </button>
+              </div>
             </div>
           ) : (
             <>
