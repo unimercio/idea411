@@ -238,9 +238,23 @@ function IntakePage() {
               placeholder="A modular ceramic cookware system that retains heat 3× longer than cast iron…"
               className="mt-2 w-full resize-none bg-transparent text-base placeholder:text-muted-foreground/60 focus:outline-none"
             />
-            <div className="mt-1 flex justify-end text-[11px] text-muted-foreground">
-              {chars}/2000
+            <div className="mt-1 flex items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={onRefine}
+                disabled={refining || idea.trim().length < 5}
+                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card/60 px-3 py-1 text-xs text-muted-foreground hover:text-foreground hover:bg-accent/40 transition disabled:opacity-50"
+              >
+                <Wand2 className="h-3.5 w-3.5 text-ember" />
+                {refining ? "Refining…" : "Refine with AI"}
+              </button>
+              <span className="text-[11px] text-muted-foreground">{chars}/2000</span>
             </div>
+            {refineHint && (
+              <p className="mt-2 rounded-lg border border-ember/30 bg-ember/5 px-3 py-2 text-xs text-foreground/80">
+                <span className="text-ember">Follow-up:</span> {refineHint}
+              </p>
+            )}
 
             <div className="mt-6">
               <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
