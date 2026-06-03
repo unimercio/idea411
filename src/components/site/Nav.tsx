@@ -49,9 +49,9 @@ export function Nav() {
 
   return (
     <header className="fixed top-0 inset-x-0 z-50">
-      <div className="mx-auto max-w-7xl px-6 pt-5">
-        <div className="glass flex items-center justify-between rounded-full border border-border px-5 py-3 shadow-elegant">
-          <Link to="/" className="flex items-center gap-2 font-display text-lg font-semibold tracking-tight">
+      <div className="mx-auto max-w-7xl px-3 sm:px-6 pt-5">
+        <div className="glass flex items-center justify-between rounded-full border border-border px-3 sm:px-5 py-3 shadow-elegant gap-2">
+          <Link to="/" className="flex items-center gap-2 font-display text-base sm:text-lg font-semibold tracking-tight shrink-0">
             <span className="grid h-7 w-7 place-items-center rounded-md bg-gradient-ember text-ember-foreground shadow-ember">
               <Flame className="h-4 w-4" />
             </span>
@@ -69,17 +69,17 @@ export function Nav() {
               </>
             )}
           </nav>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2">
             <LanguageSwitcher />
             {isAuthed === true ? (
               <button
                 onClick={handleSignOut}
-                className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground px-3 py-1.5"
+                className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground px-2 sm:px-3 py-1.5"
               >
                 {t("common.signOut")}
               </button>
             ) : isAuthed === false ? (
-              <Link to="/auth" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground px-3 py-1.5">
+              <Link to="/auth" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground px-2 sm:px-3 py-1.5 whitespace-nowrap">
                 {t("common.signIn")}
               </Link>
             ) : (
@@ -87,9 +87,10 @@ export function Nav() {
             )}
             <Link
               to="/intake"
-              className="inline-flex items-center rounded-full bg-gradient-ember px-4 py-2 text-sm font-medium text-ember-foreground shadow-ember hover:brightness-110 transition"
+              className="inline-flex items-center rounded-full bg-gradient-ember px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-ember-foreground shadow-ember hover:brightness-110 transition whitespace-nowrap"
             >
-              {t("common.startForging")}
+              <span className="sm:hidden">{t("common.startForgingShort", { defaultValue: "Forge" })}</span>
+              <span className="hidden sm:inline">{t("common.startForging")}</span>
             </Link>
           </div>
         </div>

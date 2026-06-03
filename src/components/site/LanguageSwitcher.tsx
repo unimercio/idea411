@@ -39,8 +39,8 @@ export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
   return (
     <label
       className={
-        "inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground " +
-        (compact ? "px-1" : "px-2")
+        "inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground " +
+        (compact ? "px-1" : "px-1 sm:px-2")
       }
     >
       <Globe className="h-4 w-4" aria-hidden />
@@ -48,15 +48,17 @@ export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
       <select
         value={i18n.language?.slice(0, 2) || "en"}
         onChange={(e) => onChange(e.target.value)}
-        className="bg-transparent text-sm focus:outline-none cursor-pointer"
+        className="bg-transparent text-sm focus:outline-none cursor-pointer uppercase"
         aria-label="Language"
       >
         {SUPPORTED_LANGUAGES.map((l) => (
-          <option key={l.code} value={l.code} className="bg-background text-foreground">
-            {l.native}
+          <option key={l.code} value={l.code} className="bg-background text-foreground" title={l.native}>
+            {l.code.toUpperCase()}
           </option>
         ))}
       </select>
     </label>
   );
 }
+
+
