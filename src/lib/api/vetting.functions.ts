@@ -325,18 +325,15 @@ async function callPillar<T>(opts: {
   return parsed.data;
 }
 
-export const analyzeIdea = createServerFn({ method: "POST" })
-  .inputValidator(
-    z.object({
-      idea: z.string().trim().min(10).max(4000),
-      sketchName: z.string().max(255).optional(),
-    }),
-  )
-  .handler(async ({ data }): Promise<Analysis> => {
-    const apiKey = process.env.LOVABLE_API_KEY;
-    if (!apiKey) throw new Error("LOVABLE_API_KEY is not configured on the server.");
+// Inner handler exported for direct invocation (tests, internal call sites).
+export async function runAnalyzeIdea(data: {
+  idea: string;
+  sketchName?: string;
+}): Promise<Analysis> {
+  const apiKey = process.env.LOVABLE_API_KEY;
+  if (!apiKey) throw new Error("LOVABLE_API_KEY is not configured on the server.");
 
-    const userPrompt = `Vet the following product idea. Be honest, specific, and useful.
+  const userPrompt = `Vet the following product idea. Be honest, specific, and useful.
 
 IDEA:
 ${data.idea}
@@ -344,60 +341,63 @@ ${data.sketchName ? `\n(The founder attached a napkin sketch named "${data.sketc
 
 Return your output by calling the provided tool. Do not return plain text.`;
 
-    // Resolve all four skills in parallel, then fan out the AI calls.
-    const [strategicSkill, complianceSkill, marketSkill, salesSkill] = await Promise.all([
-      resolveSkill("vetting_strategic"),
-      resolveSkill("vetting_compliance"),
-      resolveSkill("vetting_market"),
-      resolveSkill("vetting_sales"),
-    ]);
+  const [strategicSkill, complianceSkill, marketSkill, salesSkill] = await Promise.all([
+    resolveSkill("vetting_strategic"),
+    resolveSkill("vetting_compliance"),
+    resolveSkill("vetting_market"),
+    resolveSkill("vetting_sales"),
+  ]);
 
-    const [strategic, compliance, market, sales] = await Promise.all([
-      callPillar({
-        apiKey,
-        skill: strategicSkill,
-        baseSystem: STRATEGIC_SYSTEM,
-        userPrompt,
-        tool: STRATEGIC_TOOL,
-        schema: strategicSchema,
-        label: "strategic",
-      }),
-      callPillar({
-        apiKey,
-        skill: complianceSkill,
-        baseSystem: COMPLIANCE_SYSTEM,
-        userPrompt,
-        tool: COMPLIANCE_TOOL,
-        schema: complianceSchema,
-        label: "compliance",
-      }),
-      callPillar({
-        apiKey,
-        skill: marketSkill,
-        baseSystem: MARKET_SYSTEM,
-        userPrompt,
-        tool: MARKET_TOOL,
-        schema: marketSchema,
-        label: "market",
-      }),
-      callPillar({
-        apiKey,
-        skill: salesSkill,
-        baseSystem: SALES_SYSTEM,
-        userPrompt,
-        tool: SALES_TOOL,
-        schema: salesSchema,
-        label: "sales",
-      }),
-    ]);
+  const [strategic, compliance, market, sales] = await Promise.all([
+    callPillar({
+      apiKey,
+      skill: strategicSkill,
+      baseSystem: STRATEGIC_SYSTEM,
+      userPrompt,
+      tool: STRATEGIC_TOOL,
+      schema: strategicSchema,
+      label: "strategic",
+    }),
+    callPillar({
+      apiKey,
+      skill: complianceSkill,
+      baseSystem: COMPLIANCE_SYSTEM,
+      userPrompt,
+      tool: COMPLIANCE_TOOL,
+      schema: complianceSchema,
+      label: "compliance",
+    }),
+    callPillar({
+      apiKey,
+      skill: marketSkill,
+      baseSystem: MARKET_SYSTEM,
+      userPrompt,
+      tool: MARKET_TOOL,
+      schema: marketSchema,
+      label: "market",
+    }),
+    callPillar({
+      apiKey,
+      skill: salesSkill,
+      baseSystem: SALES_SYSTEM,
+      userPrompt,
+      tool: SALES_TOOL,
+      schema: salesSchema,
+      label: "sales",
+    }),
+  ]);
 
-    return {
-      ...strategic,
-      compliance,
-      market,
-      sales,
-    };
-  });
+  return { ...strategic, compliance, market, sales };
+}
+
+export const analyzeIdea = createServerFn({ method: "POST" })
+  .inputValidator(
+    z.object({
+      idea: z.string().trim().min(10).max(4000),
+      sketchName: z.string().max(255).optional(),
+    }),
+  )
+  .handler(({ data }): Promise<Analysis> => runAnalyzeIdea(data));
 
 // ───────── Intake refine: tighten/clarify the founder's idea ─────────
 const refineSchema = z.object({
@@ -434,20 +434,23 @@ const REFINE_TOOL = {
   },
 };
 
+export async function runRefineIdea(data: { idea: string }): Promise<IdeaRefinement> {
+  const apiKey = process.env.LOVABLE_API_KEY;
+  if (!apiKey) throw new Error("LOVABLE_API_KEY is not configured on the server.");
+
+  const skill = await resolveSkill("intake_refine");
+  return callPillar({
+    apiKey,
+    skill,
+    baseSystem: REFINE_SYSTEM,
+    userPrompt: `Tighten this idea brief:\n\n${data.idea}`,
+    tool: REFINE_TOOL,
+    schema: refineSchema,
+    label: "intake_refine",
+  });
+}
+
 export const refineIdea = createServerFn({ method: "POST" })
   .inputValidator(z.object({ idea: z.string().trim().min(5).max(4000) }))
-  .handler(async ({ data }): Promise<IdeaRefinement> => {
-    const apiKey = process.env.LOVABLE_API_KEY;
-    if (!apiKey) throw new Error("LOVABLE_API_KEY is not configured on the server.");
+  .handler(({ data }): Promise<IdeaRefinement> => runRefineIdea(data));
 
-    const skill = await resolveSkill("intake_refine");
-    return callPillar({
-      apiKey,
-      skill,
-      baseSystem: REFINE_SYSTEM,
-      userPrompt: `Tighten this idea brief:\n\n${data.idea}`,
-      tool: REFINE_TOOL,
-      schema: refineSchema,
-      label: "intake_refine",
-    });
-  });
