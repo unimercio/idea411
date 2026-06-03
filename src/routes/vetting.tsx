@@ -459,7 +459,8 @@ function PillarCard({
         <ScoreGauge value={score} max={10} tone={tone} />
       </div>
       <h3 className="mt-5 font-display text-xl font-semibold">{title}</h3>
-      <p className="mt-1.5 text-sm text-muted-foreground">{summary}</p>
+      <FormattedBody text={summary} className="mt-2" />
+
       <div className="mt-5 flex-1">{children}</div>
     </motion.article>
   );
