@@ -49,13 +49,13 @@ export function Nav() {
 
   return (
     <header className="fixed top-0 inset-x-0 z-50">
-      <div className="mx-auto max-w-7xl px-3 sm:px-6 pt-5">
-        <div className="glass flex items-center justify-between rounded-full border border-border px-3 sm:px-5 py-3 shadow-elegant gap-2">
-          <Link to="/" className="flex items-center gap-2 font-display text-base sm:text-lg font-semibold tracking-tight shrink-0">
-            <span className="grid h-7 w-7 place-items-center rounded-md bg-gradient-ember text-ember-foreground shadow-ember">
-              <Flame className="h-4 w-4" />
+      <div className="mx-auto max-w-7xl px-2 sm:px-6 pt-3 sm:pt-5">
+        <div className="glass flex items-center justify-between rounded-full border border-border px-2 sm:px-5 py-2 sm:py-3 shadow-elegant gap-1 sm:gap-2 min-w-0 overflow-hidden">
+          <Link to="/" className="flex items-center gap-1.5 sm:gap-2 font-display text-sm sm:text-lg font-semibold tracking-tight shrink-0 min-w-0">
+            <span className="grid h-6 w-6 sm:h-7 sm:w-7 place-items-center rounded-md bg-gradient-ember text-ember-foreground shadow-ember shrink-0">
+              <Flame className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </span>
-            IdeaForge
+            <span className="hidden sm:inline">IdeaForge</span>
           </Link>
           <nav className="hidden md:flex items-center gap-7 text-sm text-muted-foreground">
             {isAuthed === true && (
@@ -69,25 +69,25 @@ export function Nav() {
               </>
             )}
           </nav>
-          <div className="flex items-center gap-1 sm:gap-2">
-            <LanguageSwitcher />
+          <div className="flex items-center gap-0.5 sm:gap-2 min-w-0 shrink">
+            <LanguageSwitcher compact />
             {isAuthed === true ? (
               <button
                 onClick={handleSignOut}
-                className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground px-2 sm:px-3 py-1.5"
+                className="inline-flex items-center text-xs sm:text-sm text-muted-foreground hover:text-foreground px-1.5 sm:px-3 py-1.5 whitespace-nowrap"
               >
                 {t("common.signOut")}
               </button>
             ) : isAuthed === false ? (
-              <Link to="/auth" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground px-2 sm:px-3 py-1.5 whitespace-nowrap">
+              <Link to="/auth" className="inline-flex items-center text-xs sm:text-sm text-muted-foreground hover:text-foreground px-1.5 sm:px-3 py-1.5 whitespace-nowrap">
                 {t("common.signIn")}
               </Link>
             ) : (
-              <span className="inline-flex w-16" aria-hidden />
+              <span className="inline-flex w-8 sm:w-16" aria-hidden />
             )}
             <Link
               to="/intake"
-              className="inline-flex items-center rounded-full bg-gradient-ember px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-ember-foreground shadow-ember hover:brightness-110 transition whitespace-nowrap"
+              className="inline-flex items-center rounded-full bg-gradient-ember px-2.5 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-ember-foreground shadow-ember hover:brightness-110 transition whitespace-nowrap shrink-0"
             >
               <span className="sm:hidden">{t("common.startForgingShort", { defaultValue: "Forge" })}</span>
               <span className="hidden sm:inline">{t("common.startForging")}</span>
