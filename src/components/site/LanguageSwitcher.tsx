@@ -53,6 +53,7 @@ export function LanguageSwitcher({ compact = false }: { compact?: boolean }) {
       >
         {SUPPORTED_LANGUAGES.map((l) => (
           <option key={l.code} value={l.code} className="bg-background text-foreground">
+            <span className="hidden sm:inline">{l.native}</span>
             {l.native}
           </option>
         ))}
