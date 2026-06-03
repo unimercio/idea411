@@ -182,14 +182,10 @@ function DashboardPage() {
         <div className="mx-auto max-w-7xl px-6 pt-6">
           {(() => {
             const err = adminQuery.error instanceof Error ? adminQuery.error.message : null;
-            const status: "admin" | "not-admin" | "error" = err
-              ? "error"
-              : isAdmin
-                ? "admin"
-                : "not-admin";
+            if (!err && !isAdmin) return null;
+            const status: "admin" | "error" = err ? "error" : "admin";
             const styles = {
               admin: "border-emerald-500/30 bg-emerald-500/10 text-emerald-300",
-              "not-admin": "border-ember/30 bg-ember/10 text-ember",
               error: "border-destructive/40 bg-destructive/10 text-destructive",
             }[status];
             return (
@@ -200,19 +196,7 @@ function DashboardPage() {
                 <ShieldIcon status={status} />
                 <div className="min-w-0 flex-1">
                   {status === "admin" && (
-                    <>
-                      <p className="font-medium text-foreground">{t("dashboard.youAreAdmin")}</p>
-                    </>
-                  )}
-                  {status === "not-admin" && (
-                    <>
-                      <p className="font-medium text-foreground">
-                        {t("dashboard.notRecognized")}
-                      </p>
-                      <p className="text-muted-foreground">
-                        {t("dashboard.notRecognizedBody")}
-                      </p>
-                    </>
+                    <p className="font-medium text-foreground">{t("dashboard.youAreAdmin")}</p>
                   )}
                   {status === "error" && (
                     <>
