@@ -30,8 +30,8 @@ const ideaSchema = z.object({
   idea: z
     .string()
     .trim()
-    .min(40, { message: "Tell us a little more — at least 40 characters." })
-    .max(4000, { message: "Keep it under 4000 characters." }),
+    .min(200, { message: "Tell us a little more — at least 200 characters." })
+    .max(1200, { message: "Keep it under 1200 characters." }),
   email: z
     .string()
     .trim()
@@ -234,7 +234,7 @@ function IntakePage() {
               value={idea}
               onChange={(e) => setIdea(e.target.value)}
               rows={6}
-              maxLength={4000}
+              maxLength={1200}
               placeholder="A modular ceramic cookware system that retains heat 3× longer than cast iron…"
               className="mt-2 w-full resize-none bg-transparent text-base placeholder:text-muted-foreground/60 focus:outline-none"
             />
