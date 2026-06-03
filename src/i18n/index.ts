@@ -2,16 +2,18 @@ import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import en from "./locales/en.json";
 import es from "./locales/es.json";
-import zh from "./locales/zh.json";
-import hi from "./locales/hi.json";
-import ar from "./locales/ar.json";
+import fr from "./locales/fr.json";
+import de from "./locales/de.json";
+import pt from "./locales/pt.json";
+import it from "./locales/it.json";
 
 export const SUPPORTED_LANGUAGES = [
   { code: "en", label: "English", native: "English", dir: "ltr" as const },
   { code: "es", label: "Spanish", native: "Español", dir: "ltr" as const },
-  { code: "zh", label: "Chinese (Simplified)", native: "简体中文", dir: "ltr" as const },
-  { code: "hi", label: "Hindi", native: "हिन्दी", dir: "ltr" as const },
-  { code: "ar", label: "Arabic", native: "العربية", dir: "rtl" as const },
+  { code: "fr", label: "French", native: "Français", dir: "ltr" as const },
+  { code: "de", label: "German", native: "Deutsch", dir: "ltr" as const },
+  { code: "pt", label: "Portuguese", native: "Português", dir: "ltr" as const },
+  { code: "it", label: "Italian", native: "Italiano", dir: "ltr" as const },
 ];
 
 export type LanguageCode = (typeof SUPPORTED_LANGUAGES)[number]["code"];
@@ -32,9 +34,10 @@ if (!i18n.isInitialized) {
     resources: {
       en: { translation: en },
       es: { translation: es },
-      zh: { translation: zh },
-      hi: { translation: hi },
-      ar: { translation: ar },
+      fr: { translation: fr },
+      de: { translation: de },
+      pt: { translation: pt },
+      it: { translation: it },
     },
     lng: detectInitial(),
     fallbackLng: "en",
