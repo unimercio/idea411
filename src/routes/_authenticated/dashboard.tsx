@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import {
   AlertTriangle,
   ArrowRight,
@@ -38,6 +39,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 });
 
 function DashboardPage() {
+  const { t } = useTranslation();
   const projects = useProjects();
   const navigate = useNavigate();
   const [isAuthed, setIsAuthed] = useState<boolean | null>(null);
@@ -71,13 +73,13 @@ function DashboardPage() {
     try {
       const res = await claimFn();
       if (res.claimed) {
-        toast.success("You are now the admin.");
+        toast.success(t("dashboard.becameAdmin"));
         adminQuery.refetch();
       } else {
-        toast.error("An admin already exists.");
+        toast.error(t("dashboard.adminExists"));
       }
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to claim admin");
+      toast.error(e instanceof Error ? e.message : t("dashboard.claimFailed"));
     } finally {
       setClaiming(false);
     }
@@ -89,7 +91,7 @@ function DashboardPage() {
       toast.error(error.message);
       return;
     }
-    toast.success("Signed out.");
+    toast.success(t("dashboard.signedOut"));
     navigate({ to: "/", replace: true });
   };
 
@@ -110,23 +112,23 @@ function DashboardPage() {
                 <Link
                   to="/admin/prompt-templates"
                   className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground px-3 py-2"
-                  title="Manage prompt templates"
+                  title={t("dashboard.managePrompts")}
                 >
-                  <Settings className="h-4 w-4" /> Prompts
+                  <Settings className="h-4 w-4" /> {t("dashboard.prompts")}
                 </Link>
                 <Link
                   to="/admin/skills"
                   className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground px-3 py-2"
-                  title="Manage model skills"
+                  title={t("dashboard.manageSkills")}
                 >
-                  <Sparkles className="h-4 w-4" /> Skills
+                  <Sparkles className="h-4 w-4" /> {t("dashboard.skills")}
                 </Link>
                 <Link
                   to="/admin/users"
                   className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground px-3 py-2"
-                  title="Manage users"
+                  title={t("dashboard.manageUsers")}
                 >
-                  <Users className="h-4 w-4" /> Users
+                  <Users className="h-4 w-4" /> {t("dashboard.users")}
                 </Link>
               </>
             )}
@@ -135,18 +137,18 @@ function DashboardPage() {
                 onClick={handleClaimAdmin}
                 disabled={claiming}
                 className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground px-3 py-2 disabled:opacity-50"
-                title="Become the admin (only works if no admin exists yet)"
+                title={t("dashboard.claimAdminTitle")}
               >
-                <Sparkles className="h-4 w-4" /> {claiming ? "Claiming…" : "Claim admin"}
+                <Sparkles className="h-4 w-4" /> {claiming ? t("dashboard.claiming") : t("dashboard.claimAdmin")}
               </button>
             )}
             {isAuthed === true && (
               <Link
                 to="/settings"
                 className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground px-3 py-2"
-                title="Account settings"
+                title={t("dashboard.accountSettings")}
               >
-                <Settings className="h-4 w-4" /> Settings
+                <Settings className="h-4 w-4" /> {t("dashboard.settings")}
               </Link>
             )}
             {isAuthed === true ? (
@@ -154,14 +156,14 @@ function DashboardPage() {
                 onClick={handleSignOut}
                 className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground px-3 py-2"
               >
-                Sign out
+                {t("dashboard.signOut")}
               </button>
             ) : isAuthed === false ? (
               <Link
                 to="/auth"
                 className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground px-3 py-2"
               >
-                Sign in
+                {t("dashboard.signIn")}
               </Link>
             ) : (
               <span className="inline-flex w-16" aria-hidden />
@@ -170,7 +172,7 @@ function DashboardPage() {
               to="/intake"
               className="inline-flex items-center gap-2 rounded-full bg-gradient-ember px-4 py-2 text-sm font-medium text-ember-foreground shadow-ember hover:brightness-110 transition"
             >
-              <Plus className="h-4 w-4" /> New idea
+              <Plus className="h-4 w-4" /> {t("dashboard.newIdea")}
             </Link>
           </div>
         </div>
@@ -199,26 +201,23 @@ function DashboardPage() {
                 <div className="min-w-0 flex-1">
                   {status === "admin" && (
                     <>
-                      <p className="font-medium text-foreground">You are an Admin</p>
+                      <p className="font-medium text-foreground">{t("dashboard.youAreAdmin")}</p>
                     </>
                   )}
                   {status === "not-admin" && (
                     <>
                       <p className="font-medium text-foreground">
-                        You're signed in, but not recognized as an admin.
+                        {t("dashboard.notRecognized")}
                       </p>
                       <p className="text-muted-foreground">
-                        The <strong className="text-foreground">Templates</strong> link only
-                        appears for admins. An admin already exists for this workspace, so
-                        <em> Claim admin</em> will be rejected — ask the current admin to grant
-                        you the role.
+                        {t("dashboard.notRecognizedBody")}
                       </p>
                     </>
                   )}
                   {status === "error" && (
                     <>
                       <p className="font-medium text-foreground">
-                        Couldn't verify your admin status.
+                        {t("dashboard.verifyFailed")}
                       </p>
                       <p className="text-muted-foreground break-words">
                         {err ?? "Unknown error"}.{" "}
@@ -226,7 +225,7 @@ function DashboardPage() {
                           onClick={() => adminQuery.refetch()}
                           className="underline underline-offset-2 hover:text-foreground"
                         >
-                          Retry
+                          {t("common.retry")}
                         </button>
                       </p>
                     </>
@@ -243,12 +242,14 @@ function DashboardPage() {
       <section className="mx-auto max-w-7xl px-6 py-16">
         <div className="flex items-end justify-between flex-wrap gap-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-ember">Your forge</p>
-            <h1 className="mt-3 font-display text-4xl sm:text-5xl font-semibold">Projects</h1>
+            <p className="text-xs uppercase tracking-[0.2em] text-ember">{t("dashboard.eyebrow")}</p>
+            <h1 className="mt-3 font-display text-4xl sm:text-5xl font-semibold">{t("dashboard.title")}</h1>
             <p className="mt-2 text-muted-foreground">
               {projects.length === 0
-                ? "No projects yet — drop your first idea to get started."
-                : `${projects.length} ${projects.length === 1 ? "project" : "projects"} in motion.`}
+                ? t("dashboard.emptyCount")
+                : projects.length === 1
+                  ? t("dashboard.countOne", { count: projects.length })
+                  : t("dashboard.countMany", { count: projects.length })}
             </p>
           </div>
         </div>
@@ -276,6 +277,7 @@ function ShieldIcon({ status }: { status: "admin" | "not-admin" | "error" }) {
 }
 
 function ProjectCard({ project, index }: { project: Project; index: number }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const score = overallScore(project.scores);
 
@@ -306,20 +308,20 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
 
       <div className="mt-6 flex items-end justify-between gap-4">
         <div>
-          <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Forge score</p>
+          <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">{t("dashboard.forgeScore")}</p>
           {score !== null ? (
             <div className="mt-1 flex items-baseline gap-1.5">
               <span className="font-display text-3xl font-semibold">{score}</span>
               <span className="text-xs text-muted-foreground">/100</span>
               {project.iterations && project.iterations.length > 1 && (
                 <span className="ml-1 text-[10px] uppercase tracking-wider text-muted-foreground">
-                  · {project.iterations.length} iters
+                  · {t("dashboard.itersShort", { n: project.iterations.length })}
                 </span>
               )}
             </div>
           ) : (
             <div className="mt-1 flex items-center gap-1.5 text-xs text-ember">
-              <Sparkles className="h-3.5 w-3.5" /> Vetting…
+              <Sparkles className="h-3.5 w-3.5" /> {t("dashboard.vettingDots")}
             </div>
           )}
         </div>
@@ -331,15 +333,15 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
           onClick={() => navigate({ to: "/vetting", search: { id: project.id } })}
           className="inline-flex items-center gap-1.5 rounded-full bg-gradient-ember px-4 py-2 text-sm font-medium text-ember-foreground shadow-ember hover:brightness-110 transition"
         >
-          Reopen <ArrowRight className="h-3.5 w-3.5" />
+          {t("dashboard.reopen")} <ArrowRight className="h-3.5 w-3.5" />
         </button>
         <button
           onClick={() => {
-            if (confirm(`Delete "${project.title}"? This can't be undone.`)) {
+            if (confirm(t("dashboard.deleteConfirm", { title: project.title }))) {
               deleteProject(project.id);
             }
           }}
-          aria-label="Delete project"
+          aria-label={t("dashboard.deleteAria")}
           className="ml-auto inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-background/60 text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-foreground transition"
         >
           <Trash2 className="h-3.5 w-3.5" />
@@ -350,40 +352,43 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
 }
 
 function StatusChip({ project }: { project: Project }) {
+  const { t } = useTranslation();
   if (project.scores) {
     return (
       <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] uppercase tracking-wider text-emerald-400">
-        Ready
+        {t("dashboard.ready")}
       </span>
     );
   }
   return (
     <span className="inline-flex items-center gap-1 rounded-full border border-ember/40 bg-ember/10 px-2 py-0.5 text-[10px] uppercase tracking-wider text-ember">
-      Vetting
+      {t("dashboard.vetting")}
     </span>
   );
 }
 
 function EmptyState() {
+  const { t } = useTranslation();
   return (
     <div className="mt-12 grid place-items-center rounded-3xl border border-dashed border-border bg-card/40 px-6 py-24 text-center">
       <span className="grid h-12 w-12 place-items-center rounded-2xl border border-border bg-background/80 text-ember">
         <Sparkles className="h-5 w-5" />
       </span>
       <p className="mt-5 max-w-md text-sm text-muted-foreground">
-        Drop your first concept to see vetting, IP protection, and a launch plan appear here.
+        {t("dashboard.emptyMsg")}
       </p>
       <Link
         to="/intake"
         className="mt-6 inline-flex items-center gap-2 rounded-full bg-gradient-ember px-5 py-2.5 text-sm font-medium text-ember-foreground shadow-ember hover:brightness-110 transition"
       >
-        <Plus className="h-4 w-4" /> Start a project
+        <Plus className="h-4 w-4" /> {t("dashboard.startProject")}
       </Link>
     </div>
   );
 }
 
 function IterationSparkline({ iterations }: { iterations?: Iteration[] }) {
+  const { t } = useTranslation();
   if (!iterations || iterations.length === 0) return null;
   const w = 120;
   const h = 44;
@@ -414,7 +419,7 @@ function IterationSparkline({ iterations }: { iterations?: Iteration[] }) {
     delta > 0 ? "oklch(0.74 0.16 155)" : delta < 0 ? "oklch(0.68 0.19 38)" : "oklch(0.7 0 0)";
   return (
     <div className="flex flex-col items-end gap-1">
-      <svg width={w} height={h} className="overflow-visible" aria-label="Score trend">
+      <svg width={w} height={h} className="overflow-visible" aria-label={t("dashboard.scoreTrend")}>
         <defs>
           <linearGradient id={`spark-${iterations[0].at}`} x1="0" x2="0" y1="0" y2="1">
             <stop offset="0%" stopColor={trendColor} stopOpacity="0.35" />
@@ -432,7 +437,7 @@ function IterationSparkline({ iterations }: { iterations?: Iteration[] }) {
           className="text-[10px] tabular-nums"
           style={{ color: trendColor }}
         >
-          {delta > 0 ? "▲" : delta < 0 ? "▼" : "—"} {Math.abs(delta)} pts
+          {delta > 0 ? "▲" : delta < 0 ? "▼" : "—"} {Math.abs(delta)} {t("dashboard.pts")}
         </span>
       )}
     </div>

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "motion/react";
 import { ArrowRight, Flame, ImagePlus, Sparkles, X, History, Mail, Wand2 } from "lucide-react";
 import { z } from "zod";
+import { useTranslation } from "react-i18next";
 import { getProject, overallScore } from "@/lib/projects";
 import { refineIdea } from "@/lib/api/vetting.functions";
 
@@ -30,13 +31,13 @@ const ideaSchema = z.object({
   idea: z
     .string()
     .trim()
-    .min(200, { message: "Tell us a little more — at least 200 characters." })
-    .max(1200, { message: "Keep it under 1200 characters." }),
+    .min(200, { message: "intake.errMin" })
+    .max(1200, { message: "intake.errMax" }),
   email: z
     .string()
     .trim()
     .max(255)
-    .email({ message: "Enter a valid email address." })
+    .email({ message: "intake.errEmail" })
     .optional()
     .or(z.literal("").transform(() => undefined)),
 });
@@ -45,6 +46,7 @@ const MAX_IMAGE_BYTES = 8 * 1024 * 1024; // 8 MB
 const ACCEPTED = ["image/png", "image/jpeg", "image/webp", "image/heic"];
 
 function IntakePage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { refine } = Route.useSearch();
   const fileInput = useRef<HTMLInputElement>(null);
@@ -79,7 +81,7 @@ function IntakePage() {
 
   const onRefine = async () => {
     if (idea.trim().length < 5) {
-      setError("Write a bit more before refining (5+ characters).");
+      setError(t("intake.errWriteMore"));
       return;
     }
     setError(null);
@@ -90,7 +92,7 @@ function IntakePage() {
       setIdea(result.refined);
       if (result.question) setRefineHint(result.question);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Couldn't refine the idea. Try again.");
+      setError(err instanceof Error ? err.message : t("intake.errRefine"));
     } finally {
       setRefining(false);
     }
@@ -100,11 +102,11 @@ function IntakePage() {
   const onPickFile = useCallback((file: File | undefined) => {
     if (!file) return;
     if (!ACCEPTED.includes(file.type)) {
-      setError("Sketches must be PNG, JPEG, or WEBP.");
+      setError(t("intake.errSketchType"));
       return;
     }
     if (file.size > MAX_IMAGE_BYTES) {
-      setError("Sketch must be under 8 MB.");
+      setError(t("intake.errSketchSize"));
       return;
     }
     setError(null);
@@ -113,7 +115,7 @@ function IntakePage() {
       if (prev) URL.revokeObjectURL(prev.url);
       return { file, url };
     });
-  }, []);
+  }, [t]);
 
   const onDrop = (e: React.DragEvent) => {
     e.preventDefault();
@@ -130,7 +132,8 @@ function IntakePage() {
     e.preventDefault();
     const parsed = ideaSchema.safeParse({ idea, email });
     if (!parsed.success) {
-      setError(parsed.error.issues[0].message);
+      const msg = parsed.error.issues[0].message;
+      setError(msg.startsWith("intake.") ? t(msg) : msg);
       return;
     }
     setError(null);
@@ -169,7 +172,7 @@ function IntakePage() {
             IdeaForge
           </Link>
           <Link to="/dashboard" className="text-sm text-muted-foreground hover:text-foreground transition">
-            Skip to dashboard →
+            {t("intake.skipDashboard")}
           </Link>
         </div>
       </header>
@@ -192,21 +195,19 @@ function IntakePage() {
         >
           <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-3 py-1 text-xs text-muted-foreground">
             <Sparkles className="h-3.5 w-3.5 text-ember" />
-            {refineProject ? `Refining · iteration ${iterationCount}` : "Multimodal vetting · text + sketch"}
+            {refineProject ? t("intake.badgeRefine", { n: iterationCount }) : t("intake.badgeMultimodal")}
           </span>
           <h1 className="mt-6 font-display text-4xl sm:text-5xl font-semibold text-balance leading-[1.05]">
-            {refineProject ? "Sharpen the concept." : "Bring the spark. We'll forge the rest."}
+            {refineProject ? t("intake.titleRefine") : t("intake.title")}
           </h1>
           <p className="mt-4 text-muted-foreground">
-            {refineProject
-              ? "Your previous report, scores, and chat history are preserved. Edit the idea below and we'll re-vet it as a new iteration."
-              : "Describe your concept and drop a napkin sketch. IdeaForge runs compliance, market fit, and demand scans in seconds."}
+            {refineProject ? t("intake.subtitleRefine") : t("intake.subtitle")}
           </p>
           {refineProject && prevOverall !== null && (
             <div className="mt-6 inline-flex items-center gap-3 rounded-2xl border border-border bg-card/60 px-4 py-2.5 text-left">
               <History className="h-4 w-4 text-ember" />
               <div className="text-xs text-muted-foreground">
-                Previous score{" "}
+                {t("intake.prevScore")}{" "}
                 <span className="font-display text-sm font-semibold text-foreground">
                   {prevOverall}/100
                 </span>{" "}
@@ -227,7 +228,7 @@ function IntakePage() {
         >
           <div className="rounded-[1.25rem] bg-background/60 p-5">
             <label htmlFor="idea" className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-              The concept
+              {t("intake.concept")}
             </label>
             <textarea
               id="idea"
@@ -235,7 +236,7 @@ function IntakePage() {
               onChange={(e) => setIdea(e.target.value)}
               rows={6}
               maxLength={1200}
-              placeholder="A modular ceramic cookware system that retains heat 3× longer than cast iron…"
+              placeholder={t("intake.ideaPlaceholder")}
               className="mt-2 w-full resize-none bg-transparent text-base placeholder:text-muted-foreground/60 focus:outline-none"
             />
             <div className="mt-1 flex items-center justify-between gap-3">
@@ -246,22 +247,22 @@ function IntakePage() {
                 className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card/60 px-3 py-1 text-xs text-muted-foreground hover:text-foreground hover:bg-accent/40 transition disabled:opacity-50"
               >
                 <Wand2 className="h-3.5 w-3.5 text-ember" />
-                {refining ? "Refining…" : "Refine with AI"}
+                {refining ? t("intake.refining") : t("intake.refineAI")}
               </button>
               <span className={"text-[11px] " + (chars > 0 && chars < 400 ? "text-ember" : "text-muted-foreground")}>
-                {chars > 0 && chars < 400 ? "Tip: 400+ characters gives sharper results · " : ""}
+                {chars > 0 && chars < 400 ? t("intake.tipChars") : ""}
                 {chars}/1200
               </span>
             </div>
             {refineHint && (
               <p className="mt-2 rounded-lg border border-ember/30 bg-ember/5 px-3 py-2 text-xs text-foreground/80">
-                <span className="text-ember">Follow-up:</span> {refineHint}
+                <span className="text-ember">{t("intake.followUp")}</span> {refineHint}
               </p>
             )}
 
             <div className="mt-6">
               <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-                Napkin sketch <span className="normal-case text-muted-foreground/60">— optional</span>
+                {t("intake.sketch")} <span className="normal-case text-muted-foreground/60">{t("intake.optional")}</span>
               </p>
 
               {sketch ? (
@@ -276,7 +277,7 @@ function IntakePage() {
                     onClick={removeSketch}
                     className="absolute top-3 right-3 inline-flex items-center gap-1 rounded-full bg-background/80 backdrop-blur border border-border px-2.5 py-1 text-xs hover:bg-accent transition"
                   >
-                    <X className="h-3.5 w-3.5" /> Remove
+                    <X className="h-3.5 w-3.5" /> {t("intake.remove")}
                   </button>
                   <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-background/90 to-transparent px-4 py-2 text-[11px] text-muted-foreground">
                     {sketch.file.name} · {(sketch.file.size / 1024).toFixed(0)} KB
@@ -301,10 +302,10 @@ function IntakePage() {
                 >
                   <ImagePlus className="mx-auto h-6 w-6 text-ember" />
                   <p className="mt-3 text-sm">
-                    Drop your sketch here, or <span className="text-ember">browse</span>
+                    {t("intake.dropSketch")} <span className="text-ember">{t("intake.browse")}</span>
                   </p>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    PNG, JPEG or WEBP · up to 8 MB
+                    {t("intake.sketchFormats")}
                   </p>
                 </button>
               )}
@@ -320,7 +321,7 @@ function IntakePage() {
 
             <div className="mt-6">
               <label htmlFor="email" className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-                Email <span className="normal-case text-muted-foreground/60">— optional, so we can send you the report</span>
+                {t("intake.email")} <span className="normal-case text-muted-foreground/60">{t("intake.emailOptional")}</span>
               </label>
               <div className="mt-2 flex items-center gap-2 rounded-xl border border-border bg-background/40 px-3 py-2 focus-within:border-ember/60">
                 <Mail className="h-4 w-4 text-muted-foreground" />
@@ -332,12 +333,12 @@ function IntakePage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   maxLength={255}
-                  placeholder="you@company.com"
+                  placeholder={t("intake.emailPlaceholder")}
                   className="w-full bg-transparent text-sm placeholder:text-muted-foreground/60 focus:outline-none"
                 />
               </div>
               <p className="mt-1.5 text-[11px] text-muted-foreground">
-                We'll email a link to your vetting report so you can pick it back up after a refresh.
+                {t("intake.emailHelp")}
               </p>
             </div>
 
@@ -349,14 +350,14 @@ function IntakePage() {
 
             <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
               <p className="text-xs text-muted-foreground">
-                Your idea stays private. Vetting takes ~20 seconds.
+                {t("intake.privacy")}
               </p>
               <button
                 type="submit"
                 disabled={submitting}
                 className="group inline-flex items-center gap-2 rounded-full bg-gradient-ember px-5 py-2.5 text-sm font-medium text-ember-foreground shadow-ember hover:brightness-110 transition disabled:opacity-60"
               >
-                {submitting ? "Forging…" : "Run vetting"}
+                {submitting ? t("intake.forging") : t("intake.runVetting")}
                 <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
               </button>
             </div>
