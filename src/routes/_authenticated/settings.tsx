@@ -81,9 +81,11 @@ function SettingsPage() {
       company: string;
       website: string;
       avatar_url: string;
+      language: string;
     }) => updateFn({ data: vars }),
-    onSuccess: () => {
-      toast.success("Settings saved.");
+    onSuccess: (_d, vars) => {
+      toast.success(t("settings.saved"));
+      applyLanguage(vars.language);
       qc.invalidateQueries({ queryKey: ["my-settings"] });
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Failed to save"),
@@ -152,6 +154,7 @@ function SettingsPage() {
       company: company.trim(),
       website: website.trim(),
       avatar_url: avatarPath,
+      language,
     });
   };
 
