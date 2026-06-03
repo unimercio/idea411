@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Flame, Mail } from "lucide-react";
-import { useEffect, useState } from "react";
+import { AlertCircle, Flame, Mail } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,6 +32,10 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [sentTo, setSentTo] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [formError, setFormError] = useState<{ message: string; action?: "resend" | "switch-signup" | "switch-signin" } | null>(null);
+  const [resending, setResending] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -43,43 +47,130 @@ function AuthPage() {
     return () => sub.subscription.unsubscribe();
   }, [navigate, dest]);
 
-  const friendlyError = (msg: string) => {
-    if (/rate limit|after \d+ seconds|too many/i.test(msg)) return t("auth.errRateLimit");
-    if (/already registered|already exists|user.*exists/i.test(msg)) return t("auth.errExists");
-    if (/weak.?password|pwned|compromised|leaked|haveibeenpwned/i.test(msg))
-      return "That password is too weak or has appeared in a known data breach. Try a longer, unique password (12+ chars, mix of letters, numbers, symbols).";
-    if (/password.*(short|length|at least)/i.test(msg))
-      return "Password is too short. Use at least 6 characters (a longer passphrase is recommended).";
-    if (/email.*not.*confirmed|confirm.*email|email_not_confirmed/i.test(msg))
-      return "Please confirm your email first — check your inbox (and spam folder) for the confirmation link.";
-    if (/invalid.*credentials|invalid login/i.test(msg))
-      return "Email or password is incorrect. If you just signed up, confirm your email first. New here? Create an account below.";
-    return msg;
+  // Clear field errors when user edits
+  useEffect(() => { setEmailError(null); setFormError(null); }, [email]);
+  useEffect(() => { setPasswordError(null); setFormError(null); }, [password]);
+  // Clear all errors on mode switch
+  useEffect(() => { setEmailError(null); setPasswordError(null); setFormError(null); }, [mode]);
+
+  const passwordRules = useMemo(() => {
+    const pw = password;
+    return [
+      { label: "At least 8 characters", ok: pw.length >= 8 },
+      { label: "Contains a letter", ok: /[a-zA-Z]/.test(pw) },
+      { label: "Contains a number", ok: /\d/.test(pw) },
+      { label: "Contains a symbol (recommended)", ok: /[^a-zA-Z0-9]/.test(pw) },
+    ];
+  }, [password]);
+
+  type FieldKey = "email" | "password" | "form";
+  type Mapped = { field: FieldKey; message: string; action?: "resend" | "switch-signup" | "switch-signin" };
+
+  const mapAuthError = (err: unknown): Mapped => {
+    const raw = err instanceof Error ? err.message : typeof err === "string" ? err : t("auth.errAuth");
+    const code = (err as { code?: string } | null)?.code?.toLowerCase() ?? "";
+    const status = (err as { status?: number } | null)?.status;
+    const msg = raw.toLowerCase();
+
+    if (code === "weak_password" || /weak.?password|pwned|compromised|leaked|haveibeenpwned|password.{0,30}breach/i.test(msg)) {
+      return { field: "password", message: "This password is too weak or has appeared in a known data breach. Use at least 8 characters with a mix of letters, numbers, and a symbol." };
+    }
+    if (/password.{0,20}(too short|short|at least \d+|length|must be)/i.test(msg)) {
+      const m = /at least (\d+)/i.exec(msg);
+      return { field: "password", message: `Password is too short.${m ? ` Use at least ${m[1]} characters.` : " Use at least 6 characters."}` };
+    }
+    if (code === "email_not_confirmed" || /email.{0,10}not.{0,10}confirmed|confirm.{0,10}your.{0,10}email/i.test(msg)) {
+      return { field: "form", message: "Your email isn't confirmed yet. Check your inbox (and spam) for the confirmation link.", action: "resend" };
+    }
+    if (code === "invalid_credentials" || /invalid.{0,10}credentials|invalid login/i.test(msg)) {
+      return { field: "form", message: "Email or password is incorrect. If you just signed up, confirm your email first.", action: "switch-signup" };
+    }
+    if (code === "user_already_exists" || /already (registered|exists)|user.*exists/i.test(msg)) {
+      return { field: "email", message: "An account with that email already exists. Try signing in instead.", action: "switch-signin" };
+    }
+    if (code === "validation_failed" || /invalid.{0,10}email|email.{0,10}invalid|valid email/i.test(msg)) {
+      return { field: "email", message: "Please enter a valid email address." };
+    }
+    if (code === "over_email_send_rate_limit" || /rate limit|after \d+ seconds|too many/i.test(msg)) {
+      return { field: "form", message: t("auth.errRateLimit") };
+    }
+    if (code === "signup_disabled" || /signup.{0,10}disabled|signups are not allowed/i.test(msg)) {
+      return { field: "form", message: "New sign-ups are disabled. Please contact support." };
+    }
+    if (status === 0 || /failed to fetch|network|networkerror/i.test(msg)) {
+      return { field: "form", message: "Network error — check your connection and try again." };
+    }
+    return { field: "form", message: raw };
   };
+
+  const credentialsSchema = z.object({
+    email: z.string().trim().min(1, "Email is required").email("Please enter a valid email address").max(255),
+    password: z
+      .string()
+      .min(mode === "signup" ? 8 : 6, mode === "signup" ? "Use at least 8 characters" : "Password is too short")
+      .max(72, "Password is too long (max 72 characters)"),
+  });
 
   const handleEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     if (loading) return;
+    setEmailError(null);
+    setPasswordError(null);
+    setFormError(null);
+
+    const parsed = credentialsSchema.safeParse({ email, password });
+    if (!parsed.success) {
+      const flat = parsed.error.flatten().fieldErrors;
+      if (flat.email?.[0]) setEmailError(flat.email[0]);
+      if (flat.password?.[0]) setPasswordError(flat.password[0]);
+      return;
+    }
+
     setLoading(true);
     try {
       if (mode === "signup") {
         const { error } = await supabase.auth.signUp({
-          email,
-          password,
+          email: parsed.data.email,
+          password: parsed.data.password,
           options: { emailRedirectTo: `${window.location.origin}${dest}` },
         });
         if (error) throw error;
-        setSentTo(email);
+        setSentTo(parsed.data.email);
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error } = await supabase.auth.signInWithPassword({
+          email: parsed.data.email,
+          password: parsed.data.password,
+        });
         if (error) throw error;
         toast.success(t("auth.signedIn"));
       }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : t("auth.errAuth");
-      toast.error(friendlyError(msg));
+      const mapped = mapAuthError(err);
+      if (mapped.field === "email") setEmailError(mapped.message);
+      else if (mapped.field === "password") setPasswordError(mapped.message);
+      else setFormError({ message: mapped.message, action: mapped.action });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResendConfirmation = async () => {
+    if (!email || resending) return;
+    setResending(true);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email,
+        options: { emailRedirectTo: `${window.location.origin}${dest}` },
+      });
+      if (error) throw error;
+      toast.success(`Confirmation email re-sent to ${email}`);
+      setFormError(null);
+    } catch (err) {
+      const mapped = mapAuthError(err);
+      setFormError({ message: mapped.message });
+    } finally {
+      setResending(false);
     }
   };
 
@@ -157,24 +248,100 @@ function AuthPage() {
                 <div className="h-px flex-1 bg-border" />
               </div>
 
-              <form onSubmit={handleEmail} className="space-y-3">
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder={t("auth.emailPlaceholder")}
-                  className="w-full rounded-full border border-border bg-background/60 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                />
-                <input
-                  type="password"
-                  required
-                  minLength={6}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder={t("auth.passwordPlaceholder")}
-                  className="w-full rounded-full border border-border bg-background/60 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                />
+              <form onSubmit={handleEmail} noValidate className="space-y-3">
+                {formError && (
+                  <div
+                    role="alert"
+                    className="flex gap-2 rounded-2xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+                  >
+                    <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                    <div className="flex-1 space-y-2">
+                      <p>{formError.message}</p>
+                      {formError.action === "resend" && (
+                        <button
+                          type="button"
+                          onClick={handleResendConfirmation}
+                          disabled={resending || !email}
+                          className="inline-flex items-center rounded-full border border-destructive/40 bg-background/40 px-3 py-1 text-xs font-medium text-foreground hover:bg-accent disabled:opacity-50"
+                        >
+                          {resending ? "Sending…" : "Resend confirmation email"}
+                        </button>
+                      )}
+                      {formError.action === "switch-signup" && (
+                        <button
+                          type="button"
+                          onClick={() => setMode("signup")}
+                          className="inline-flex items-center rounded-full border border-destructive/40 bg-background/40 px-3 py-1 text-xs font-medium text-foreground hover:bg-accent"
+                        >
+                          Create an account instead
+                        </button>
+                      )}
+                      {formError.action === "switch-signin" && (
+                        <button
+                          type="button"
+                          onClick={() => setMode("signin")}
+                          className="inline-flex items-center rounded-full border border-destructive/40 bg-background/40 px-3 py-1 text-xs font-medium text-foreground hover:bg-accent"
+                        >
+                          Sign in instead
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder={t("auth.emailPlaceholder")}
+                    aria-invalid={!!emailError}
+                    aria-describedby={emailError ? "email-error" : undefined}
+                    className={`w-full rounded-full border bg-background/60 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring ${
+                      emailError ? "border-destructive focus:ring-destructive" : "border-border"
+                    }`}
+                  />
+                  {emailError && (
+                    <p id="email-error" role="alert" className="mt-1.5 px-3 text-xs text-destructive">
+                      {emailError}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <input
+                    type="password"
+                    required
+                    minLength={mode === "signup" ? 8 : 6}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder={t("auth.passwordPlaceholder")}
+                    aria-invalid={!!passwordError}
+                    aria-describedby={passwordError ? "password-error" : mode === "signup" ? "password-rules" : undefined}
+                    className={`w-full rounded-full border bg-background/60 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring ${
+                      passwordError ? "border-destructive focus:ring-destructive" : "border-border"
+                    }`}
+                  />
+                  {passwordError && (
+                    <p id="password-error" role="alert" className="mt-1.5 px-3 text-xs text-destructive">
+                      {passwordError}
+                    </p>
+                  )}
+                  {mode === "signup" && !passwordError && password.length > 0 && (
+                    <ul id="password-rules" className="mt-2 space-y-0.5 px-3 text-xs">
+                      {passwordRules.map((r) => (
+                        <li key={r.label} className={r.ok ? "text-muted-foreground" : "text-muted-foreground/70"}>
+                          <span className={`mr-1.5 ${r.ok ? "text-ember" : "text-muted-foreground/50"}`}>
+                            {r.ok ? "✓" : "○"}
+                          </span>
+                          {r.label}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+
                 <button
                   type="submit"
                   disabled={loading}
