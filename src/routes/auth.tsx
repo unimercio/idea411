@@ -30,8 +30,12 @@ function AuthPage() {
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [fieldError, setFieldError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [sentTo, setSentTo] = useState<string | null>(null);
+  const [resending, setResending] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -43,15 +47,39 @@ function AuthPage() {
     return () => sub.subscription.unsubscribe();
   }, [navigate, dest]);
 
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const id = setTimeout(() => setResendCooldown((s) => s - 1), 1000);
+    return () => clearTimeout(id);
+  }, [resendCooldown]);
+
   const friendlyError = (msg: string) => {
-    if (/rate limit|after \d+ seconds/i.test(msg)) return t("auth.errRateLimit");
-    if (/already registered|already exists/i.test(msg)) return t("auth.errExists");
+    if (/rate limit|after \d+ seconds|too many/i.test(msg)) return t("auth.errRateLimit");
+    if (/already registered|already exists|user.*exists/i.test(msg)) return t("auth.errExists");
+    if (/invalid login|invalid.*credentials/i.test(msg)) return t("auth.errInvalidCreds");
+    if (/email not confirmed|confirm.*email/i.test(msg)) return t("auth.errEmailNotConfirmed");
+    if (/invalid.*email|email.*invalid/i.test(msg)) return t("auth.errInvalidEmail");
+    if (/password.*(short|6|length)/i.test(msg)) return t("auth.errPasswordShort");
     return msg;
+  };
+
+  const validate = (): string | null => {
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+    if (!emailOk) return t("auth.errInvalidEmail");
+    if (password.length < 6) return t("auth.errPasswordShort");
+    if (mode === "signup" && password !== confirmPassword) return t("auth.errPasswordMismatch");
+    return null;
   };
 
   const handleEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     if (loading) return;
+    const v = validate();
+    if (v) {
+      setFieldError(v);
+      return;
+    }
+    setFieldError(null);
     setLoading(true);
     try {
       if (mode === "signup") {
@@ -62,6 +90,7 @@ function AuthPage() {
         });
         if (error) throw error;
         setSentTo(email);
+        setResendCooldown(60);
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -69,11 +98,34 @@ function AuthPage() {
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : t("auth.errAuth");
-      toast.error(friendlyError(msg));
+      const friendly = friendlyError(msg);
+      setFieldError(friendly);
+      toast.error(friendly);
     } finally {
       setLoading(false);
     }
   };
+
+  const handleResend = async () => {
+    if (!sentTo || resending || resendCooldown > 0) return;
+    setResending(true);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email: sentTo,
+        options: { emailRedirectTo: `${window.location.origin}${dest}` },
+      });
+      if (error) throw error;
+      toast.success(t("auth.resendSent"));
+      setResendCooldown(60);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : t("auth.resendFailed");
+      toast.error(friendlyError(msg));
+    } finally {
+      setResending(false);
+    }
+  };
+
 
   const handleGoogle = async () => {
     setLoading(true);
