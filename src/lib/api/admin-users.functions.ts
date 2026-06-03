@@ -18,7 +18,7 @@ export type AuditLogEntry = {
   actor_email: string | null;
   target_user_id: string | null;
   target_email: string | null;
-  details: Record<string, unknown>;
+  details: Record<string, string | number | boolean | null>;
   created_at: string;
 };
 
@@ -39,7 +39,7 @@ async function recordAudit(
     actor_email: string | null;
     target_user_id?: string | null;
     target_email?: string | null;
-    details?: Record<string, unknown>;
+    details?: Record<string, string | number | boolean | null>;
   },
 ) {
   const { error } = await admin.from("admin_audit_log").insert({
