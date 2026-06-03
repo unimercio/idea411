@@ -30,8 +30,8 @@ const ideaSchema = z.object({
   idea: z
     .string()
     .trim()
-    .min(40, { message: "Tell us a little more — at least 40 characters." })
-    .max(4000, { message: "Keep it under 4000 characters." }),
+    .min(200, { message: "Tell us a little more — at least 200 characters." })
+    .max(1200, { message: "Keep it under 1200 characters." }),
   email: z
     .string()
     .trim()
@@ -234,7 +234,7 @@ function IntakePage() {
               value={idea}
               onChange={(e) => setIdea(e.target.value)}
               rows={6}
-              maxLength={4000}
+              maxLength={1200}
               placeholder="A modular ceramic cookware system that retains heat 3× longer than cast iron…"
               className="mt-2 w-full resize-none bg-transparent text-base placeholder:text-muted-foreground/60 focus:outline-none"
             />
@@ -248,7 +248,10 @@ function IntakePage() {
                 <Wand2 className="h-3.5 w-3.5 text-ember" />
                 {refining ? "Refining…" : "Refine with AI"}
               </button>
-              <span className="text-[11px] text-muted-foreground">{chars}/4000</span>
+              <span className={"text-[11px] " + (chars > 0 && chars < 400 ? "text-ember" : "text-muted-foreground")}>
+                {chars > 0 && chars < 400 ? "Tip: 400+ characters gives sharper results · " : ""}
+                {chars}/1200
+              </span>
             </div>
             {refineHint && (
               <p className="mt-2 rounded-lg border border-ember/30 bg-ember/5 px-3 py-2 text-xs text-foreground/80">
