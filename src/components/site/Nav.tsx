@@ -87,7 +87,7 @@ export function Nav() {
             )}
             <Link
               to="/intake"
-              className="inline-flex items-center rounded-full bg-gradient-ember px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-ember-foreground shadow-ember hover:brightness-110 transition whitespace-nowrap"
+              className="inline-flex items-center rounded-full bg-gradient-ember px-2.5 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-ember-foreground shadow-ember hover:brightness-110 transition whitespace-nowrap"
             >
               {t("common.startForging")}
             </Link>
