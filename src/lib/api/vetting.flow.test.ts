@@ -138,10 +138,10 @@ beforeEach(() => {
 
 describe("concept-to-market flow: seeded skills are exercised end-to-end", () => {
   it("analyzeIdea fans out 4 calls — one per pillar — each using its skill's model + preamble", async () => {
-    const { analyzeIdea } = await import("./vetting.functions");
+    const { runAnalyzeIdea } = await import("./vetting.functions");
 
-    await analyzeIdea({
-      data: { idea: "Modular ceramic cookware that retains heat 3x longer than cast iron." },
+    const result = await runAnalyzeIdea({
+      idea: "Modular ceramic cookware that retains heat 3x longer than cast iron.",
     });
 
     // 4 pillar calls dispatched in parallel
@@ -168,19 +168,44 @@ describe("concept-to-market flow: seeded skills are exercised end-to-end", () =>
     expect(byTool.submit_sales_analysis).toBeDefined();
     expect(byTool.submit_sales_analysis.model).toBe("openai/gpt-5-mini");
     expect(byTool.submit_sales_analysis.system).toContain("SALES_PREAMBLE_MARKER");
+
+    // Parsed handler output merges all four pillar responses.
+    expect(result.overallScore).toBe(72);
+    expect(result.healthVerdict).toMatch(/wedge/);
+    expect(result.oneLineThesis).toMatch(/cookware/i);
+
+    expect(result.compliance.score).toBe(8);
+    expect(result.compliance.regulations).toContain("FDA 21 CFR 175");
+    expect(result.compliance.risks[0].severity).toBe("low");
+
+    expect(result.market.score).toBe(7);
+    expect(result.market.tam).toBe("$8B");
+    expect(result.market.competitors[0]).toMatchObject({ name: "Le Creuset", type: "direct" });
+    expect(result.market.trends[0].direction).toBe("up");
+
+    expect(result.sales.score).toBe(7);
+    expect(result.sales.demand).toBe("moderate");
+    expect(result.sales.pricing.recommended).toBe("$220");
+    expect(result.sales.revenue.optimistic).toBe("$2M");
+    expect(result.sales.gtm).toEqual(["Kickstarter", "Williams-Sonoma pilot"]);
   });
 
-  it("refineIdea uses the intake_refine skill", async () => {
-    const { refineIdea } = await import("./vetting.functions");
+  it("refineIdea uses the intake_refine skill and returns the parsed refinement", async () => {
+    const { runRefineIdea } = await import("./vetting.functions");
 
-    await refineIdea({
-      data: { idea: "Modular ceramic cookware that retains heat longer than cast iron." },
+    const result = await runRefineIdea({
+      idea: "Modular ceramic cookware that retains heat longer than cast iron.",
     });
 
     expect(captured).toHaveLength(1);
     expect(captured[0].tool).toBe("submit_refined_idea");
     expect(captured[0].model).toBe("google/gemini-2.5-flash");
     expect(captured[0].system).toContain("INTAKE_PREAMBLE_MARKER");
+
+    expect(result.refined).toMatch(/cookware/);
+    expect(result.refined).toMatch(/serious home cooks/);
+    expect(result.question).toBe("What price point are you targeting?");
   });
 });
+
 
