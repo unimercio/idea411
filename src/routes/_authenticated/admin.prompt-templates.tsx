@@ -255,30 +255,20 @@ function PromptTemplatesAdmin() {
   }
 
   if (!adminQuery.data?.isAdmin) {
+    const canClaim = adminQuery.data?.adminExists === false;
     return (
-      <main className="mx-auto max-w-xl px-6 py-24">
-        <Link
-          to="/dashboard"
-          className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" /> Back
-        </Link>
-        <div className="mt-8 rounded-2xl border border-border bg-card/80 p-8 shadow-elegant">
-          <ShieldCheck className="h-6 w-6 text-ember" />
-          <h1 className="mt-3 font-display text-2xl font-semibold">Admin only</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            You need the <span className="text-foreground">admin</span> role to manage prompt
-            templates. If you're the first user, you can claim the admin role now.
-          </p>
+      <NotAuthorized area="the Prompt Templates admin page">
+        {canClaim && (
           <Button
-            className="mt-6"
+            size="sm"
+            variant="outline"
             onClick={() => claimMutation.mutate()}
             disabled={claimMutation.isPending}
           >
             {claimMutation.isPending ? "Claiming…" : "Claim admin role"}
           </Button>
-        </div>
-      </main>
+        )}
+      </NotAuthorized>
     );
   }
 
