@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { resolveSkill, withSkillPreamble } from "./skills.server";
 
 export const sourcedSizingSchema = z.object({
   tam: z.object({ value: z.string(), methodology: z.string() }),
@@ -58,6 +59,15 @@ Return ONLY JSON matching this exact shape — no prose, no markdown fences:
   "sources": [{ "title": "...", "url": "https://..." }]
 }`;
 
+    const baseSystem =
+      "You are a rigorous market sizing analyst. You ground every number in a public source and never invent figures. Respond with JSON only.";
+    const skill = await resolveSkill("market_research");
+    const systemPrompt = withSkillPreamble(baseSystem, skill);
+    // Perplexity has its own model identifiers; only honor the override if it
+    // looks like a sonar* model. Otherwise stick with the default.
+    const model =
+      skill?.model && /^sonar/i.test(skill.model) ? skill.model : "sonar-pro";
+
     const res = await fetch("https://api.perplexity.ai/chat/completions", {
       method: "POST",
       headers: {
@@ -65,13 +75,9 @@ Return ONLY JSON matching this exact shape — no prose, no markdown fences:
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "sonar-pro",
+        model,
         messages: [
-          {
-            role: "system",
-            content:
-              "You are a rigorous market sizing analyst. You ground every number in a public source and never invent figures. Respond with JSON only.",
-          },
+          { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
         ],
         temperature: 0.1,

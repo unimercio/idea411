@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { sourcedSizingSchema } from "./market-research.functions";
+import { resolveSkill, withSkillPreamble } from "./skills.server";
 
 // ───────── Shared analysis schema (mirrors the AI tool-call output) ─────────
 export const severitySchema = z.enum(["low", "medium", "high"]);
@@ -78,7 +79,7 @@ export const analysisSchema = z.object({
 export type Analysis = z.infer<typeof analysisSchema>;
 
 const GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
-const MODEL = "google/gemini-3-flash-preview";
+const DEFAULT_MODEL = "google/gemini-3-flash-preview";
 
 const SYSTEM_PROMPT = `You are a senior partner at a top-tier product innovation consultancy
 (think IDEO × a16z × a regulatory specialist). You vet new product ideas with
@@ -274,6 +275,12 @@ ${data.sketchName ? `\n(The founder attached a napkin sketch named "${data.sketc
 
 Return the analysis by calling the submit_vetting_analysis tool. Do not return plain text.`;
 
+    // Resolve admin-configured skill (model + preamble). Vetting covers all
+    // pillars in one tool-call, so we use the strategic skill as the "lead".
+    const skill = await resolveSkill("vetting_strategic");
+    const systemPrompt = withSkillPreamble(SYSTEM_PROMPT, skill);
+    const model = skill?.model || DEFAULT_MODEL;
+
     const res = await fetch(GATEWAY, {
       method: "POST",
       headers: {
@@ -281,9 +288,9 @@ Return the analysis by calling the submit_vetting_analysis tool. Do not return p
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: MODEL,
+        model,
         messages: [
-          { role: "system", content: SYSTEM_PROMPT },
+          { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
         ],
         tools: [ANALYSIS_TOOL],
