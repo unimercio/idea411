@@ -105,13 +105,22 @@ function DashboardPage() {
           </Link>
           <div className="flex items-center gap-2">
             {isAdmin && (
-              <Link
-                to="/admin/prompt-templates"
-                className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground px-3 py-2"
-                title="Manage prompt templates"
-              >
-                <Settings className="h-4 w-4" /> Admin
-              </Link>
+              <>
+                <Link
+                  to="/admin/prompt-templates"
+                  className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground px-3 py-2"
+                  title="Manage prompt templates"
+                >
+                  <Settings className="h-4 w-4" /> Prompts
+                </Link>
+                <Link
+                  to="/admin/skills"
+                  className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground px-3 py-2"
+                  title="Manage model skills"
+                >
+                  <Sparkles className="h-4 w-4" /> Skills
+                </Link>
+              </>
             )}
             {isAuthed === true && !isAdmin && !adminExists && adminQuery.isFetched && (
               <button
