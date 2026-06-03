@@ -100,11 +100,7 @@ function SkillsAdmin() {
   }
 
   if (!adminQuery.data?.isAdmin) {
-    return (
-      <main className="mx-auto max-w-xl px-6 py-24">
-        <p className="text-sm text-muted-foreground">Admin only.</p>
-      </main>
-    );
+    return <NotAuthorized area="the Skills admin page" />;
   }
 
   return <AdminContent skills={listQuery.data?.skills ?? []} loading={listQuery.isLoading} />;
