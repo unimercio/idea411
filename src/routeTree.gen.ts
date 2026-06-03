@@ -20,6 +20,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin.users'
 import { Route as AuthenticatedAdminSkillsRouteImport } from './routes/_authenticated/admin.skills'
 import { Route as AuthenticatedAdminPromptTemplatesRouteImport } from './routes/_authenticated/admin.prompt-templates'
+import { Route as AuthenticatedAdminAuditLogRouteImport } from './routes/_authenticated/admin.audit-log'
 
 const VettingRoute = VettingRouteImport.update({
   id: '/vetting',
@@ -77,6 +78,12 @@ const AuthenticatedAdminPromptTemplatesRoute =
     path: '/admin/prompt-templates',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedAdminAuditLogRoute =
+  AuthenticatedAdminAuditLogRouteImport.update({
+    id: '/admin/audit-log',
+    path: '/admin/audit-log',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -86,6 +93,7 @@ export interface FileRoutesByFullPath {
   '/vetting': typeof VettingRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/admin/audit-log': typeof AuthenticatedAdminAuditLogRoute
   '/admin/prompt-templates': typeof AuthenticatedAdminPromptTemplatesRoute
   '/admin/skills': typeof AuthenticatedAdminSkillsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
@@ -98,6 +106,7 @@ export interface FileRoutesByTo {
   '/vetting': typeof VettingRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/admin/audit-log': typeof AuthenticatedAdminAuditLogRoute
   '/admin/prompt-templates': typeof AuthenticatedAdminPromptTemplatesRoute
   '/admin/skills': typeof AuthenticatedAdminSkillsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
@@ -112,6 +121,7 @@ export interface FileRoutesById {
   '/vetting': typeof VettingRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/_authenticated/admin/audit-log': typeof AuthenticatedAdminAuditLogRoute
   '/_authenticated/admin/prompt-templates': typeof AuthenticatedAdminPromptTemplatesRoute
   '/_authenticated/admin/skills': typeof AuthenticatedAdminSkillsRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
@@ -126,6 +136,7 @@ export interface FileRouteTypes {
     | '/vetting'
     | '/dashboard'
     | '/settings'
+    | '/admin/audit-log'
     | '/admin/prompt-templates'
     | '/admin/skills'
     | '/admin/users'
@@ -138,6 +149,7 @@ export interface FileRouteTypes {
     | '/vetting'
     | '/dashboard'
     | '/settings'
+    | '/admin/audit-log'
     | '/admin/prompt-templates'
     | '/admin/skills'
     | '/admin/users'
@@ -151,6 +163,7 @@ export interface FileRouteTypes {
     | '/vetting'
     | '/_authenticated/dashboard'
     | '/_authenticated/settings'
+    | '/_authenticated/admin/audit-log'
     | '/_authenticated/admin/prompt-templates'
     | '/_authenticated/admin/skills'
     | '/_authenticated/admin/users'
@@ -244,12 +257,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminPromptTemplatesRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/admin/audit-log': {
+      id: '/_authenticated/admin/audit-log'
+      path: '/admin/audit-log'
+      fullPath: '/admin/audit-log'
+      preLoaderRoute: typeof AuthenticatedAdminAuditLogRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
 interface AuthenticatedRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedAdminAuditLogRoute: typeof AuthenticatedAdminAuditLogRoute
   AuthenticatedAdminPromptTemplatesRoute: typeof AuthenticatedAdminPromptTemplatesRoute
   AuthenticatedAdminSkillsRoute: typeof AuthenticatedAdminSkillsRoute
   AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
@@ -258,6 +279,7 @@ interface AuthenticatedRouteChildren {
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedAdminAuditLogRoute: AuthenticatedAdminAuditLogRoute,
   AuthenticatedAdminPromptTemplatesRoute:
     AuthenticatedAdminPromptTemplatesRoute,
   AuthenticatedAdminSkillsRoute: AuthenticatedAdminSkillsRoute,
@@ -279,3 +301,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
