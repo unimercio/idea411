@@ -1443,17 +1443,19 @@ function ScoreGauge({
         />
       </svg>
       <div className="absolute inset-0 grid place-items-center">
-        <div className="text-center">
-          <div
-            className={
-              "font-display font-semibold leading-none " + (large ? "text-5xl" : "text-base")
-            }
-          >
-            {max === 10 ? value.toFixed(1) : Math.round(value)}
-          </div>
-          {large && (
-            <div className="mt-1 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-              / {max}
+        <div className="text-center leading-none">
+          {large ? (
+            <>
+              <div className="font-display font-semibold text-6xl leading-none">
+                {letterGrade(value, max)}
+              </div>
+              <div className="mt-1 text-[10px] tracking-[0.2em] text-muted-foreground tabular-nums">
+                {Math.round(value)}/{max}
+              </div>
+            </>
+          ) : (
+            <div className="font-display font-semibold text-base leading-none">
+              {max === 10 ? value.toFixed(1) : Math.round(value)}
             </div>
           )}
         </div>
@@ -1599,6 +1601,23 @@ function scoreTone(value: number, max: number): Tone {
   if (pct >= 0.7) return "green";
   if (pct >= 0.45) return "amber";
   return "red";
+}
+
+function letterGrade(value: number, max: number): string {
+  const pct = Math.max(0, Math.min(1, value / max)) * 100;
+  if (pct >= 93) return "A+";
+  if (pct >= 88) return "A";
+  if (pct >= 83) return "A-";
+  if (pct >= 78) return "B+";
+  if (pct >= 73) return "B";
+  if (pct >= 68) return "B-";
+  if (pct >= 63) return "C+";
+  if (pct >= 58) return "C";
+  if (pct >= 53) return "C-";
+  if (pct >= 48) return "D+";
+  if (pct >= 43) return "D";
+  if (pct >= 38) return "D-";
+  return "F";
 }
 
 function toneClasses(t: Tone) {
