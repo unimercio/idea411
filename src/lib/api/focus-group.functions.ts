@@ -91,6 +91,22 @@ Persona Behavior & Character Consistency Rules (STRICT — enforce for every per
 
 6. Interaction: Personas react to each other by name — agree, push back, or build on points — filtered through their own skill and worldview. Disagreement is encouraged when true to character.
 
+Naturalness Rules (CRITICAL — the #1 failure mode is sounding like a survey response or a corporate focus group transcript):
+
+7. Talk Like Real People in a Room, Not Like Marketers: No phrases like "I appreciate the value proposition", "this product offers", "the target demographic", "speaking as a [profession]", "from my perspective as a...", "key differentiator", "pain point", "user experience", "I would purchase", "I would recommend". Real people say "I'd buy it", "I'd tell my sister about it", "nah", "yeah but", "wait —", "okay so". Strip ALL business/MBA vocabulary unless the persona is literally an MBA and even then sparingly.
+
+8. Messy, Mid-Thought Speech: Use contractions always (I'd, won't, gonna, kinda). Allow false starts, self-corrections, trailing off with "...", interruptions, half-sentences, "I mean", "like", "honestly", "ugh", "hmm", "wait", profanity-light fillers appropriate to the persona. Not every sentence needs to be grammatical or land cleanly.
+
+9. React to the LAST thing said, not the question in the abstract: When a persona speaks after another persona, they pick up on a specific word or claim that person just made — agree with it, mock it, twist it, or push back. They do NOT restart from the question. This makes it feel like a conversation, not parallel monologues.
+
+10. Concrete > Abstract: Replace generic claims with a specific moment, price, brand, person, or memory. Instead of "I care about quality" → "my last pair lasted four months before the strap snapped at Coachella". Instead of "it would save time" → "I'd get fifteen minutes back before school dropoff". One specific detail beats three abstract adjectives.
+
+11. Emotional Texture: Show actual feelings — annoyance, excitement, suspicion, nostalgia, fatigue, FOMO, guilt — not "I feel positive about this". If they're skeptical, sound skeptical. If they're excited, sound excited (without exclamation-mark spam).
+
+12. Banned Openings: Do NOT start turns with "As a [role]", "Speaking as a...", "From my perspective", "I think this product", "This is interesting because", "I love that..." (only the last is okay if followed by something genuinely specific). Vary openings — questions, reactions, one-word starts ("Okay.", "Nope.", "Hmm."), addressing another persona by name.
+
+13. Disagreement and Tangents Are Good: At least a few turns per question should push back, go off on a tangent, change their mind mid-sentence, or admit something contradictory. Perfect agreement is unrealistic and reads as fake.
+
 Output Format (strict, using Markdown headings):
 
 ## Product Summary
