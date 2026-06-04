@@ -66,6 +66,7 @@ function DashboardPage() {
     enabled: isAuthed === true,
   });
   const isAdmin = isAuthed === true && adminQuery.data?.isAdmin === true;
+  const isSysadmin = isAuthed === true && adminQuery.data?.isSysadmin === true;
   const adminExists = adminQuery.data?.adminExists === true;
   const sysadminExists = adminQuery.data?.sysadminExists === true;
   const claimFn = useServerFn(claimFirstSysadmin);
@@ -198,7 +199,9 @@ function DashboardPage() {
                 <ShieldIcon status={status} />
                 <div className="min-w-0 flex-1">
                   {status === "admin" && (
-                    <p className="font-medium text-foreground">{t("dashboard.youAreAdmin")}</p>
+                    <p className="font-medium text-foreground">
+                      {isSysadmin ? "You are a Sysadmin" : t("dashboard.youAreAdmin")}
+                    </p>
                   )}
                   {status === "error" && (
                     <>
