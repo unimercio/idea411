@@ -169,6 +169,10 @@ export const runFocusGroup = createServerFn({ method: "POST" })
     const apiKey = process.env.LOVABLE_API_KEY;
     if (!apiKey) throw new Error("LOVABLE_API_KEY is not configured on the server.");
 
+    const skill = await resolveSkill("focus_group");
+    const model = skill?.model ?? FOCUS_GROUP_MODEL;
+    const systemPrompt = withSkillPreamble(FOCUS_GROUP_SYSTEM, skill);
+
     const userPrompt = `PRODUCT/SERVICE IDEA:
 ${data.idea}
 
@@ -197,9 +201,9 @@ Run the full focus group now following the exact output format.`;
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: MODEL,
+        model,
         messages: [
-          { role: "system", content: FOCUS_GROUP_SYSTEM },
+          { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
         ],
       }),
