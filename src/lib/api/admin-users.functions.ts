@@ -31,6 +31,15 @@ async function assertAdmin(supabase: any, userId: string) {
   if (!data) throw new Error("Forbidden: admin role required");
 }
 
+async function assertSysadmin(supabase: any, userId: string) {
+  const { data, error } = await supabase.rpc("has_role", {
+    _user_id: userId,
+    _role: "sysadmin",
+  });
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error("Forbidden: sysadmin role required");
+}
+
 async function recordAudit(
   admin: any,
   entry: {
