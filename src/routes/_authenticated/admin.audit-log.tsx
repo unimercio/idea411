@@ -123,6 +123,7 @@ function AuditLogPage() {
         </table>
       </div>
     </main>
+    </>
   );
 }
 
