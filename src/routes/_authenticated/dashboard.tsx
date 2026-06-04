@@ -25,7 +25,8 @@ import {
   type Project,
 } from "@/lib/projects";
 import { supabase } from "@/integrations/supabase/client";
-import { checkAdmin, claimFirstAdmin } from "@/lib/api/prompt-templates.functions";
+import { checkAdmin } from "@/lib/api/prompt-templates.functions";
+import { claimFirstSysadmin } from "@/lib/api/admin-users.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -66,7 +67,8 @@ function DashboardPage() {
   });
   const isAdmin = isAuthed === true && adminQuery.data?.isAdmin === true;
   const adminExists = adminQuery.data?.adminExists === true;
-  const claimFn = useServerFn(claimFirstAdmin);
+  const sysadminExists = adminQuery.data?.sysadminExists === true;
+  const claimFn = useServerFn(claimFirstSysadmin);
   const [claiming, setClaiming] = useState(false);
   const handleClaimAdmin = async () => {
     setClaiming(true);
@@ -132,14 +134,14 @@ function DashboardPage() {
                 </Link>
               </>
             )}
-            {isAuthed === true && !isAdmin && !adminExists && adminQuery.isFetched && (
+            {isAuthed === true && !sysadminExists && adminQuery.isFetched && (
               <button
                 onClick={handleClaimAdmin}
                 disabled={claiming}
                 className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground px-3 py-2 disabled:opacity-50"
                 title={t("dashboard.claimAdminTitle")}
               >
-                <Sparkles className="h-4 w-4" /> {claiming ? t("dashboard.claiming") : t("dashboard.claimAdmin")}
+                <Sparkles className="h-4 w-4" /> {claiming ? t("dashboard.claiming") : (adminExists ? "Claim sysadmin" : t("dashboard.claimAdmin"))}
               </button>
             )}
             {isAuthed === true && (

@@ -31,6 +31,15 @@ async function assertAdmin(supabase: any, userId: string) {
   if (!data) throw new Error("Forbidden: admin role required");
 }
 
+async function assertSysadmin(supabase: any, userId: string) {
+  const { data, error } = await supabase.rpc("has_role", {
+    _user_id: userId,
+    _role: "sysadmin",
+  });
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error("Forbidden: sysadmin role required");
+}
+
 async function recordAudit(
   admin: any,
   entry: {
@@ -101,12 +110,14 @@ export const listUsers = createServerFn({ method: "GET" })
     return { users, currentUserId: userId };
   });
 
+// Only sysadmins can grant/revoke the admin role. When revoking admin, also
+// revoke sysadmin (sysadmin implies admin).
 export const setUserAdmin = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ targetUserId: z.string().uuid(), makeAdmin: z.boolean() }))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    await assertAdmin(supabase, userId);
+    await assertSysadmin(supabase, userId);
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
@@ -119,21 +130,12 @@ export const setUserAdmin = createServerFn({ method: "POST" })
         );
       if (error) throw new Error(error.message);
     } else {
-      if (data.targetUserId === userId) {
-        const { count, error: cErr } = await supabaseAdmin
-          .from("user_roles")
-          .select("*", { count: "exact", head: true })
-          .eq("role", "admin");
-        if (cErr) throw new Error(cErr.message);
-        if ((count ?? 0) <= 1) {
-          throw new Error("Cannot remove the last admin.");
-        }
-      }
+      // Cascade: revoking admin also removes sysadmin (sysadmin requires admin).
       const { error } = await supabaseAdmin
         .from("user_roles")
         .delete()
         .eq("user_id", data.targetUserId)
-        .eq("role", "admin");
+        .in("role", ["admin", "sysadmin"]);
       if (error) throw new Error(error.message);
     }
 
@@ -151,6 +153,95 @@ export const setUserAdmin = createServerFn({ method: "POST" })
     });
 
     return { ok: true };
+  });
+
+// Only sysadmins can grant/revoke the sysadmin role. Granting sysadmin also
+// grants admin so all existing admin policies apply.
+export const setUserSysadmin = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(z.object({ targetUserId: z.string().uuid(), makeSysadmin: z.boolean() }))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    await assertSysadmin(supabase, userId);
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    if (data.makeSysadmin) {
+      const { error: aErr } = await supabaseAdmin
+        .from("user_roles")
+        .upsert({ user_id: data.targetUserId, role: "admin" }, { onConflict: "user_id,role" });
+      if (aErr) throw new Error(aErr.message);
+      const { error: sErr } = await supabaseAdmin
+        .from("user_roles")
+        .upsert({ user_id: data.targetUserId, role: "sysadmin" as any }, { onConflict: "user_id,role" });
+      if (sErr) throw new Error(sErr.message);
+    } else {
+      if (data.targetUserId === userId) {
+        const { count, error: cErr } = await supabaseAdmin
+          .from("user_roles")
+          .select("*", { count: "exact", head: true })
+          .eq("role", "sysadmin" as any);
+        if (cErr) throw new Error(cErr.message);
+        if ((count ?? 0) <= 1) {
+          throw new Error("Cannot remove the last sysadmin.");
+        }
+      }
+      const { error } = await supabaseAdmin
+        .from("user_roles")
+        .delete()
+        .eq("user_id", data.targetUserId)
+        .eq("role", "sysadmin" as any);
+      if (error) throw new Error(error.message);
+    }
+
+    const [actorEmail, targetEmail] = await Promise.all([
+      getActorEmail(supabaseAdmin, userId),
+      getTargetEmail(supabaseAdmin, data.targetUserId),
+    ]);
+    await recordAudit(supabaseAdmin, {
+      action: data.makeSysadmin ? "role.sysadmin.grant" : "role.sysadmin.revoke",
+      actor_user_id: userId,
+      actor_email: actorEmail,
+      target_user_id: data.targetUserId,
+      target_email: targetEmail,
+      details: { role: "sysadmin" },
+    });
+
+    return { ok: true };
+  });
+
+// Bootstrap: any signed-in user can claim sysadmin if none exists yet.
+// Also grants admin so admin policies apply.
+export const claimFirstSysadmin = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { userId } = context;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { count, error: cErr } = await supabaseAdmin
+      .from("user_roles")
+      .select("*", { count: "exact", head: true })
+      .eq("role", "sysadmin" as any);
+    if (cErr) throw new Error(cErr.message);
+    if ((count ?? 0) > 0) return { claimed: false };
+
+    const { error: aErr } = await supabaseAdmin
+      .from("user_roles")
+      .upsert({ user_id: userId, role: "admin" }, { onConflict: "user_id,role" });
+    if (aErr) throw new Error(aErr.message);
+    const { error: sErr } = await supabaseAdmin
+      .from("user_roles")
+      .upsert({ user_id: userId, role: "sysadmin" as any }, { onConflict: "user_id,role" });
+    if (sErr) throw new Error(sErr.message);
+
+    const actorEmail = await getActorEmail(supabaseAdmin, userId);
+    await recordAudit(supabaseAdmin, {
+      action: "role.sysadmin.claim_first",
+      actor_user_id: userId,
+      actor_email: actorEmail,
+      target_user_id: userId,
+      target_email: actorEmail,
+    });
+    return { claimed: true };
   });
 
 export const sendPasswordReset = createServerFn({ method: "POST" })
@@ -179,6 +270,7 @@ export const sendPasswordReset = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+// Admins can delete regular users. Only sysadmins can delete admins/sysadmins.
 export const deleteUser = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(z.object({ targetUserId: z.string().uuid() }))
@@ -191,7 +283,18 @@ export const deleteUser = createServerFn({ method: "POST" })
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    // Capture target email BEFORE deletion
+    const { data: targetRoles, error: rErr } = await supabaseAdmin
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", data.targetUserId);
+    if (rErr) throw new Error(rErr.message);
+    const targetIsPrivileged = (targetRoles ?? []).some(
+      (r: any) => r.role === "admin" || r.role === "sysadmin",
+    );
+    if (targetIsPrivileged) {
+      await assertSysadmin(supabase, userId);
+    }
+
     const targetEmail = await getTargetEmail(supabaseAdmin, data.targetUserId);
 
     const { error } = await supabaseAdmin.auth.admin.deleteUser(data.targetUserId);
@@ -208,6 +311,8 @@ export const deleteUser = createServerFn({ method: "POST" })
 
     return { ok: true };
   });
+
+
 
 export const listAuditLog = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
