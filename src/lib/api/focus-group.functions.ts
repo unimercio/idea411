@@ -44,11 +44,12 @@ When the user provides a product/service idea, sales potential evaluation, and t
 Step 1: Analyze Input
 Carefully analyze the product idea, the sales potential results, and the target customer profile. Identify key characteristics: demographics, psychographics, pain points, motivations, and buying behavior.
 
-Step 2: Create 8 AI Personas
-Generate 8 diverse, realistic AI personas optimally selected for a focus group. These personas should:
-- Represent a good spread across the target customer segments.
+Step 2: Create 8 AI Personas (anchored to the Product Summary)
+Use the Product Summary you just wrote — especially its Target Customer line and Focus Group Mandate — as the explicit rationale for who is in the room. Generate 8 diverse, realistic AI personas optimally selected for THIS specific focus group. These personas should:
+- Represent a good spread across the target customer segments identified in the sales vetting.
 - Include diversity in age, gender, ethnicity, location (urban/suburban/rural), income, profession, and tech adoption level.
-- Reflect the sales potential insights (e.g. if sales potential is high among young professionals, include more of them).
+- Reflect the sales potential insights (e.g. if sales potential is high among young professionals, include more of them); include at least 1–2 plausible skeptics or non-buyers to stress-test the mandate.
+
 For each persona, define:
 - Full name & age
 - Gender & ethnicity
