@@ -225,3 +225,66 @@ Run the full focus group now following the exact output format.`;
     if (!transcript) throw new Error("AI returned no focus group transcript.");
     return { transcript };
   });
+
+// ---------------------------------------------------------------------------
+// Admin: short sanity-check run using the currently-resolved focus_group skill.
+// ---------------------------------------------------------------------------
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+
+const TEST_USER_PROMPT = `Sample idea: "A subscription dog-walking app that pairs owners with vetted local walkers."
+
+Run a SHORT warm-up focus group: introduce exactly TWO personas (one skeptical, one enthusiastic), give each persona ONE 2-3 sentence hot take on the idea, then a one-line moderator summary. Keep the whole thing under 200 words.`;
+
+export const testFocusGroup = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context as { supabase: any; userId: string };
+    const { data: isAdmin, error: roleErr } = await supabase.rpc("has_role", {
+      _user_id: userId,
+      _role: "admin",
+    });
+    if (roleErr) throw new Error(roleErr.message);
+    if (!isAdmin) throw new Error("Forbidden: admin role required");
+
+    const apiKey = process.env.LOVABLE_API_KEY;
+    if (!apiKey) throw new Error("LOVABLE_API_KEY is not configured on the server.");
+
+    const skill = await resolveSkill("focus_group");
+    const model = skill?.model ?? FOCUS_GROUP_MODEL;
+    const systemPrompt = withSkillPreamble(FOCUS_GROUP_SYSTEM, skill);
+
+    const res = await fetch(GATEWAY, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model,
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: TEST_USER_PROMPT },
+        ],
+      }),
+    });
+
+    if (res.status === 429) throw new Error("Rate limited. Try again in a moment.");
+    if (res.status === 402)
+      throw new Error("AI credits exhausted. Add credits in Settings → Workspace → Usage.");
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      console.error("Focus group test gateway error:", res.status, text);
+      throw new Error(`AI gateway error (${res.status}).`);
+    }
+
+    const json = (await res.json()) as {
+      choices?: { message?: { content?: string } }[];
+    };
+    const output = json.choices?.[0]?.message?.content?.trim();
+    if (!output) throw new Error("AI returned no output.");
+    return {
+      model,
+      skillName: skill?.name ?? null,
+      output,
+    };
+  });
