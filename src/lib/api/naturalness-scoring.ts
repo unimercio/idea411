@@ -144,8 +144,6 @@ function hasConcreteness(text: string): boolean {
   return false;
 }
 
-const _UNUSED_CONCRETE_RE =
-  /(?:\$[\d,]+(?:\.\d+)?|\b\d+(?:\.\d+)?\s*(?:%|bucks?|dollars?|euros?|min(?:utes?)?|hours?|days?|weeks?|months?|years?|am|pm|k|am\b|pm\b)\b|\b\d{4}\b|\b[A-Z][a-zA-Z0-9&'’-]+(?:\s+[A-Z][a-zA-Z0-9&'’-]+)*\b)/;
 
 export type NaturalnessFlag =
   | "bannedOpening"
