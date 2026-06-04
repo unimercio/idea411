@@ -174,13 +174,14 @@ export function createProject(input: { idea: string; sketchName?: string; email?
   notifyChange();
   void (async () => {
     if (!cacheUserId) return;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { error } = await supabase.from("projects").insert({
       id: project.id,
       user_id: cacheUserId,
       title: project.title,
       idea: project.idea,
       status: project.status,
-      data: projectDataPayload(project),
+      data: projectDataPayload(project) as any,
     });
     if (error) console.error("[projects] insert failed", error);
   })();
