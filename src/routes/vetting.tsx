@@ -23,6 +23,7 @@ import {
   Minus,
   ArrowDownRight,
   MessageSquare,
+  UsersRound,
 } from "lucide-react";
 import { z } from "zod";
 import { analyzeIdea, type Analysis } from "@/lib/api/vetting.functions";
