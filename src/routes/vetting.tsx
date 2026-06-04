@@ -930,7 +930,7 @@ function FocusGroupPanel({
                 transition={{ duration: 0.3 }}
                 className="overflow-hidden"
               >
-                <article className="prose prose-invert prose-sm max-w-none prose-headings:font-display prose-headings:text-foreground prose-strong:text-foreground prose-p:text-muted-foreground prose-li:text-muted-foreground prose-ol:text-muted-foreground prose-ul:text-muted-foreground">
+                <article className="prose prose-invert prose-sm max-w-none prose-headings:font-display prose-headings:text-foreground prose-strong:text-foreground prose-p:text-muted-foreground prose-li:text-muted-foreground prose-ol:text-muted-foreground prose-ul:text-muted-foreground prose-hr:border-border/60 prose-h2:mt-8 prose-h2:mb-3 prose-h2:pb-2 prose-h2:border-b prose-h2:border-border/60 prose-h2:text-ember prose-h2:uppercase prose-h2:tracking-wide prose-h2:text-xs prose-h3:mt-5 prose-h3:mb-2 prose-h3:text-foreground prose-h3:text-sm prose-h3:font-semibold prose-ul:my-2 prose-ol:my-2 prose-li:my-0.5 prose-p:my-2">
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>
                     {streaming
                       ? formatFocusGroupTranscript(streaming)
