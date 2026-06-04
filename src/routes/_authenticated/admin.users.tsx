@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { checkAdmin } from "@/lib/api/prompt-templates.functions";
 import { NotAuthorized } from "@/components/site/NotAuthorized";
+import { AdminHeader } from "@/components/site/AdminHeader";
 import {
   listUsers,
   setUserAdmin,
