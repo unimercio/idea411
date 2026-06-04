@@ -210,7 +210,6 @@ function UsersTable() {
       </div>
     </main>
     </>
-    </>
   );
 }
 
