@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, Loader2, Pencil, Plus, Star, Trash2 } from "lucide-react";
+import { ArrowLeft, Loader2, Pencil, Play, Plus, Star, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -31,6 +31,7 @@ import {
   type SkillComponent,
 } from "@/lib/api/skills.shared";
 import { checkAdmin } from "@/lib/api/prompt-templates.functions";
+import { testFocusGroup } from "@/lib/api/focus-group.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/skills")({
   head: () => ({
@@ -178,13 +179,16 @@ function AdminContent({ skills, loading }: { skills: ModelSkill[]; loading: bool
           <section key={component}>
             <div className="mb-3 flex items-center justify-between">
               <h2 className="font-display text-lg font-semibold">{COMPONENT_LABEL[component]}</h2>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => setEditing(emptyDraft(component))}
-              >
-                <Plus className="mr-1.5 h-3.5 w-3.5" /> New skill
-              </Button>
+              <div className="flex items-center gap-2">
+                {component === "focus_group" && <FocusGroupTester />}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setEditing(emptyDraft(component))}
+                >
+                  <Plus className="mr-1.5 h-3.5 w-3.5" /> New skill
+                </Button>
+              </div>
             </div>
             <div className="space-y-2">
               {grouped[component].length === 0 && (
@@ -412,6 +416,57 @@ function EditorDrawer({
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function FocusGroupTester() {
+  const testFn = useServerFn(testFocusGroup);
+  const mutation = useMutation({
+    mutationFn: () => testFn(),
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const result = mutation.data;
+  return (
+    <div className="flex items-center gap-2">
+      <Button
+        size="sm"
+        variant="secondary"
+        onClick={() => mutation.mutate()}
+        disabled={mutation.isPending}
+        title="Run a short warm-up focus group with the default skill"
+      >
+        {mutation.isPending ? (
+          <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+        ) : (
+          <Play className="mr-1.5 h-3.5 w-3.5" />
+        )}
+        {mutation.isPending ? "Testing…" : "Test focus group"}
+      </Button>
+      {result && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/70 backdrop-blur-sm p-6"
+             onClick={() => mutation.reset()}>
+          <div
+            className="max-h-[80vh] w-full max-w-2xl overflow-y-auto rounded-xl border border-border bg-card p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-3 flex items-start justify-between gap-4">
+              <div>
+                <h3 className="font-display text-lg font-semibold">Focus group test</h3>
+                <p className="text-xs text-muted-foreground">
+                  {result.skillName ?? "Built-in default"} · <code>{result.model}</code>
+                </p>
+              </div>
+              <Button size="sm" variant="ghost" onClick={() => mutation.reset()}>
+                Close
+              </Button>
+            </div>
+            <pre className="whitespace-pre-wrap text-sm leading-relaxed text-foreground/90">
+              {result.output}
+            </pre>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
