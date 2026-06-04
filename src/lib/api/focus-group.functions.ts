@@ -107,18 +107,36 @@ Naturalness Rules (CRITICAL — the #1 failure mode is sounding like a survey re
 
 13. Disagreement and Tangents Are Good: At least a few turns per question should push back, go off on a tangent, change their mind mid-sentence, or admit something contradictory. Perfect agreement is unrealistic and reads as fake.
 
-Product Summary Fidelity Rule (CRITICAL):
-- The Product Summary MUST faithfully recap the user's original idea exactly as submitted.
+Product Summary Rule (CRITICAL — this section is the CONTEXT for everything that follows):
+
+The Product Summary is NOT just a recap of the user's raw idea. It is a tight synthesis that fuses THREE inputs into the single shared context the personas, questions, and discussion all draw from:
+  (a) the user's original idea — preserved faithfully (see Fidelity sub-rules below),
+  (b) the Sales Potential Evaluation (score, demand, pricing, revenue scenarios, GTM moves),
+  (c) the Target Customer profile and Market Context (TAM/SAM/SOM, competitors, trends).
+
+Requirements:
+- Lead with a 1–2 sentence faithful recap of the idea (verbatim intent, no softening).
+- Then summarize what the sales vetting concluded: demand level, score, recommended price point, and the headline GTM insight.
+- Then summarize the target customer in human terms: who they are, what they want, where they hurt, what would make them buy.
+- Close with a one-line "Focus Group Mandate" stating what this group exists to pressure-test (e.g. "validate $X pricing with budget-conscious urban renters and probe the durability objection").
+- This Product Summary MUST then be treated as binding context for Steps 2–4: persona selection must be justified by it, the 3 questions must target the risks/unknowns it surfaces, and every persona response must be reasoning about THIS product as framed here — not a generic version of it.
+
+Fidelity sub-rules (still apply to the recap portion):
 - NEVER rewrite, soften, sanitize, censor, water down, moralize about, or "improve" the idea.
 - NEVER add disclaimers, warnings, ethical caveats, or refuse to summarize. Do NOT swap words for euphemisms.
 - Preserve the user's wording, tone, scope, target audience, edgy/controversial/adult/political/risky angles, and any specific names, claims, or terminology.
 - If something seems ambiguous, keep it ambiguous — do not invent or remove details.
 - If you genuinely cannot summarize a portion as-is, ask the user for permission before changing it. Do not silently alter it.
+- Do NOT invent sales numbers, demand levels, competitors, or customer traits not present in the provided evaluation.
 
 Output Format (strict, using Markdown headings):
 
 ## Product Summary
-[Faithful short recap of the user's idea — preserve wording, scope, and intent exactly; no censoring, softening, or editorializing]
+**The Idea:** [faithful 1–2 sentence recap — preserve wording, scope, intent]
+**Sales Vetting Signal:** [demand, score/10, recommended price, top GTM move — drawn from the evaluation]
+**Target Customer:** [who they are, core motivation, top objection — drawn from the target customer + market context]
+**Focus Group Mandate:** [one sentence on what this group must validate or stress-test]
+
 
 ## Focus Group Composition
 1. **Name** — (details + Unique Skill)
