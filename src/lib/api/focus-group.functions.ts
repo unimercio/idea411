@@ -3,7 +3,7 @@ import { z } from "zod";
 import { analysisSchema, type Analysis } from "./vetting.functions";
 
 export const FOCUS_GROUP_GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
-export const FOCUS_GROUP_MODEL = "google/gemini-2.5-flash";
+export const FOCUS_GROUP_MODEL = "openai/gpt-5-mini";
 const GATEWAY = FOCUS_GROUP_GATEWAY;
 const MODEL = FOCUS_GROUP_MODEL;
 
