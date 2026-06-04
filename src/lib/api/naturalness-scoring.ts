@@ -197,7 +197,9 @@ const EMPTY_COUNTS = (): Record<NaturalnessFlag, number> => ({
 });
 
 export function scoreTurnNaturalness(turn: string): TurnNaturalness {
-  const text = turn.trim();
+  // Strip leading/trailing markdown markers that the extractor leaves in
+  // place (e.g. "** ", trailing "**") so opening-pattern checks line up.
+  const text = turn.replace(/^[\s*_>`]+/, "").replace(/[\s*_`]+$/, "");
   const lower = text.toLowerCase();
   const flags: NaturalnessFlag[] = [];
   const hits = {
