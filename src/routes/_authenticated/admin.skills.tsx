@@ -227,6 +227,7 @@ function AdminContent({ skills, loading }: { skills: ModelSkill[]; loading: bool
         />
       )}
     </main>
+    </>
   );
 }
 
