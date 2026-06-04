@@ -178,8 +178,12 @@ function UsersTable() {
                 key={u.id}
                 user={u}
                 isSelf={u.id === currentUserId}
+                viewerIsSysadmin={isSysadmin}
                 onToggleAdmin={(makeAdmin) =>
                   setAdminM.mutate({ targetUserId: u.id, makeAdmin })
+                }
+                onToggleSysadmin={(makeSysadmin) =>
+                  setSysadminM.mutate({ targetUserId: u.id, makeSysadmin })
                 }
                 onReset={() => u.email && resetM.mutate(u.email)}
                 onDelete={() => {
@@ -188,7 +192,7 @@ function UsersTable() {
                   }
                 }}
                 busy={
-                  setAdminM.isPending || resetM.isPending || deleteM.isPending
+                  setAdminM.isPending || setSysadminM.isPending || resetM.isPending || deleteM.isPending
                 }
               />
             ))}
