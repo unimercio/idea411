@@ -52,7 +52,7 @@ const salesSchema = z.object({
     optimistic: z.string(),
   }),
   targetCustomer: z.string(),
-  gtm: z.array(z.string()).max(6).catch([]),
+  gtm: z.array(z.string()).max(6),
 });
 
 const strategicSchema = z.object({
