@@ -1,11 +1,41 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { analysisSchema } from "./vetting.functions";
+import { analysisSchema, type Analysis } from "./vetting.functions";
 
-const GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
-const MODEL = "google/gemini-2.5-flash";
+export const FOCUS_GROUP_GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
+export const FOCUS_GROUP_MODEL = "google/gemini-2.5-flash";
+const GATEWAY = FOCUS_GROUP_GATEWAY;
+const MODEL = FOCUS_GROUP_MODEL;
 
-const SYSTEM = `You are an expert Marketing Research Strategist and Focus Group Designer.
+export const focusGroupInputSchema = z.object({
+  idea: z.string().min(1).max(4000),
+  analysis: analysisSchema,
+});
+
+export function buildFocusGroupUserPrompt(data: { idea: string; analysis: Analysis }) {
+  return `PRODUCT/SERVICE IDEA:
+${data.idea}
+
+SALES POTENTIAL EVALUATION:
+- Score: ${data.analysis.sales.score}/10
+- Demand: ${data.analysis.sales.demand}
+- Summary: ${data.analysis.sales.summary}
+- Recommended pricing: ${data.analysis.sales.pricing.recommended} (low ${data.analysis.sales.pricing.low} / mid ${data.analysis.sales.pricing.mid} / premium ${data.analysis.sales.pricing.premium})
+- Revenue scenarios: conservative ${data.analysis.sales.revenue.conservative}, moderate ${data.analysis.sales.revenue.moderate}, optimistic ${data.analysis.sales.revenue.optimistic}
+- GTM moves: ${data.analysis.sales.gtm.join("; ")}
+
+TARGET CUSTOMER:
+${data.analysis.sales.targetCustomer}
+
+MARKET CONTEXT:
+- TAM/SAM/SOM: ${data.analysis.market.tam} / ${data.analysis.market.sam} / ${data.analysis.market.som}
+- Competitors: ${data.analysis.market.competitors.map((c) => `${c.name} (${c.type})`).join(", ")}
+- Trends: ${data.analysis.market.trends.map((t) => `${t.title} (${t.direction})`).join(", ")}
+
+Run the full focus group now following the exact output format.`;
+}
+
+export const FOCUS_GROUP_SYSTEM = `You are an expert Marketing Research Strategist and Focus Group Designer.
 
 Task Flow:
 
@@ -111,7 +141,7 @@ Run the full focus group now following the exact output format.`;
       body: JSON.stringify({
         model: MODEL,
         messages: [
-          { role: "system", content: SYSTEM },
+          { role: "system", content: FOCUS_GROUP_SYSTEM },
           { role: "user", content: userPrompt },
         ],
       }),

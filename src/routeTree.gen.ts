@@ -15,6 +15,7 @@ import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiFocusGroupStreamRouteImport } from './routes/api/focus-group-stream'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin.users'
@@ -49,6 +50,11 @@ const AuthenticatedRoute = AuthenticatedRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiFocusGroupStreamRoute = ApiFocusGroupStreamRouteImport.update({
+  id: '/api/focus-group-stream',
+  path: '/api/focus-group-stream',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
@@ -93,6 +99,7 @@ export interface FileRoutesByFullPath {
   '/vetting': typeof VettingRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/api/focus-group-stream': typeof ApiFocusGroupStreamRoute
   '/admin/audit-log': typeof AuthenticatedAdminAuditLogRoute
   '/admin/prompt-templates': typeof AuthenticatedAdminPromptTemplatesRoute
   '/admin/skills': typeof AuthenticatedAdminSkillsRoute
@@ -106,6 +113,7 @@ export interface FileRoutesByTo {
   '/vetting': typeof VettingRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/api/focus-group-stream': typeof ApiFocusGroupStreamRoute
   '/admin/audit-log': typeof AuthenticatedAdminAuditLogRoute
   '/admin/prompt-templates': typeof AuthenticatedAdminPromptTemplatesRoute
   '/admin/skills': typeof AuthenticatedAdminSkillsRoute
@@ -121,6 +129,7 @@ export interface FileRoutesById {
   '/vetting': typeof VettingRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/api/focus-group-stream': typeof ApiFocusGroupStreamRoute
   '/_authenticated/admin/audit-log': typeof AuthenticatedAdminAuditLogRoute
   '/_authenticated/admin/prompt-templates': typeof AuthenticatedAdminPromptTemplatesRoute
   '/_authenticated/admin/skills': typeof AuthenticatedAdminSkillsRoute
@@ -136,6 +145,7 @@ export interface FileRouteTypes {
     | '/vetting'
     | '/dashboard'
     | '/settings'
+    | '/api/focus-group-stream'
     | '/admin/audit-log'
     | '/admin/prompt-templates'
     | '/admin/skills'
@@ -149,6 +159,7 @@ export interface FileRouteTypes {
     | '/vetting'
     | '/dashboard'
     | '/settings'
+    | '/api/focus-group-stream'
     | '/admin/audit-log'
     | '/admin/prompt-templates'
     | '/admin/skills'
@@ -163,6 +174,7 @@ export interface FileRouteTypes {
     | '/vetting'
     | '/_authenticated/dashboard'
     | '/_authenticated/settings'
+    | '/api/focus-group-stream'
     | '/_authenticated/admin/audit-log'
     | '/_authenticated/admin/prompt-templates'
     | '/_authenticated/admin/skills'
@@ -176,6 +188,7 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   IntakeRoute: typeof IntakeRoute
   VettingRoute: typeof VettingRoute
+  ApiFocusGroupStreamRoute: typeof ApiFocusGroupStreamRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -220,6 +233,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/focus-group-stream': {
+      id: '/api/focus-group-stream'
+      path: '/api/focus-group-stream'
+      fullPath: '/api/focus-group-stream'
+      preLoaderRoute: typeof ApiFocusGroupStreamRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/settings': {
@@ -297,6 +317,7 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   IntakeRoute: IntakeRoute,
   VettingRoute: VettingRoute,
+  ApiFocusGroupStreamRoute: ApiFocusGroupStreamRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

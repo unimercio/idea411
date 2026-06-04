@@ -795,22 +795,51 @@ function FocusGroupPanel({
   projectId: string;
 }) {
   const runFn = useServerFn(runFocusGroup);
+  void runFn; // kept for type compat; streaming uses fetch below
   const [transcript, setTranscript] = useState<string | undefined>(
     () => getProject(projectId)?.focusGroup,
   );
+  const [streaming, setStreaming] = useState("");
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
+  const abortRef = useRef<AbortController | null>(null);
 
   async function run() {
     setLoading(true);
     setErr(null);
+    setStreaming("");
+    setOpen(true);
+    const controller = new AbortController();
+    abortRef.current?.abort();
+    abortRef.current = controller;
     try {
-      const res = await runFn({ data: { idea, analysis } });
-      setTranscript(res.transcript);
-      updateProject(projectId, { focusGroup: res.transcript });
-      setOpen(true);
+      const res = await fetch("/api/focus-group-stream", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idea, analysis }),
+        signal: controller.signal,
+      });
+      if (!res.ok || !res.body) {
+        const msg = (await res.text().catch(() => "")) || `Request failed (${res.status})`;
+        throw new Error(msg);
+      }
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let acc = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        acc += decoder.decode(value, { stream: true });
+        setStreaming(acc);
+      }
+      acc += decoder.decode();
+      const formatted = formatFocusGroupTranscript(acc);
+      setTranscript(formatted);
+      setStreaming("");
+      updateProject(projectId, { focusGroup: formatted });
     } catch (e) {
+      if ((e as { name?: string })?.name === "AbortError") return;
       console.error(e);
       setErr(e instanceof Error ? e.message : "Focus group failed.");
     } finally {
@@ -864,22 +893,15 @@ function FocusGroupPanel({
         </div>
       )}
 
-      {!transcript && !loading && !err && (
+      {!transcript && !loading && !err && !streaming && (
         <div className="px-6 py-8 text-sm text-muted-foreground">
           Click <strong className="text-foreground">Run focus group</strong> to generate
-          8 AI personas tuned to your target customer and watch them discuss your idea.
-          Usually takes 20–45 seconds.
+          8 AI personas tuned to your target customer and watch them discuss your idea
+          live as it streams in.
         </div>
       )}
 
-      {loading && !transcript && (
-        <div className="px-6 py-8 flex items-center gap-3 text-sm text-muted-foreground">
-          <Loader2 className="h-4 w-4 animate-spin text-ember" />
-          Gathering personas and moderating the discussion…
-        </div>
-      )}
-
-      {transcript && (
+      {(streaming || transcript) && (
         <div className="px-6 py-5">
           <button
             onClick={() => setOpen((v) => !v)}
@@ -888,7 +910,16 @@ function FocusGroupPanel({
             <ChevronDown
               className={`h-3.5 w-3.5 transition ${open ? "" : "-rotate-90"}`}
             />
-            {open ? "Hide transcript" : "Show transcript"}
+            {open
+              ? streaming
+                ? "Hide live transcript"
+                : "Hide transcript"
+              : streaming
+                ? "Show live transcript"
+                : "Show transcript"}
+            {streaming && (
+              <Loader2 className="h-3 w-3 animate-spin text-ember ml-1" />
+            )}
           </button>
           <AnimatePresence initial={false}>
             {open && (
@@ -901,8 +932,13 @@ function FocusGroupPanel({
               >
                 <article className="prose prose-invert prose-sm max-w-none prose-headings:font-display prose-headings:text-foreground prose-strong:text-foreground prose-p:text-muted-foreground prose-li:text-muted-foreground prose-ol:text-muted-foreground prose-ul:text-muted-foreground">
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {transcript}
+                    {streaming
+                      ? formatFocusGroupTranscript(streaming)
+                      : (transcript ?? "")}
                   </ReactMarkdown>
+                  {streaming && (
+                    <span className="inline-block w-2 h-4 align-middle bg-ember/70 animate-pulse rounded-sm ml-0.5" />
+                  )}
                 </article>
               </motion.div>
             )}
@@ -911,6 +947,38 @@ function FocusGroupPanel({
       )}
     </motion.section>
   );
+}
+
+function formatFocusGroupTranscript(raw: string): string {
+  if (!raw) return "";
+  let t = raw.replace(/\r\n/g, "\n").trim();
+  // Strip leading code fences if the model wrapped output
+  t = t.replace(/^```(?:markdown|md)?\n/, "").replace(/\n```$/, "");
+  // Ensure a blank line before every ## / ### heading
+  t = t.replace(/([^\n])\n(#{2,3} )/g, "$1\n\n$2");
+  // Ensure blank line before numbered list items at top-level
+  t = t.replace(/([^\n])\n(\d+\.\s+\*\*)/g, "$1\n\n$2");
+  // Make "Name — details" persona lines bold if not already, inside Composition block
+  t = t.replace(
+    /(## Focus Group Composition\n[\s\S]*?)(?=\n## |\n*$)/,
+    (block) =>
+      block.replace(
+        /^(\s*\d+\.\s+)(?!\*\*)([^\n*][^\n]*?)( [—-] )/gm,
+        "$1**$2**$3",
+      ),
+  );
+  // Bold speaker labels like "Name:" at the start of a paragraph in the discussion
+  t = t.replace(
+    /(## Focus Group Discussion\n[\s\S]*?)(?=\n## |\n*$)/,
+    (block) =>
+      block.replace(
+        /^([A-Z][A-Za-z .'-]{1,40}):\s/gm,
+        "**$1:** ",
+      ),
+  );
+  // Collapse 3+ blank lines
+  t = t.replace(/\n{3,}/g, "\n\n");
+  return t.trim();
 }
 
 function ChatPanel({
