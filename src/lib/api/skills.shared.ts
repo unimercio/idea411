@@ -6,6 +6,7 @@ export const SKILL_COMPONENTS = [
   "chat",
   "market_research",
   "intake_refine",
+  "focus_group",
 ] as const;
 export type SkillComponent = (typeof SKILL_COMPONENTS)[number];
 
@@ -17,6 +18,7 @@ export const COMPONENT_LABEL: Record<SkillComponent, string> = {
   chat: "Chat (post-report Q&A)",
   market_research: "Market research (Perplexity)",
   intake_refine: "Intake refine",
+  focus_group: "Focus Group (persona panel)",
 };
 
 /**
