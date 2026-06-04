@@ -205,7 +205,8 @@ export function updateProject(id: string, patch: Partial<Project>): Project | un
     const touchesData = DATA_FIELDS.some((k) => k in patch);
     if (touchesData) dbPatch.data = projectDataPayload(updated);
     if (Object.keys(dbPatch).length === 0) return;
-    const { error } = await supabase.from("projects").update(dbPatch).eq("id", id);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await supabase.from("projects").update(dbPatch as any).eq("id", id);
     if (error) console.error("[projects] update failed", error);
   })();
   return updated;
