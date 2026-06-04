@@ -144,14 +144,17 @@ export const checkAdmin = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
-    const [roleRes, existsRes] = await Promise.all([
+    const [roleRes, sysRes, existsRes] = await Promise.all([
       supabase.rpc("has_role", { _user_id: userId, _role: "admin" }),
+      supabase.rpc("has_role", { _user_id: userId, _role: "sysadmin" as any }),
       supabase.rpc("admin_exists"),
     ]);
     if (roleRes.error) throw new Error(roleRes.error.message);
+    if (sysRes.error) throw new Error(sysRes.error.message);
     if (existsRes.error) throw new Error(existsRes.error.message);
     return {
       isAdmin: Boolean(roleRes.data),
+      isSysadmin: Boolean(sysRes.data),
       adminExists: Boolean(existsRes.data),
     };
   });
