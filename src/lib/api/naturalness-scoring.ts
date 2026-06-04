@@ -124,7 +124,27 @@ const FILLERS_AND_DISCOURSE = [
 
 const CONTRACTION_RE = /\b\w+'(?:s|t|re|ve|ll|d|m)\b/i;
 const MIDTHOUGHT_RE = /(?:—|\.\.\.|–)/;
-const CONCRETE_RE =
+const CONCRETE_NUMERIC_RE =
+  /(?:\$[\d,]+(?:\.\d+)?|\b\d+(?:\.\d+)?\s*(?:%|bucks?|dollars?|euros?|min(?:utes?)?|hours?|days?|weeks?|months?|years?|am|pm|k)\b|\b\d{4}\b|\b\d+\b)/i;
+
+/**
+ * Concreteness check: a proper noun *after* the first word of a sentence, OR a
+ * numeric/currency/duration token. Sentence-initial capitalization (e.g. "The",
+ * "As") doesn't count because every sentence starts capitalized.
+ */
+function hasConcreteness(text: string): boolean {
+  if (CONCRETE_NUMERIC_RE.test(text)) return true;
+  const sentences = text.split(/[.!?]+\s*/);
+  for (const s of sentences) {
+    const words = s.trim().split(/\s+/);
+    for (let i = 1; i < words.length; i++) {
+      if (/^[A-Z][a-zA-Z'’-]{1,}/.test(words[i])) return true;
+    }
+  }
+  return false;
+}
+
+const _UNUSED_CONCRETE_RE =
   /(?:\$[\d,]+(?:\.\d+)?|\b\d+(?:\.\d+)?\s*(?:%|bucks?|dollars?|euros?|min(?:utes?)?|hours?|days?|weeks?|months?|years?|am|pm|k|am\b|pm\b)\b|\b\d{4}\b|\b[A-Z][a-zA-Z0-9&'’-]+(?:\s+[A-Z][a-zA-Z0-9&'’-]+)*\b)/;
 
 export type NaturalnessFlag =
