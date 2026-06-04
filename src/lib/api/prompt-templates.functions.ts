@@ -167,8 +167,22 @@ export const checkAdmin = createServerFn({ method: "GET" })
 export const claimFirstAdmin = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { supabase } = context;
+    const { supabase, userId } = context;
     const { data, error } = await supabase.rpc("claim_first_admin");
     if (error) throw new Error(error.message);
-    return { claimed: Boolean(data) };
+    const claimed = Boolean(data);
+    if (claimed) {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { data: u } = await supabaseAdmin.auth.admin.getUserById(userId);
+      const email = u?.user?.email ?? null;
+      await supabaseAdmin.from("admin_audit_log").insert({
+        action: "role.admin.claim_first",
+        actor_user_id: userId,
+        actor_email: email,
+        target_user_id: userId,
+        target_email: email,
+        details: { role: "admin" },
+      });
+    }
+    return { claimed };
   });

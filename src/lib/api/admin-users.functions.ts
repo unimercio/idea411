@@ -301,12 +301,18 @@ export const deleteUser = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
 
     const actorEmail = await getActorEmail(supabaseAdmin, userId);
+    const priorRoles = (targetRoles ?? []).map((r: any) => String(r.role)).sort();
     await recordAudit(supabaseAdmin, {
       action: "user.delete",
       actor_user_id: userId,
       actor_email: actorEmail,
       target_user_id: data.targetUserId,
       target_email: targetEmail,
+      details: {
+        prior_roles: priorRoles.join(",") || "user",
+        was_admin: priorRoles.includes("admin"),
+        was_sysadmin: priorRoles.includes("sysadmin"),
+      },
     });
 
     return { ok: true };
