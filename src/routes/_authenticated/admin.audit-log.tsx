@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { checkAdmin } from "@/lib/api/prompt-templates.functions";
 import { listAuditLog, type AuditLogEntry } from "@/lib/api/admin-users.functions";
 import { NotAuthorized } from "@/components/site/NotAuthorized";
+import { AdminHeader } from "@/components/site/AdminHeader";
 
 export const Route = createFileRoute("/_authenticated/admin/audit-log")({
   head: () => ({
