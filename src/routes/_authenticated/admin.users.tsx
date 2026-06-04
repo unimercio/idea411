@@ -49,8 +49,12 @@ function AdminUsersPage() {
 
 function UsersTable() {
   const qc = useQueryClient();
+  const checkAdminFn = useServerFn(checkAdmin);
+  const adminInfoQ = useQuery({ queryKey: ["isAdmin"], queryFn: () => checkAdminFn() });
+  const isSysadmin = adminInfoQ.data?.isSysadmin === true;
   const listFn = useServerFn(listUsers);
   const setAdminFn = useServerFn(setUserAdmin);
+  const setSysadminFn = useServerFn(setUserSysadmin);
   const resetFn = useServerFn(sendPasswordReset);
   const deleteFn = useServerFn(deleteUser);
 
