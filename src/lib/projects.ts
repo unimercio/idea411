@@ -27,6 +27,7 @@ export type Project = {
   scores?: ProjectScores;
   analysis?: Analysis;
   chat?: ChatMessage[];
+  focusGroup?: string;
   iterations?: Iteration[];
   status: "draft" | "vetting" | "ready" | "error";
 };
