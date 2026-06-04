@@ -341,6 +341,8 @@ function ResultsView({
         <SalesPillar data={analysis.sales} />
       </div>
 
+      <FocusGroupPanel idea={idea} analysis={analysis} projectId={projectId} />
+
       <ChatPanel idea={idea} analysis={analysis} projectId={projectId} />
 
     </div>
