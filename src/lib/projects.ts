@@ -163,7 +163,9 @@ export function useProjects() {
   useEffect(() => {
     setProjects(listProjects()); // sync on mount (SSR can't read localStorage)
     const refresh = (e: StorageEvent) => {
-      if (e.key === KEY || e.key === null) setProjects(listProjects());
+      if (e.key === null || e.key === BASE_KEY || e.key.startsWith(`${BASE_KEY}:`)) {
+        setProjects(listProjects());
+      }
     };
     window.addEventListener("storage", refresh);
     return () => window.removeEventListener("storage", refresh);
