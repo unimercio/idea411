@@ -1603,6 +1603,23 @@ function scoreTone(value: number, max: number): Tone {
   return "red";
 }
 
+function letterGrade(value: number, max: number): string {
+  const pct = Math.max(0, Math.min(1, value / max)) * 100;
+  if (pct >= 93) return "A+";
+  if (pct >= 88) return "A";
+  if (pct >= 83) return "A-";
+  if (pct >= 78) return "B+";
+  if (pct >= 73) return "B";
+  if (pct >= 68) return "B-";
+  if (pct >= 63) return "C+";
+  if (pct >= 58) return "C";
+  if (pct >= 53) return "C-";
+  if (pct >= 48) return "D+";
+  if (pct >= 43) return "D";
+  if (pct >= 38) return "D-";
+  return "F";
+}
+
 function toneClasses(t: Tone) {
   return t === "green"
     ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
