@@ -1,0 +1,1 @@
+ALTER TYPE public.skill_component ADD VALUE IF NOT EXISTS 'focus_group';
