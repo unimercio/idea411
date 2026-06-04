@@ -245,7 +245,7 @@ export function scoreTurnNaturalness(turn: string): TurnNaturalness {
   }
 
   // 5. No concreteness — purely abstract.
-  if (!CONCRETE_RE.test(text)) {
+  if (!hasConcreteness(text)) {
     flags.push("noConcreteness");
     score -= 15;
   }
