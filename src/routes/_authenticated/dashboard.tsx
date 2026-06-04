@@ -199,7 +199,9 @@ function DashboardPage() {
                 <ShieldIcon status={status} />
                 <div className="min-w-0 flex-1">
                   {status === "admin" && (
-                    <p className="font-medium text-foreground">{t("dashboard.youAreAdmin")}</p>
+                    <p className="font-medium text-foreground">
+                      {isSysadmin ? "You are a Sysadmin" : t("dashboard.youAreAdmin")}
+                    </p>
                   )}
                   {status === "error" && (
                     <>
