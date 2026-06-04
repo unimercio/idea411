@@ -71,6 +71,15 @@ function UsersTable() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const setSysadminM = useMutation({
+    mutationFn: (v: { targetUserId: string; makeSysadmin: boolean }) => setSysadminFn({ data: v }),
+    onSuccess: () => {
+      toast.success("Sysadmin role updated.");
+      qc.invalidateQueries({ queryKey: ["admin", "users"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const resetM = useMutation({
     mutationFn: (email: string) =>
       resetFn({
