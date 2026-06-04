@@ -324,6 +324,8 @@ function AdminContent({
     activeCategory === "all" ? [...CATEGORIES] : ([activeCategory] as PromptCategory[]);
 
   return (
+    <>
+    <AdminHeader label="Prompts" />
     <main className="mx-auto max-w-5xl px-6 py-10">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
