@@ -6,6 +6,7 @@ import {
   buildFocusGroupUserPrompt,
   focusGroupInputSchema,
 } from "@/lib/api/focus-group.functions";
+import { resolveSkill, withSkillPreamble } from "@/lib/api/skills.server";
 
 export const Route = createFileRoute("/api/focus-group-stream")({
   server: {
@@ -25,6 +26,10 @@ export const Route = createFileRoute("/api/focus-group-stream")({
         if (!parsed.success)
           return new Response("Invalid input", { status: 400 });
 
+        const skill = await resolveSkill("focus_group");
+        const model = skill?.model ?? FOCUS_GROUP_MODEL;
+        const systemPrompt = withSkillPreamble(FOCUS_GROUP_SYSTEM, skill);
+
         const upstream = await fetch(FOCUS_GROUP_GATEWAY, {
           method: "POST",
           headers: {
@@ -32,10 +37,10 @@ export const Route = createFileRoute("/api/focus-group-stream")({
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: FOCUS_GROUP_MODEL,
+            model,
             stream: true,
             messages: [
-              { role: "system", content: FOCUS_GROUP_SYSTEM },
+              { role: "system", content: systemPrompt },
               { role: "user", content: buildFocusGroupUserPrompt(parsed.data) },
             ],
           }),
