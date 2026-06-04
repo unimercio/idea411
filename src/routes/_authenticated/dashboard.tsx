@@ -134,14 +134,14 @@ function DashboardPage() {
                 </Link>
               </>
             )}
-            {isAuthed === true && !isAdmin && !adminExists && adminQuery.isFetched && (
+            {isAuthed === true && !sysadminExists && adminQuery.isFetched && (
               <button
                 onClick={handleClaimAdmin}
                 disabled={claiming}
                 className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground px-3 py-2 disabled:opacity-50"
                 title={t("dashboard.claimAdminTitle")}
               >
-                <Sparkles className="h-4 w-4" /> {claiming ? t("dashboard.claiming") : t("dashboard.claimAdmin")}
+                <Sparkles className="h-4 w-4" /> {claiming ? t("dashboard.claiming") : (adminExists ? "Claim sysadmin" : t("dashboard.claimAdmin"))}
               </button>
             )}
             {isAuthed === true && (
