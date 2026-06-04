@@ -419,3 +419,54 @@ function EditorDrawer({
     </div>
   );
 }
+
+function FocusGroupTester() {
+  const testFn = useServerFn(testFocusGroup);
+  const mutation = useMutation({
+    mutationFn: () => testFn(),
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const result = mutation.data;
+  return (
+    <div className="flex items-center gap-2">
+      <Button
+        size="sm"
+        variant="secondary"
+        onClick={() => mutation.mutate()}
+        disabled={mutation.isPending}
+        title="Run a short warm-up focus group with the default skill"
+      >
+        {mutation.isPending ? (
+          <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+        ) : (
+          <Play className="mr-1.5 h-3.5 w-3.5" />
+        )}
+        {mutation.isPending ? "Testing…" : "Test focus group"}
+      </Button>
+      {result && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/70 backdrop-blur-sm p-6"
+             onClick={() => mutation.reset()}>
+          <div
+            className="max-h-[80vh] w-full max-w-2xl overflow-y-auto rounded-xl border border-border bg-card p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-3 flex items-start justify-between gap-4">
+              <div>
+                <h3 className="font-display text-lg font-semibold">Focus group test</h3>
+                <p className="text-xs text-muted-foreground">
+                  {result.skillName ?? "Built-in default"} · <code>{result.model}</code>
+                </p>
+              </div>
+              <Button size="sm" variant="ghost" onClick={() => mutation.reset()}>
+                Close
+              </Button>
+            </div>
+            <pre className="whitespace-pre-wrap text-sm leading-relaxed text-foreground/90">
+              {result.output}
+            </pre>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
