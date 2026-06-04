@@ -785,6 +785,134 @@ function SalesPillar({ data }: { data: Analysis["sales"] }) {
 
 /* ─────────────────────────────── Chat ─────────────────────────────── */
 
+function FocusGroupPanel({
+  idea,
+  analysis,
+  projectId,
+}: {
+  idea: string;
+  analysis: Analysis;
+  projectId: string;
+}) {
+  const runFn = useServerFn(runFocusGroup);
+  const [transcript, setTranscript] = useState<string | undefined>(
+    () => getProject(projectId)?.focusGroup,
+  );
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const [open, setOpen] = useState(false);
+
+  async function run() {
+    setLoading(true);
+    setErr(null);
+    try {
+      const res = await runFn({ data: { idea, analysis } });
+      setTranscript(res.transcript);
+      updateProject(projectId, { focusGroup: res.transcript });
+      setOpen(true);
+    } catch (e) {
+      console.error(e);
+      setErr(e instanceof Error ? e.message : "Focus group failed.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+      className="rounded-3xl border border-border bg-card/80 shadow-elegant overflow-hidden"
+    >
+      <div className="flex flex-wrap items-center gap-3 border-b border-border px-6 py-4">
+        <span className="grid h-9 w-9 place-items-center rounded-xl border border-border bg-background/80 text-ember">
+          <UsersRound className="h-4 w-4" />
+        </span>
+        <div className="flex-1 min-w-0">
+          <h3 className="font-display text-lg font-semibold leading-tight">
+            AI Focus Group
+          </h3>
+          <p className="text-xs text-muted-foreground">
+            Simulate 8 diverse personas debating your concept across 3 strategic questions.
+          </p>
+        </div>
+        <button
+          onClick={run}
+          disabled={loading}
+          className="inline-flex items-center gap-2 rounded-full bg-gradient-ember px-4 py-2 text-sm font-medium text-ember-foreground shadow-ember hover:brightness-110 transition disabled:opacity-60"
+        >
+          {loading ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" /> Convening…
+            </>
+          ) : transcript ? (
+            <>
+              <RefreshCcw className="h-4 w-4" /> Re-run
+            </>
+          ) : (
+            <>
+              <Sparkles className="h-4 w-4" /> Run focus group
+            </>
+          )}
+        </button>
+      </div>
+
+      {err && (
+        <div className="px-6 py-4 text-sm text-destructive border-b border-destructive/20 bg-destructive/5">
+          {err}
+        </div>
+      )}
+
+      {!transcript && !loading && !err && (
+        <div className="px-6 py-8 text-sm text-muted-foreground">
+          Click <strong className="text-foreground">Run focus group</strong> to generate
+          8 AI personas tuned to your target customer and watch them discuss your idea.
+          Usually takes 20–45 seconds.
+        </div>
+      )}
+
+      {loading && !transcript && (
+        <div className="px-6 py-8 flex items-center gap-3 text-sm text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin text-ember" />
+          Gathering personas and moderating the discussion…
+        </div>
+      )}
+
+      {transcript && (
+        <div className="px-6 py-5">
+          <button
+            onClick={() => setOpen((v) => !v)}
+            className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition"
+          >
+            <ChevronDown
+              className={`h-3.5 w-3.5 transition ${open ? "" : "-rotate-90"}`}
+            />
+            {open ? "Hide transcript" : "Show transcript"}
+          </button>
+          <AnimatePresence initial={false}>
+            {open && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+                className="overflow-hidden"
+              >
+                <article className="prose prose-invert prose-sm max-w-none prose-headings:font-display prose-headings:text-foreground prose-strong:text-foreground prose-p:text-muted-foreground prose-li:text-muted-foreground prose-ol:text-muted-foreground prose-ul:text-muted-foreground">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {transcript}
+                  </ReactMarkdown>
+                </article>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      )}
+    </motion.section>
+  );
+}
+
 function ChatPanel({
   idea,
   analysis,
