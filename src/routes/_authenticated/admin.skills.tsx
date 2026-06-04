@@ -152,6 +152,8 @@ function AdminContent({ skills, loading }: { skills: ModelSkill[]; loading: bool
   }, [skills]);
 
   return (
+    <>
+    <AdminHeader label="Skills" />
     <main className="mx-auto max-w-5xl px-6 py-10">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
