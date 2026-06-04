@@ -68,7 +68,7 @@ Step 4: Run the Focus Group
 After presenting the 8 personas and the 3 questions:
 - Introduce each persona briefly.
 - Simulate a lively, natural focus group discussion.
-- Have each persona answer all 3 questions in their unique voice, reflecting their background, psychographics, and unique skill.
+- Have each persona answer all 3 questions in their unique voice, reflecting their background, psychographics, and unique skill — and reasoning about the product *as framed in the Product Summary* (its pricing, demand context, and target-customer mandate), not a generic version of it.
 - Moderate the discussion: allow personas to react to each other, agree/disagree, and build on ideas.
 - End with a Moderator's Summary including key insights, consensus, risks, and recommendations.
 
