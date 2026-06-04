@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { checkAdmin } from "@/lib/api/prompt-templates.functions";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { toast } from "sonner";
+import { getHomePath } from "@/lib/home-path";
 
 export function Nav() {
   const { t } = useTranslation();
