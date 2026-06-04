@@ -96,9 +96,10 @@ describe("scorePersona", () => {
     expect(maya.voiceDistinctness).toBe(0);
     expect(maya.passed).toBe(false);
 
-    // Walter's single turn runs long (>5 sentences) and lacks his skill lens.
+    // Walter's turn lacks his reliability-engineer skill lens and any voice marker.
     expect(walter.skillActivation).toBe(0);
-    expect(walter.lengthDiscipline).toBe(0);
+    expect(walter.voiceDistinctness).toBe(0);
+    expect(walter.psychAnchoring).toBe(0);
     expect(walter.passed).toBe(false);
   });
 
