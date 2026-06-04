@@ -910,7 +910,7 @@ function FocusGroupPanel({
         </div>
       )}
 
-      {(streaming || transcript) && (
+      {streaming && (
         <div className="px-6 py-5">
           <button
             onClick={() => setOpen((v) => !v)}
@@ -919,14 +919,8 @@ function FocusGroupPanel({
             <ChevronDown
               className={`h-3.5 w-3.5 transition ${open ? "" : "-rotate-90"}`}
             />
-            {open
-              ? streaming
-                ? "Hide live transcript"
-                : "Hide transcript"
-              : streaming
-                ? "Show live transcript"
-                : "Show transcript"}
-            {streaming && (
+            {open ? "Hide live transcript" : "Show live transcript"}
+            {!ended && (
               <Loader2 className="h-3 w-3 animate-spin text-ember ml-1" />
             )}
           </button>
@@ -941,21 +935,94 @@ function FocusGroupPanel({
               >
                 <article className="prose prose-invert prose-sm max-w-none prose-headings:font-display prose-headings:text-foreground prose-strong:text-foreground prose-p:text-muted-foreground prose-li:text-muted-foreground prose-ol:text-muted-foreground prose-ul:text-muted-foreground prose-hr:border-border/60 prose-h2:mt-8 prose-h2:mb-3 prose-h2:pb-2 prose-h2:border-b prose-h2:border-border/60 prose-h2:text-ember prose-h2:uppercase prose-h2:tracking-wide prose-h2:text-xs prose-h3:mt-5 prose-h3:mb-2 prose-h3:text-foreground prose-h3:text-sm prose-h3:font-semibold prose-ul:my-2 prose-ol:my-2 prose-li:my-0.5 prose-p:my-2">
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {streaming
-                      ? formatFocusGroupTranscript(streaming)
-                      : (transcript ?? "")}
+                    {formatFocusGroupTranscript(streaming)}
                   </ReactMarkdown>
-                  {streaming && (
+                  {!ended && (
                     <span className="inline-block w-2 h-4 align-middle bg-ember/70 animate-pulse rounded-sm ml-0.5" />
                   )}
                 </article>
+                {ended && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-5 flex items-center gap-2 rounded-2xl border border-emerald-500/30 bg-emerald-500/5 px-4 py-3 text-sm text-emerald-300"
+                  >
+                    <CheckCircle2 className="h-4 w-4" />
+                    Focus group session has ended.
+                  </motion.div>
+                )}
               </motion.div>
             )}
           </AnimatePresence>
         </div>
       )}
+
+      {transcript && !streaming && (
+        <FocusGroupReport transcript={transcript} />
+      )}
     </motion.section>
   );
+}
+
+/* Renders a finished focus-group transcript in the same card style as the
+   Sales Potential pillar: a structured set of titled sections parsed from
+   the model's `## ` Markdown headings. */
+function FocusGroupReport({ transcript }: { transcript: string }) {
+  const sections = useMemo(() => parseFocusGroupSections(transcript), [transcript]);
+  if (sections.length === 0) {
+    return (
+      <div className="px-6 py-5">
+        <article className="prose prose-invert prose-sm max-w-none prose-headings:font-display prose-strong:text-foreground prose-p:text-muted-foreground">
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{transcript}</ReactMarkdown>
+        </article>
+      </div>
+    );
+  }
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className="px-6 py-6 space-y-5"
+    >
+      {sections.map((s, i) => (
+        <div
+          key={i}
+          className="rounded-2xl border border-border bg-background/40 p-5"
+        >
+          <div className="flex items-center gap-2 mb-3">
+            <span className="grid h-7 w-7 place-items-center rounded-lg border border-border bg-card/80 text-ember text-[11px] font-display font-semibold">
+              {i + 1}
+            </span>
+            <h4 className="font-display text-sm font-semibold text-foreground">
+              {s.title}
+            </h4>
+          </div>
+          <article className="prose prose-invert prose-sm max-w-none prose-headings:font-display prose-headings:text-foreground prose-strong:text-foreground prose-p:text-muted-foreground prose-li:text-muted-foreground prose-ol:text-muted-foreground prose-ul:text-muted-foreground prose-hr:border-border/60 prose-h3:mt-4 prose-h3:mb-2 prose-h3:text-ember prose-h3:text-xs prose-h3:uppercase prose-h3:tracking-wider prose-h3:font-semibold prose-ul:my-2 prose-ol:my-2 prose-li:my-0.5 prose-p:my-2 prose-p:text-sm">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{s.body}</ReactMarkdown>
+          </article>
+        </div>
+      ))}
+    </motion.div>
+  );
+}
+
+function parseFocusGroupSections(md: string): { title: string; body: string }[] {
+  if (!md) return [];
+  const lines = md.split("\n");
+  const out: { title: string; body: string[] }[] = [];
+  let current: { title: string; body: string[] } | null = null;
+  for (const line of lines) {
+    const m = line.match(/^##\s+(.+?)\s*$/);
+    if (m) {
+      if (current) out.push(current);
+      current = { title: m[1].trim(), body: [] };
+    } else if (current) {
+      current.body.push(line);
+    }
+  }
+  if (current) out.push(current);
+  return out.map((s) => ({ title: s.title, body: s.body.join("\n").trim() }));
 }
 
 function formatFocusGroupTranscript(raw: string): string {
