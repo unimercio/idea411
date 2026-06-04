@@ -412,6 +412,7 @@ function AdminContent({
         />
       )}
     </main>
+    </>
   );
 }
 
