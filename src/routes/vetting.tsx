@@ -803,12 +803,15 @@ function FocusGroupPanel({
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
+  const [ended, setEnded] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
   async function run() {
     setLoading(true);
     setErr(null);
     setStreaming("");
+    setTranscript(undefined);
+    setEnded(false);
     setOpen(true);
     const controller = new AbortController();
     abortRef.current?.abort();
@@ -835,14 +838,20 @@ function FocusGroupPanel({
       }
       acc += decoder.decode();
       const formatted = formatFocusGroupTranscript(acc);
-      setTranscript(formatted);
-      setStreaming("");
-      updateProject(projectId, { focusGroup: formatted });
+      // Show "session has ended" briefly in the live view, then collapse it
+      // and reveal the formatted report below.
+      setEnded(true);
+      setLoading(false);
+      setTimeout(() => {
+        setTranscript(formatted);
+        setStreaming("");
+        setOpen(false);
+        updateProject(projectId, { focusGroup: formatted });
+      }, 1400);
     } catch (e) {
       if ((e as { name?: string })?.name === "AbortError") return;
       console.error(e);
       setErr(e instanceof Error ? e.message : "Focus group failed.");
-    } finally {
       setLoading(false);
     }
   }
