@@ -213,19 +213,24 @@ function UsersTable() {
 function UserRow({
   user,
   isSelf,
+  viewerIsSysadmin,
   onToggleAdmin,
+  onToggleSysadmin,
   onReset,
   onDelete,
   busy,
 }: {
   user: AdminUserRow;
   isSelf: boolean;
+  viewerIsSysadmin: boolean;
   onToggleAdmin: (makeAdmin: boolean) => void;
+  onToggleSysadmin: (makeSysadmin: boolean) => void;
   onReset: () => void;
   onDelete: () => void;
   busy: boolean;
 }) {
   const isAdmin = user.roles.includes("admin");
+  const isSysadmin = user.roles.includes("sysadmin");
   const fmt = (s: string | null) =>
     s ? new Date(s).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }) : "—";
 
@@ -244,36 +249,67 @@ function UserRow({
         </div>
       </td>
       <td className="px-4 py-3">
-        {isAdmin ? (
-          <Badge className="bg-ember/15 text-ember hover:bg-ember/15">admin</Badge>
-        ) : (
-          <Badge variant="outline">user</Badge>
-        )}
+        <div className="flex flex-wrap gap-1">
+          {isSysadmin && (
+            <Badge className="bg-primary/15 text-primary hover:bg-primary/15">
+              <Crown className="mr-1 h-3 w-3" /> sysadmin
+            </Badge>
+          )}
+          {isAdmin && !isSysadmin && (
+            <Badge className="bg-ember/15 text-ember hover:bg-ember/15">admin</Badge>
+          )}
+          {!isAdmin && !isSysadmin && <Badge variant="outline">user</Badge>}
+        </div>
       </td>
       <td className="px-4 py-3 text-muted-foreground">{fmt(user.created_at)}</td>
       <td className="px-4 py-3 text-muted-foreground">{fmt(user.last_sign_in_at)}</td>
       <td className="px-4 py-3">
         <div className="flex items-center justify-end gap-1">
-          {isAdmin ? (
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => onToggleAdmin(false)}
-              disabled={busy}
-              title="Revoke admin"
-            >
-              <ShieldOff className="mr-1.5 h-3.5 w-3.5" /> Revoke admin
-            </Button>
-          ) : (
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => onToggleAdmin(true)}
-              disabled={busy}
-              title="Make admin"
-            >
-              <Shield className="mr-1.5 h-3.5 w-3.5" /> Make admin
-            </Button>
+          {viewerIsSysadmin && (
+            <>
+              {isSysadmin ? (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => onToggleSysadmin(false)}
+                  disabled={busy}
+                  title="Revoke sysadmin"
+                >
+                  <Crown className="mr-1.5 h-3.5 w-3.5" /> Revoke sysadmin
+                </Button>
+              ) : (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => onToggleSysadmin(true)}
+                  disabled={busy}
+                  title="Make sysadmin"
+                >
+                  <Crown className="mr-1.5 h-3.5 w-3.5" /> Make sysadmin
+                </Button>
+              )}
+              {isAdmin ? (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => onToggleAdmin(false)}
+                  disabled={busy}
+                  title="Revoke admin"
+                >
+                  <ShieldOff className="mr-1.5 h-3.5 w-3.5" /> Revoke admin
+                </Button>
+              ) : (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => onToggleAdmin(true)}
+                  disabled={busy}
+                  title="Make admin"
+                >
+                  <Shield className="mr-1.5 h-3.5 w-3.5" /> Make admin
+                </Button>
+              )}
+            </>
           )}
           <Button
             size="sm"
@@ -288,8 +324,14 @@ function UserRow({
             size="sm"
             variant="ghost"
             onClick={onDelete}
-            disabled={busy || isSelf}
-            title={isSelf ? "You cannot delete yourself" : "Delete user"}
+            disabled={busy || isSelf || ((isAdmin || isSysadmin) && !viewerIsSysadmin)}
+            title={
+              isSelf
+                ? "You cannot delete yourself"
+                : (isAdmin || isSysadmin) && !viewerIsSysadmin
+                ? "Only a sysadmin can delete admins"
+                : "Delete user"
+            }
           >
             <Trash2 className="h-3.5 w-3.5 text-destructive" />
           </Button>
