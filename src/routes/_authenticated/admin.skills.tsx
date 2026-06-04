@@ -31,6 +31,7 @@ import {
   type SkillComponent,
 } from "@/lib/api/skills.shared";
 import { checkAdmin } from "@/lib/api/prompt-templates.functions";
+import { testFocusGroup } from "@/lib/api/focus-group.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/skills")({
   head: () => ({
