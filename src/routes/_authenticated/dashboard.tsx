@@ -67,6 +67,7 @@ function DashboardPage() {
   });
   const isAdmin = isAuthed === true && adminQuery.data?.isAdmin === true;
   const adminExists = adminQuery.data?.adminExists === true;
+  const sysadminExists = adminQuery.data?.sysadminExists === true;
   const claimFn = useServerFn(claimFirstSysadmin);
   const [claiming, setClaiming] = useState(false);
   const handleClaimAdmin = async () => {
