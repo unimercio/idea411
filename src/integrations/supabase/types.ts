@@ -211,6 +211,7 @@ export type Database = {
         | "chat"
         | "market_research"
         | "intake_refine"
+        | "focus_group"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -348,6 +349,7 @@ export const Constants = {
         "chat",
         "market_research",
         "intake_refine",
+        "focus_group",
       ],
     },
   },
