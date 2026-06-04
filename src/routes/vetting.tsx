@@ -1443,17 +1443,19 @@ function ScoreGauge({
         />
       </svg>
       <div className="absolute inset-0 grid place-items-center">
-        <div className="text-center">
-          <div
-            className={
-              "font-display font-semibold leading-none " + (large ? "text-5xl" : "text-base")
-            }
-          >
-            {max === 10 ? value.toFixed(1) : Math.round(value)}
-          </div>
-          {large && (
-            <div className="mt-1 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-              / {max}
+        <div className="text-center leading-none">
+          {large ? (
+            <>
+              <div className="font-display font-semibold text-6xl leading-none">
+                {letterGrade(value, max)}
+              </div>
+              <div className="mt-1 text-[10px] tracking-[0.2em] text-muted-foreground tabular-nums">
+                {Math.round(value)}/{max}
+              </div>
+            </>
+          ) : (
+            <div className="font-display font-semibold text-base leading-none">
+              {max === 10 ? value.toFixed(1) : Math.round(value)}
             </div>
           )}
         </div>
