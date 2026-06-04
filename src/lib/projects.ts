@@ -1,6 +1,8 @@
 // Client-side projects store. Swap for a Supabase table once Lovable Cloud is enabled.
 import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import type { Analysis } from "./api/vetting.functions";
+
 
 export type StageKey = "compliance" | "market" | "demand";
 
@@ -32,12 +34,63 @@ export type Project = {
   status: "draft" | "vetting" | "ready" | "error";
 };
 
-const KEY = "ideaforge:projects";
+const BASE_KEY = "ideaforge:projects";
+const LEGACY_KEY = "ideaforge:projects";
+let currentUserId: string | null = null;
+let authWired = false;
+
+function currentKey(): string {
+  return `${BASE_KEY}:${currentUserId ?? "anon"}`;
+}
+
+function notifyChange() {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new StorageEvent("storage", { key: BASE_KEY }));
+}
+
+function ensureAuthWired() {
+  if (authWired || typeof window === "undefined") return;
+  authWired = true;
+  supabase.auth.getSession().then(({ data }) => {
+    const next = data.session?.user.id ?? null;
+    if (next !== currentUserId) {
+      currentUserId = next;
+      maybeMigrateLegacy();
+      notifyChange();
+    } else {
+      maybeMigrateLegacy();
+      notifyChange();
+    }
+  });
+  supabase.auth.onAuthStateChange((_e, session) => {
+    const next = session?.user.id ?? null;
+    if (next !== currentUserId) {
+      currentUserId = next;
+      maybeMigrateLegacy();
+      notifyChange();
+    }
+  });
+}
+
+function maybeMigrateLegacy() {
+  if (typeof window === "undefined" || !currentUserId) return;
+  try {
+    const scoped = window.localStorage.getItem(currentKey());
+    const legacy = window.localStorage.getItem(LEGACY_KEY);
+    if (!scoped && legacy) {
+      window.localStorage.setItem(currentKey(), legacy);
+      window.localStorage.removeItem(LEGACY_KEY);
+    }
+  } catch {
+    /* ignore */
+  }
+}
 
 function read(): Project[] {
   if (typeof window === "undefined") return [];
+  ensureAuthWired();
   try {
-    const raw = window.localStorage.getItem(KEY);
+    const raw = window.localStorage.getItem(currentKey());
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? (parsed as Project[]) : [];
@@ -47,9 +100,10 @@ function read(): Project[] {
 }
 
 function write(projects: Project[]) {
-  window.localStorage.setItem(KEY, JSON.stringify(projects));
-  window.dispatchEvent(new StorageEvent("storage", { key: KEY }));
+  window.localStorage.setItem(currentKey(), JSON.stringify(projects));
+  notifyChange();
 }
+
 
 export function listProjects(): Project[] {
   return read().sort((a, b) => b.updatedAt - a.updatedAt);
@@ -109,7 +163,9 @@ export function useProjects() {
   useEffect(() => {
     setProjects(listProjects()); // sync on mount (SSR can't read localStorage)
     const refresh = (e: StorageEvent) => {
-      if (e.key === KEY || e.key === null) setProjects(listProjects());
+      if (e.key === null || e.key === BASE_KEY || e.key.startsWith(`${BASE_KEY}:`)) {
+        setProjects(listProjects());
+      }
     };
     window.addEventListener("storage", refresh);
     return () => window.removeEventListener("storage", refresh);
