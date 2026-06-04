@@ -36,6 +36,8 @@ export function Nav() {
     enabled: isAuthed === true,
   });
   const isAdmin = isAuthed === true && adminQuery.data?.isAdmin === true;
+  const isSysadmin = isAuthed === true && adminQuery.data?.isSysadmin === true;
+  const homePath = getHomePath({ isAuthed, isAdmin, isSysadmin });
 
 
   const handleSignOut = async () => {
