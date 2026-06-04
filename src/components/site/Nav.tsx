@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { checkAdmin } from "@/lib/api/prompt-templates.functions";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { toast } from "sonner";
+import { getHomePath } from "@/lib/home-path";
 
 export function Nav() {
   const { t } = useTranslation();
@@ -35,6 +36,8 @@ export function Nav() {
     enabled: isAuthed === true,
   });
   const isAdmin = isAuthed === true && adminQuery.data?.isAdmin === true;
+  const isSysadmin = isAuthed === true && adminQuery.data?.isSysadmin === true;
+  const homePath = getHomePath({ isAuthed, isAdmin, isSysadmin });
 
 
   const handleSignOut = async () => {
@@ -51,7 +54,7 @@ export function Nav() {
     <header className="fixed top-0 inset-x-0 z-50">
       <div className="mx-auto max-w-7xl px-6 pt-5">
         <div className="glass flex items-center justify-between rounded-full border border-border px-5 py-3 shadow-elegant">
-          <Link to="/" className="flex items-center gap-2 font-display text-lg font-semibold tracking-tight">
+          <Link to={homePath} className="flex items-center gap-2 font-display text-lg font-semibold tracking-tight">
             <span className="grid h-7 w-7 place-items-center rounded-md bg-gradient-ember text-ember-foreground shadow-ember">
               <Flame className="h-4 w-4" />
             </span>
