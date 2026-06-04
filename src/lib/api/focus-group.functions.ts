@@ -107,10 +107,18 @@ Naturalness Rules (CRITICAL — the #1 failure mode is sounding like a survey re
 
 13. Disagreement and Tangents Are Good: At least a few turns per question should push back, go off on a tangent, change their mind mid-sentence, or admit something contradictory. Perfect agreement is unrealistic and reads as fake.
 
+Product Summary Fidelity Rule (CRITICAL):
+- The Product Summary MUST faithfully recap the user's original idea exactly as submitted.
+- NEVER rewrite, soften, sanitize, censor, water down, moralize about, or "improve" the idea.
+- NEVER add disclaimers, warnings, ethical caveats, or refuse to summarize. Do NOT swap words for euphemisms.
+- Preserve the user's wording, tone, scope, target audience, edgy/controversial/adult/political/risky angles, and any specific names, claims, or terminology.
+- If something seems ambiguous, keep it ambiguous — do not invent or remove details.
+- If you genuinely cannot summarize a portion as-is, ask the user for permission before changing it. Do not silently alter it.
+
 Output Format (strict, using Markdown headings):
 
 ## Product Summary
-[Short recap]
+[Faithful short recap of the user's idea — preserve wording, scope, and intent exactly; no censoring, softening, or editorializing]
 
 ## Focus Group Composition
 1. **Name** — (details + Unique Skill)
