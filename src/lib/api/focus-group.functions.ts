@@ -1,11 +1,12 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { analysisSchema, type Analysis } from "./vetting.functions";
+import { resolveSkill, withSkillPreamble } from "./skills.server";
 
 export const FOCUS_GROUP_GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
+/** Fallback model used only if no enabled `focus_group` skill row exists. */
 export const FOCUS_GROUP_MODEL = "openai/gpt-5-mini";
 const GATEWAY = FOCUS_GROUP_GATEWAY;
-const MODEL = FOCUS_GROUP_MODEL;
 
 export const focusGroupInputSchema = z.object({
   idea: z.string().min(1).max(4000),
