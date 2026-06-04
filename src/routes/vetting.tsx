@@ -795,22 +795,51 @@ function FocusGroupPanel({
   projectId: string;
 }) {
   const runFn = useServerFn(runFocusGroup);
+  void runFn; // kept for type compat; streaming uses fetch below
   const [transcript, setTranscript] = useState<string | undefined>(
     () => getProject(projectId)?.focusGroup,
   );
+  const [streaming, setStreaming] = useState("");
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
+  const abortRef = useRef<AbortController | null>(null);
 
   async function run() {
     setLoading(true);
     setErr(null);
+    setStreaming("");
+    setOpen(true);
+    const controller = new AbortController();
+    abortRef.current?.abort();
+    abortRef.current = controller;
     try {
-      const res = await runFn({ data: { idea, analysis } });
-      setTranscript(res.transcript);
-      updateProject(projectId, { focusGroup: res.transcript });
-      setOpen(true);
+      const res = await fetch("/api/focus-group-stream", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idea, analysis }),
+        signal: controller.signal,
+      });
+      if (!res.ok || !res.body) {
+        const msg = (await res.text().catch(() => "")) || `Request failed (${res.status})`;
+        throw new Error(msg);
+      }
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let acc = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        acc += decoder.decode(value, { stream: true });
+        setStreaming(acc);
+      }
+      acc += decoder.decode();
+      const formatted = formatFocusGroupTranscript(acc);
+      setTranscript(formatted);
+      setStreaming("");
+      updateProject(projectId, { focusGroup: formatted });
     } catch (e) {
+      if ((e as { name?: string })?.name === "AbortError") return;
       console.error(e);
       setErr(e instanceof Error ? e.message : "Focus group failed.");
     } finally {
