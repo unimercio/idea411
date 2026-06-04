@@ -35,10 +35,7 @@ MARKET CONTEXT:
 Run the full focus group now following the exact output format.`;
 }
 
-export const FOCUS_GROUP_SYSTEM = getSystem();
-function getSystem() { return SYSTEM; }
-
-const SYSTEM = `You are an expert Marketing Research Strategist and Focus Group Designer.
+export const FOCUS_GROUP_SYSTEM = `You are an expert Marketing Research Strategist and Focus Group Designer.
 
 Task Flow:
 
