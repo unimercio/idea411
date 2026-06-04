@@ -179,13 +179,16 @@ function AdminContent({ skills, loading }: { skills: ModelSkill[]; loading: bool
           <section key={component}>
             <div className="mb-3 flex items-center justify-between">
               <h2 className="font-display text-lg font-semibold">{COMPONENT_LABEL[component]}</h2>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => setEditing(emptyDraft(component))}
-              >
-                <Plus className="mr-1.5 h-3.5 w-3.5" /> New skill
-              </Button>
+              <div className="flex items-center gap-2">
+                {component === "focus_group" && <FocusGroupTester />}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setEditing(emptyDraft(component))}
+                >
+                  <Plus className="mr-1.5 h-3.5 w-3.5" /> New skill
+                </Button>
+              </div>
             </div>
             <div className="space-y-2">
               {grouped[component].length === 0 && (
