@@ -1,6 +1,8 @@
 // Client-side projects store. Swap for a Supabase table once Lovable Cloud is enabled.
 import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import type { Analysis } from "./api/vetting.functions";
+
 
 export type StageKey = "compliance" | "market" | "demand";
 
