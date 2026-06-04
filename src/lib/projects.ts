@@ -1,8 +1,9 @@
-// Client-side projects store. Swap for a Supabase table once Lovable Cloud is enabled.
+// Supabase-backed projects store. Keeps a synchronous in-memory cache so existing
+// call sites (createProject/updateProject/getProject/...) remain non-async.
+// Cache is hydrated from Supabase per signed-in user; mutations write through.
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Analysis } from "./api/vetting.functions";
-
 
 export type StageKey = "compliance" | "market" | "demand";
 
@@ -34,79 +35,114 @@ export type Project = {
   status: "draft" | "vetting" | "ready" | "error";
 };
 
-const BASE_KEY = "ideaforge:projects";
-const LEGACY_KEY = "ideaforge:projects";
-let currentUserId: string | null = null;
-let authWired = false;
+const CHANGE_EVENT = "ideaforge:projects-changed";
+const COLUMN_FIELDS = ["title", "idea", "status"] as const;
+const DATA_FIELDS = [
+  "sketchName",
+  "email",
+  "scores",
+  "analysis",
+  "chat",
+  "focusGroup",
+  "iterations",
+] as const;
+type DataField = (typeof DATA_FIELDS)[number];
 
-function currentKey(): string {
-  return `${BASE_KEY}:${currentUserId ?? "anon"}`;
-}
+let cache: Project[] = [];
+let cacheUserId: string | null = null;
+let authWired = false;
+let hydratePromise: Promise<void> | null = null;
 
 function notifyChange() {
   if (typeof window === "undefined") return;
-  window.dispatchEvent(new StorageEvent("storage", { key: BASE_KEY }));
+  window.dispatchEvent(new CustomEvent(CHANGE_EVENT));
+}
+
+function rowToProject(row: ProjectRow): Project {
+  const data = (row.data ?? {}) as Partial<Project>;
+  return {
+    id: row.id,
+    title: row.title,
+    idea: row.idea,
+    status: (row.status as Project["status"]) ?? "vetting",
+    createdAt: new Date(row.created_at).getTime(),
+    updatedAt: new Date(row.updated_at).getTime(),
+    sketchName: data.sketchName,
+    email: data.email,
+    scores: data.scores,
+    analysis: data.analysis,
+    chat: data.chat,
+    focusGroup: data.focusGroup,
+    iterations: data.iterations,
+  };
+}
+
+function projectDataPayload(p: Project): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const k of DATA_FIELDS) {
+    const v = (p as unknown as Record<string, unknown>)[k];
+    if (v !== undefined) out[k] = v;
+  }
+  return out;
+}
+
+type ProjectRow = {
+  id: string;
+  user_id: string;
+  title: string;
+  idea: string;
+  status: string;
+  data: Record<string, unknown> | null;
+  created_at: string;
+  updated_at: string;
+};
+
+async function hydrateForUser(userId: string | null) {
+  if (userId === null) {
+    cache = [];
+    cacheUserId = null;
+    notifyChange();
+    return;
+  }
+  cacheUserId = userId;
+  const { data, error } = await supabase
+    .from("projects")
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .select("*" as any)
+    .order("updated_at", { ascending: false });
+  if (error) {
+    console.error("[projects] load failed", error);
+    cache = [];
+    notifyChange();
+    return;
+  }
+  // Guard against late responses after another user signed in.
+  if (cacheUserId !== userId) return;
+  cache = ((data ?? []) as unknown as ProjectRow[]).map(rowToProject);
+  notifyChange();
 }
 
 function ensureAuthWired() {
   if (authWired || typeof window === "undefined") return;
   authWired = true;
-  supabase.auth.getSession().then(({ data }) => {
-    const next = data.session?.user.id ?? null;
-    if (next !== currentUserId) {
-      currentUserId = next;
-      maybeMigrateLegacy();
-      notifyChange();
-    } else {
-      maybeMigrateLegacy();
-      notifyChange();
-    }
+  hydratePromise = supabase.auth.getSession().then(({ data }) => {
+    return hydrateForUser(data.session?.user.id ?? null);
   });
-  supabase.auth.onAuthStateChange((_e, session) => {
+  supabase.auth.onAuthStateChange((event, session) => {
+    if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
     const next = session?.user.id ?? null;
-    if (next !== currentUserId) {
-      currentUserId = next;
-      maybeMigrateLegacy();
-      notifyChange();
-    }
+    if (next === cacheUserId && event !== "SIGNED_OUT") return;
+    hydratePromise = hydrateForUser(next);
   });
-}
-
-function maybeMigrateLegacy() {
-  if (typeof window === "undefined" || !currentUserId) return;
-  try {
-    const scoped = window.localStorage.getItem(currentKey());
-    const legacy = window.localStorage.getItem(LEGACY_KEY);
-    if (!scoped && legacy) {
-      window.localStorage.setItem(currentKey(), legacy);
-      window.localStorage.removeItem(LEGACY_KEY);
-    }
-  } catch {
-    /* ignore */
-  }
 }
 
 function read(): Project[] {
-  if (typeof window === "undefined") return [];
   ensureAuthWired();
-  try {
-    const raw = window.localStorage.getItem(currentKey());
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? (parsed as Project[]) : [];
-  } catch {
-    return [];
-  }
+  return cache;
 }
-
-function write(projects: Project[]) {
-  window.localStorage.setItem(currentKey(), JSON.stringify(projects));
-  notifyChange();
-}
-
 
 export function listProjects(): Project[] {
-  return read().sort((a, b) => b.updatedAt - a.updatedAt);
+  return [...read()].sort((a, b) => b.updatedAt - a.updatedAt);
 }
 
 export function getProject(id: string): Project | undefined {
@@ -122,6 +158,7 @@ export function deriveTitle(idea: string): string {
 }
 
 export function createProject(input: { idea: string; sketchName?: string; email?: string }): Project {
+  ensureAuthWired();
   const now = Date.now();
   const project: Project = {
     id: cryptoRandomId(),
@@ -133,42 +170,74 @@ export function createProject(input: { idea: string; sketchName?: string; email?
     updatedAt: now,
     status: "vetting",
   };
-  write([project, ...read()]);
+  cache = [project, ...cache];
+  notifyChange();
+  void (async () => {
+    if (!cacheUserId) return;
+    const { error } = await supabase.from("projects").insert({
+      id: project.id,
+      user_id: cacheUserId,
+      title: project.title,
+      idea: project.idea,
+      status: project.status,
+      data: projectDataPayload(project),
+    });
+    if (error) console.error("[projects] insert failed", error);
+  })();
   return project;
 }
 
 export function updateProject(id: string, patch: Partial<Project>): Project | undefined {
-  const all = read();
-  const i = all.findIndex((p) => p.id === id);
+  ensureAuthWired();
+  const i = cache.findIndex((p) => p.id === id);
   if (i === -1) return undefined;
-  const updated: Project = { ...all[i], ...patch, updatedAt: Date.now() };
-  all[i] = updated;
-  write(all);
+  const updated: Project = { ...cache[i], ...patch, updatedAt: Date.now() };
+  cache = [...cache];
+  cache[i] = updated;
+  notifyChange();
+  void (async () => {
+    if (!cacheUserId) return;
+    const dbPatch: Record<string, unknown> = {};
+    for (const k of COLUMN_FIELDS) {
+      if (k in patch) dbPatch[k] = (patch as Record<string, unknown>)[k];
+    }
+    const touchesData = DATA_FIELDS.some((k) => k in patch);
+    if (touchesData) dbPatch.data = projectDataPayload(updated);
+    if (Object.keys(dbPatch).length === 0) return;
+    const { error } = await supabase.from("projects").update(dbPatch).eq("id", id);
+    if (error) console.error("[projects] update failed", error);
+  })();
   return updated;
 }
 
 export function deleteProject(id: string) {
-  write(read().filter((p) => p.id !== id));
+  ensureAuthWired();
+  cache = cache.filter((p) => p.id !== id);
+  notifyChange();
+  void (async () => {
+    const { error } = await supabase.from("projects").delete().eq("id", id);
+    if (error) console.error("[projects] delete failed", error);
+  })();
 }
 
 function cryptoRandomId(): string {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
-    return crypto.randomUUID().slice(0, 8);
+    return crypto.randomUUID();
   }
-  return Math.random().toString(36).slice(2, 10);
+  // Fallback (non-cryptographic) — last resort.
+  return "00000000-0000-4000-8000-" + Math.random().toString(16).slice(2, 14).padStart(12, "0");
 }
 
 export function useProjects() {
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [projects, setProjects] = useState<Project[]>(() => listProjects());
   useEffect(() => {
-    setProjects(listProjects()); // sync on mount (SSR can't read localStorage)
-    const refresh = (e: StorageEvent) => {
-      if (e.key === null || e.key === BASE_KEY || e.key.startsWith(`${BASE_KEY}:`)) {
-        setProjects(listProjects());
-      }
-    };
-    window.addEventListener("storage", refresh);
-    return () => window.removeEventListener("storage", refresh);
+    setProjects(listProjects());
+    if (hydratePromise) {
+      void hydratePromise.then(() => setProjects(listProjects()));
+    }
+    const refresh = () => setProjects(listProjects());
+    window.addEventListener(CHANGE_EVENT, refresh);
+    return () => window.removeEventListener(CHANGE_EVENT, refresh);
   }, []);
   return projects;
 }
