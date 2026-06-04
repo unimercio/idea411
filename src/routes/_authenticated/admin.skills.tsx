@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { NotAuthorized } from "@/components/site/NotAuthorized";
+import { AdminHeader } from "@/components/site/AdminHeader";
 import {
   Select,
   SelectContent,
@@ -151,6 +152,8 @@ function AdminContent({ skills, loading }: { skills: ModelSkill[]; loading: bool
   }, [skills]);
 
   return (
+    <>
+    <AdminHeader label="Skills" />
     <main className="mx-auto max-w-5xl px-6 py-10">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
@@ -224,6 +227,7 @@ function AdminContent({ skills, loading }: { skills: ModelSkill[]; loading: bool
         />
       )}
     </main>
+    </>
   );
 }
 

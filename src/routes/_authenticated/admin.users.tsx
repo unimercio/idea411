@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { checkAdmin } from "@/lib/api/prompt-templates.functions";
 import { NotAuthorized } from "@/components/site/NotAuthorized";
+import { AdminHeader } from "@/components/site/AdminHeader";
 import {
   listUsers,
   setUserAdmin,
@@ -116,6 +117,8 @@ function UsersTable() {
   const currentUserId = usersQ.data?.currentUserId;
 
   return (
+    <>
+    <AdminHeader label="Users" />
     <main className="mx-auto max-w-6xl px-6 py-10">
       <Link
         to="/dashboard"
@@ -207,6 +210,7 @@ function UsersTable() {
         </table>
       </div>
     </main>
+    </>
   );
 }
 

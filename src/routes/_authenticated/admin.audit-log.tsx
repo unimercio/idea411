@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { checkAdmin } from "@/lib/api/prompt-templates.functions";
 import { listAuditLog, type AuditLogEntry } from "@/lib/api/admin-users.functions";
 import { NotAuthorized } from "@/components/site/NotAuthorized";
+import { AdminHeader } from "@/components/site/AdminHeader";
 
 export const Route = createFileRoute("/_authenticated/admin/audit-log")({
   head: () => ({
@@ -60,6 +61,8 @@ function AuditLogPage() {
   }
 
   return (
+    <>
+    <AdminHeader label="Audit log" />
     <main className="mx-auto max-w-6xl px-6 py-10">
       <Link to="/admin/users" className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground">
         <ArrowLeft className="h-3.5 w-3.5" /> Back to users
@@ -120,6 +123,7 @@ function AuditLogPage() {
         </table>
       </div>
     </main>
+    </>
   );
 }
 
