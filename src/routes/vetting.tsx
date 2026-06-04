@@ -986,24 +986,56 @@ function FocusGroupReport({ transcript }: { transcript: string }) {
       className="px-6 py-6 space-y-5"
     >
       {sections.map((s, i) => (
-        <div
+        <article
           key={i}
-          className="rounded-2xl border border-border bg-background/40 p-5"
+          className="relative rounded-3xl border border-border bg-card/80 p-6 shadow-elegant"
         >
-          <div className="flex items-center gap-2 mb-3">
-            <span className="grid h-7 w-7 place-items-center rounded-lg border border-border bg-card/80 text-ember text-[11px] font-display font-semibold">
+          <div className="flex items-start justify-between gap-3">
+            <span className="grid h-10 w-10 place-items-center rounded-xl border border-border bg-background/80 text-ember font-display text-sm font-semibold">
               {i + 1}
             </span>
-            <h4 className="font-display text-sm font-semibold text-foreground">
-              {s.title}
-            </h4>
           </div>
-          <article className="prose prose-invert prose-sm max-w-none prose-headings:font-display prose-headings:text-foreground prose-strong:text-foreground prose-p:text-muted-foreground prose-li:text-muted-foreground prose-ol:text-muted-foreground prose-ul:text-muted-foreground prose-hr:border-border/60 prose-h3:mt-4 prose-h3:mb-2 prose-h3:text-ember prose-h3:text-xs prose-h3:uppercase prose-h3:tracking-wider prose-h3:font-semibold prose-ul:my-2 prose-ol:my-2 prose-li:my-0.5 prose-p:my-2 prose-p:text-sm">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{s.body}</ReactMarkdown>
-          </article>
-        </div>
+          <h3 className="mt-5 font-display text-xl font-semibold">{s.title}</h3>
+          <FocusGroupSectionBody body={s.body} className="mt-3" />
+        </article>
       ))}
     </motion.div>
+  );
+}
+
+/* Renders a focus-group section body. Splits on "### " sub-headings (e.g.
+   "### Question 1: ...") and renders each chunk through FormattedBody so the
+   typography matches the Compliance / Sales pillars above. */
+function FocusGroupSectionBody({ body, className = "" }: { body: string; className?: string }) {
+  const chunks = useMemo(() => {
+    const lines = body.replace(/\r\n/g, "\n").split("\n");
+    const out: { title?: string; text: string[] }[] = [{ text: [] }];
+    for (const line of lines) {
+      const m = line.match(/^###\s+(.+?)\s*$/);
+      if (m) {
+        out.push({ title: m[1].trim(), text: [] });
+      } else {
+        out[out.length - 1].text.push(line);
+      }
+    }
+    return out
+      .map((c) => ({ title: c.title, text: c.text.join("\n").trim() }))
+      .filter((c) => c.title || c.text);
+  }, [body]);
+
+  return (
+    <div className={`space-y-4 ${className}`}>
+      {chunks.map((c, i) => (
+        <div key={i} className="rounded-2xl border border-border bg-background/40 p-4">
+          {c.title && (
+            <h4 className="mb-2 text-[11px] uppercase tracking-wider text-ember font-semibold">
+              {c.title}
+            </h4>
+          )}
+          {c.text && <FormattedBody text={c.text} />}
+        </div>
+      ))}
+    </div>
   );
 }
 
