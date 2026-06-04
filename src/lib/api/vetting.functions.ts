@@ -325,6 +325,7 @@ async function callPillar<T>(opts: {
     }
     if (typeof r.overallScore === "number") {
       r.overallScore = Math.min(100, Math.max(0, Math.round(r.overallScore)));
+    }
     if (opts.label === "sales" && !Array.isArray(r.gtm)) {
       r.gtm = [];
     }
