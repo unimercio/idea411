@@ -141,7 +141,7 @@ Run the full focus group now following the exact output format.`;
       body: JSON.stringify({
         model: MODEL,
         messages: [
-          { role: "system", content: SYSTEM },
+          { role: "system", content: FOCUS_GROUP_SYSTEM },
           { role: "user", content: userPrompt },
         ],
       }),
