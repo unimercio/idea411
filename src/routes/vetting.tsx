@@ -930,7 +930,7 @@ function FocusGroupPanel({
                 transition={{ duration: 0.3 }}
                 className="overflow-hidden"
               >
-                <article className="prose prose-invert prose-sm max-w-none prose-headings:font-display prose-headings:text-foreground prose-strong:text-foreground prose-p:text-muted-foreground prose-li:text-muted-foreground prose-ol:text-muted-foreground prose-ul:text-muted-foreground">
+                <article className="prose prose-invert prose-sm max-w-none prose-headings:font-display prose-headings:text-foreground prose-strong:text-foreground prose-p:text-muted-foreground prose-li:text-muted-foreground prose-ol:text-muted-foreground prose-ul:text-muted-foreground prose-hr:border-border/60 prose-h2:mt-8 prose-h2:mb-3 prose-h2:pb-2 prose-h2:border-b prose-h2:border-border/60 prose-h2:text-ember prose-h2:uppercase prose-h2:tracking-wide prose-h2:text-xs prose-h3:mt-5 prose-h3:mb-2 prose-h3:text-foreground prose-h3:text-sm prose-h3:font-semibold prose-ul:my-2 prose-ol:my-2 prose-li:my-0.5 prose-p:my-2">
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>
                     {streaming
                       ? formatFocusGroupTranscript(streaming)
@@ -952,13 +952,23 @@ function FocusGroupPanel({
 function formatFocusGroupTranscript(raw: string): string {
   if (!raw) return "";
   let t = raw.replace(/\r\n/g, "\n").trim();
-  // Strip leading code fences if the model wrapped output
-  t = t.replace(/^```(?:markdown|md)?\n/, "").replace(/\n```$/, "");
-  // Ensure a blank line before every ## / ### heading
-  t = t.replace(/([^\n])\n(#{2,3} )/g, "$1\n\n$2");
-  // Ensure blank line before numbered list items at top-level
-  t = t.replace(/([^\n])\n(\d+\.\s+\*\*)/g, "$1\n\n$2");
-  // Make "Name — details" persona lines bold if not already, inside Composition block
+
+  // Strip code fences if the model wrapped output.
+  t = t.replace(/^```(?:markdown|md)?\n/, "").replace(/\n```\s*$/, "");
+
+  // Normalize alternate bullet glyphs to "- ".
+  t = t.replace(/^[\t ]*[•·●▪–—*][\t ]+/gm, "- ");
+
+  // Promote single "#" headings to "##" so our styling applies uniformly.
+  t = t.replace(/^# (?!#)/gm, "## ");
+
+  // Ensure a blank line before every heading.
+  t = t.replace(/([^\n])\n(#{2,4} )/g, "$1\n\n$2");
+
+  // Ensure blank line before numbered list items (questions, personas).
+  t = t.replace(/([^\n])\n(\d+\.\s)/g, "$1\n\n$2");
+
+  // Bold persona lines: "1. Name — details" inside the Composition section.
   t = t.replace(
     /(## Focus Group Composition\n[\s\S]*?)(?=\n## |\n*$)/,
     (block) =>
@@ -967,16 +977,51 @@ function formatFocusGroupTranscript(raw: string): string {
         "$1**$2**$3",
       ),
   );
-  // Bold speaker labels like "Name:" at the start of a paragraph in the discussion
+
+  // Inside the Discussion, promote "Question N" / "Q1:" markers to ### sub-headings.
   t = t.replace(
-    /(## Focus Group Discussion\n[\s\S]*?)(?=\n## |\n*$)/,
-    (block) =>
-      block.replace(
-        /^([A-Z][A-Za-z .'-]{1,40}):\s/gm,
-        "**$1:** ",
+    /(## Focus Group Discussion\n)([\s\S]*?)(?=\n## |\n*$)/,
+    (_m, head: string, body: string) => {
+      const promoted = body
+        // "**Question 1:** ..." or "**Q1:** ..." → "### Question 1: ..."
+        .replace(
+          /^\s*\*{0,2}(Question\s*\d+|Q\d+)\*{0,2}\s*[:.\)-]\s*/gim,
+          (_x, label: string) => `\n### ${label.replace(/^Q/i, "Question ")}: `,
+        )
+        // Bold speaker labels "Name:" at line start (but not headings we just made).
+        .replace(/^(?!#|>|-|\d+\.)([A-Z][A-Za-z .'’-]{1,40}):\s/gm, "**$1:** ");
+      return head + promoted;
+    },
+  );
+
+  // Make the Moderator's recommendations bullets predictable: ensure they're "- ".
+  t = t.replace(
+    /(## Moderator[’']?s Final Insights[^\n]*\n)([\s\S]*)$/i,
+    (_m, head: string, body: string) =>
+      head +
+      body.replace(
+        /^[\t ]*(?:\d+\.\s+|[-*])\s*(\*\*[^*\n]+\*\*[:.\)-]?\s*)/gm,
+        "- $1",
       ),
   );
-  // Collapse 3+ blank lines
+
+  // Insert a horizontal rule before each top-level "## " heading after the first.
+  let seenFirstH2 = false;
+  t = t
+    .split("\n")
+    .map((line) => {
+      if (/^## /.test(line)) {
+        if (!seenFirstH2) {
+          seenFirstH2 = true;
+          return line;
+        }
+        return `\n---\n\n${line}`;
+      }
+      return line;
+    })
+    .join("\n");
+
+  // Collapse runs of blank lines.
   t = t.replace(/\n{3,}/g, "\n\n");
   return t.trim();
 }
