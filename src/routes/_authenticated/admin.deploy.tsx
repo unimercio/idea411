@@ -13,6 +13,7 @@ import {
   Clock,
   CircleDot,
   Terminal,
+  HeartPulse,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -313,6 +314,8 @@ function LiveConsole({
         </div>
       ) : (
         <>
+          <HealthCard job={job} isRunning={isRunning} />
+
           <ol className="mt-5 space-y-1.5">
             {job.steps.map((s) => (
               <StepRow key={`${s.number}-${s.name}`} step={s} />
