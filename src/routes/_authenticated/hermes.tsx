@@ -1,5 +1,5 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
-import { Flame, Bot, ListTodo, Plus, Settings as SettingsIcon, Users2 } from "lucide-react";
+import { Flame, ListTodo, Plus, Settings as SettingsIcon, Users2 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/hermes")({
   head: () => ({
@@ -13,21 +13,15 @@ export const Route = createFileRoute("/_authenticated/hermes")({
 
 function HermesLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const tab = (to: string, label: string, Icon: any) => {
-    const active = pathname === to || (to !== "/hermes" && pathname.startsWith(to));
-    return (
-      <Link
-        to={to}
-        className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm transition ${
-          active
-            ? "bg-gradient-ember text-ember-foreground shadow-ember"
-            : "text-muted-foreground hover:text-foreground"
-        }`}
-      >
-        <Icon className="h-3.5 w-3.5" /> {label}
-      </Link>
-    );
-  };
+  const tabClass = (active: boolean) =>
+    `inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm transition ${
+      active
+        ? "bg-gradient-ember text-ember-foreground shadow-ember"
+        : "text-muted-foreground hover:text-foreground"
+    }`;
+  const tasksActive = pathname === "/hermes";
+  const agentsActive = pathname.startsWith("/hermes/agents");
+  const settingsActive = pathname.startsWith("/hermes/settings");
   return (
     <main className="min-h-screen bg-background text-foreground">
       <header className="border-b border-border">
@@ -37,14 +31,17 @@ function HermesLayout() {
               <Flame className="h-4 w-4" />
             </span>
             IdeaForge
-            <span className="ml-2 inline-flex items-center gap-1 rounded-full border border-border bg-card/60 px-2 py-0.5 text-[10px] uppercase tracking-wider text-muted-foreground">
-              <Bot className="h-3 w-3" /> Hermes
-            </span>
           </Link>
           <nav className="flex items-center gap-1.5">
-            {tab("/hermes", "Tasks", ListTodo)}
-            {tab("/hermes/agents", "Agents", Users2)}
-            {tab("/hermes/settings", "Settings", SettingsIcon)}
+            <Link to="/hermes" className={tabClass(tasksActive)}>
+              <ListTodo className="h-3.5 w-3.5" /> Tasks
+            </Link>
+            <Link to="/hermes/agents" className={tabClass(agentsActive)}>
+              <Users2 className="h-3.5 w-3.5" /> Agents
+            </Link>
+            <Link to="/hermes/settings" className={tabClass(settingsActive)}>
+              <SettingsIcon className="h-3.5 w-3.5" /> Settings
+            </Link>
             <Link
               to="/hermes/new"
               className="ml-2 inline-flex items-center gap-1.5 rounded-full bg-gradient-ember px-4 py-1.5 text-sm font-medium text-ember-foreground shadow-ember hover:brightness-110 transition"
