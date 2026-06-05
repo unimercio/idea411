@@ -23,6 +23,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedSysadminIndexRouteImport } from './routes/_authenticated/sysadmin.index'
 import { Route as AuthenticatedHermesIndexRouteImport } from './routes/_authenticated/hermes.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
+import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as AuthenticatedHermesSettingsRouteImport } from './routes/_authenticated/hermes.settings'
 import { Route as AuthenticatedHermesNewRouteImport } from './routes/_authenticated/hermes.new'
 import { Route as AuthenticatedHermesAgentsRouteImport } from './routes/_authenticated/hermes.agents'
@@ -105,6 +106,11 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   path: '/admin/',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const ApiPublicHealthRoute = ApiPublicHealthRouteImport.update({
+  id: '/api/public/health',
+  path: '/api/public/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedHermesSettingsRoute =
   AuthenticatedHermesSettingsRouteImport.update({
     id: '/settings',
@@ -185,6 +191,7 @@ export interface FileRoutesByFullPath {
   '/hermes/agents': typeof AuthenticatedHermesAgentsRoute
   '/hermes/new': typeof AuthenticatedHermesNewRoute
   '/hermes/settings': typeof AuthenticatedHermesSettingsRoute
+  '/api/public/health': typeof ApiPublicHealthRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/hermes/': typeof AuthenticatedHermesIndexRoute
   '/sysadmin/': typeof AuthenticatedSysadminIndexRoute
@@ -209,6 +216,7 @@ export interface FileRoutesByTo {
   '/hermes/agents': typeof AuthenticatedHermesAgentsRoute
   '/hermes/new': typeof AuthenticatedHermesNewRoute
   '/hermes/settings': typeof AuthenticatedHermesSettingsRoute
+  '/api/public/health': typeof ApiPublicHealthRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/hermes': typeof AuthenticatedHermesIndexRoute
   '/sysadmin': typeof AuthenticatedSysadminIndexRoute
@@ -236,6 +244,7 @@ export interface FileRoutesById {
   '/_authenticated/hermes/agents': typeof AuthenticatedHermesAgentsRoute
   '/_authenticated/hermes/new': typeof AuthenticatedHermesNewRoute
   '/_authenticated/hermes/settings': typeof AuthenticatedHermesSettingsRoute
+  '/api/public/health': typeof ApiPublicHealthRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/hermes/': typeof AuthenticatedHermesIndexRoute
   '/_authenticated/sysadmin/': typeof AuthenticatedSysadminIndexRoute
@@ -263,6 +272,7 @@ export interface FileRouteTypes {
     | '/hermes/agents'
     | '/hermes/new'
     | '/hermes/settings'
+    | '/api/public/health'
     | '/admin/'
     | '/hermes/'
     | '/sysadmin/'
@@ -287,6 +297,7 @@ export interface FileRouteTypes {
     | '/hermes/agents'
     | '/hermes/new'
     | '/hermes/settings'
+    | '/api/public/health'
     | '/admin'
     | '/hermes'
     | '/sysadmin'
@@ -313,6 +324,7 @@ export interface FileRouteTypes {
     | '/_authenticated/hermes/agents'
     | '/_authenticated/hermes/new'
     | '/_authenticated/hermes/settings'
+    | '/api/public/health'
     | '/_authenticated/admin/'
     | '/_authenticated/hermes/'
     | '/_authenticated/sysadmin/'
@@ -327,6 +339,7 @@ export interface RootRouteChildren {
   VettingRoute: typeof VettingRoute
   ApiFocusGroupStreamRoute: typeof ApiFocusGroupStreamRoute
   ApiHermesRunRoute: typeof ApiHermesRunRoute
+  ApiPublicHealthRoute: typeof ApiPublicHealthRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -428,6 +441,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
+    }
+    '/api/public/health': {
+      id: '/api/public/health'
+      path: '/api/public/health'
+      fullPath: '/api/public/health'
+      preLoaderRoute: typeof ApiPublicHealthRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/hermes/settings': {
       id: '/_authenticated/hermes/settings'
@@ -563,7 +583,18 @@ const rootRouteChildren: RootRouteChildren = {
   VettingRoute: VettingRoute,
   ApiFocusGroupStreamRoute: ApiFocusGroupStreamRoute,
   ApiHermesRunRoute: ApiHermesRunRoute,
+  ApiPublicHealthRoute: ApiPublicHealthRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

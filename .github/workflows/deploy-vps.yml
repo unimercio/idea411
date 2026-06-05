@@ -26,7 +26,6 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           port: ${{ secrets.VPS_PORT || 22 }}
           script_stop: true
-          envs: GITHUB_REF_INPUT
           script: |
             set -euo pipefail
             cd "${{ secrets.VPS_APP_DIR }}"
@@ -34,3 +33,67 @@ jobs:
             git checkout "${{ github.event.inputs.ref || 'main' }}"
             git reset --hard "origin/${{ github.event.inputs.ref || 'main' }}"
             bash deploy/deploy.sh
+
+      - name: Health check — PM2 process up
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          script_stop: true
+          script: |
+            set -euo pipefail
+            echo "==> PM2 process status"
+            pm2 jlist | python3 -c "import json,sys;p=[x for x in json.load(sys.stdin) if x['name']=='idea411'];assert p, 'idea411 not in pm2 list';s=p[0]['pm2_env']['status'];print('status:',s);assert s=='online','pm2 status is '+s"
+            pm2 describe idea411 | sed -n '1,40p'
+
+      - name: Health check — port 3000 listening
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          script_stop: true
+          script: |
+            set -euo pipefail
+            echo "==> Waiting for app to bind port 3000 (up to 30s)"
+            for i in $(seq 1 30); do
+              if ss -ltn 'sport = :3000' | grep -q LISTEN; then
+                echo "Port 3000 LISTEN after ${i}s"; exit 0
+              fi
+              sleep 1
+            done
+            echo "Port 3000 never came up"; ss -ltn || true; exit 1
+
+      - name: Health check — local smoke request
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          script_stop: true
+          script: |
+            set -euo pipefail
+            echo "==> GET http://127.0.0.1:3000/api/public/health"
+            for i in $(seq 1 20); do
+              body=$(curl -fsS --max-time 5 http://127.0.0.1:3000/api/public/health || true)
+              if [ -n "$body" ]; then echo "$body"; echo "OK after ${i} attempt(s)"; exit 0; fi
+              sleep 1
+            done
+            echo "Local smoke request failed"; curl -v http://127.0.0.1:3000/api/public/health || true; exit 1
+
+      - name: Health check — public smoke request
+        if: ${{ vars.PUBLIC_APP_URL != '' }}
+        run: |
+          set -euo pipefail
+          URL="${{ vars.PUBLIC_APP_URL }}/api/public/health"
+          echo "==> GET $URL"
+          for i in $(seq 1 12); do
+            body=$(curl -fsS --max-time 8 "$URL" || true)
+            if [ -n "$body" ]; then echo "$body"; echo "Public OK after ${i} attempt(s)"; exit 0; fi
+            sleep 5
+          done
+          echo "Public smoke request failed"; curl -v "$URL" || true; exit 1
