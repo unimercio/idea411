@@ -76,6 +76,11 @@ function DeployPage() {
   const runs = runsQ.data?.runs ?? [];
   const inFlight = runs.some((r) => r.status === "queued" || r.status === "in_progress");
 
+  const [selectedRunId, setSelectedRunId] = useState<number | null>(null);
+  const activeRunId =
+    selectedRunId ?? runs.find((r) => r.status === "in_progress" || r.status === "queued")?.id ?? runs[0]?.id ?? null;
+  const activeRun = runs.find((r) => r.id === activeRunId) ?? null;
+
   return (
     <>
       <AdminHeader label="Deploy" />
@@ -128,6 +133,16 @@ function DeployPage() {
             </button>
           </div>
         </section>
+
+        {activeRunId && activeRun ? (
+          <LiveConsole
+            runId={activeRunId}
+            run={activeRun}
+            isActiveDefault={selectedRunId === null}
+          />
+        ) : null}
+
+
 
         <section className="mt-8">
           <h2 className="font-display text-lg font-semibold">Recent runs</h2>
