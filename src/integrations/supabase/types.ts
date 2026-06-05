@@ -47,6 +47,224 @@ export type Database = {
         }
         Relationships: []
       }
+      hermes_agents: {
+        Row: {
+          created_at: string
+          id: string
+          iteration_count: number
+          model: string
+          name: string
+          objective: string | null
+          output: Json | null
+          role: Database["public"]["Enums"]["hermes_agent_role"]
+          status: Database["public"]["Enums"]["hermes_agent_status"]
+          system_prompt: string
+          task_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          iteration_count?: number
+          model: string
+          name: string
+          objective?: string | null
+          output?: Json | null
+          role: Database["public"]["Enums"]["hermes_agent_role"]
+          status?: Database["public"]["Enums"]["hermes_agent_status"]
+          system_prompt?: string
+          task_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          iteration_count?: number
+          model?: string
+          name?: string
+          objective?: string | null
+          output?: Json | null
+          role?: Database["public"]["Enums"]["hermes_agent_role"]
+          status?: Database["public"]["Enums"]["hermes_agent_status"]
+          system_prompt?: string
+          task_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hermes_agents_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "hermes_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hermes_role_presets: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          default_model: string
+          enabled: boolean
+          id: string
+          name: string
+          role: Database["public"]["Enums"]["hermes_agent_role"]
+          sort_order: number
+          system_prompt: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          default_model: string
+          enabled?: boolean
+          id?: string
+          name: string
+          role: Database["public"]["Enums"]["hermes_agent_role"]
+          sort_order?: number
+          system_prompt: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          default_model?: string
+          enabled?: boolean
+          id?: string
+          name?: string
+          role?: Database["public"]["Enums"]["hermes_agent_role"]
+          sort_order?: number
+          system_prompt?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      hermes_settings: {
+        Row: {
+          allowed_tools: string[]
+          created_at: string
+          default_model: string
+          max_agents: number
+          max_iterations: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          allowed_tools?: string[]
+          created_at?: string
+          default_model?: string
+          max_agents?: number
+          max_iterations?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          allowed_tools?: string[]
+          created_at?: string
+          default_model?: string
+          max_agents?: number
+          max_iterations?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      hermes_steps: {
+        Row: {
+          agent_id: string
+          content: Json
+          created_at: string
+          id: string
+          step_type: Database["public"]["Enums"]["hermes_step_type"]
+          task_id: string
+          tokens_used: number
+          user_id: string
+        }
+        Insert: {
+          agent_id: string
+          content?: Json
+          created_at?: string
+          id?: string
+          step_type: Database["public"]["Enums"]["hermes_step_type"]
+          task_id: string
+          tokens_used?: number
+          user_id: string
+        }
+        Update: {
+          agent_id?: string
+          content?: Json
+          created_at?: string
+          id?: string
+          step_type?: Database["public"]["Enums"]["hermes_step_type"]
+          task_id?: string
+          tokens_used?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hermes_steps_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "hermes_agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hermes_steps_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "hermes_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hermes_tasks: {
+        Row: {
+          created_at: string
+          error: string | null
+          final_output: Json | null
+          goal: string
+          id: string
+          max_agents: number
+          max_iterations: number
+          model: string
+          result_summary: string | null
+          status: Database["public"]["Enums"]["hermes_task_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          error?: string | null
+          final_output?: Json | null
+          goal: string
+          id?: string
+          max_agents?: number
+          max_iterations?: number
+          model: string
+          result_summary?: string | null
+          status?: Database["public"]["Enums"]["hermes_task_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          error?: string | null
+          final_output?: Json | null
+          goal?: string
+          id?: string
+          max_agents?: number
+          max_iterations?: number
+          model?: string
+          result_summary?: string | null
+          status?: Database["public"]["Enums"]["hermes_task_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       model_skills: {
         Row: {
           component: Database["public"]["Enums"]["skill_component"]
@@ -235,6 +453,26 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user" | "sysadmin"
+      hermes_agent_role: "planner" | "worker" | "critic" | "custom"
+      hermes_agent_status:
+        | "idle"
+        | "running"
+        | "completed"
+        | "failed"
+        | "cancelled"
+      hermes_step_type:
+        | "thought"
+        | "tool_call"
+        | "tool_result"
+        | "final"
+        | "error"
+      hermes_task_status:
+        | "queued"
+        | "planning"
+        | "running"
+        | "completed"
+        | "failed"
+        | "cancelled"
       prompt_category: "strategic" | "compliance" | "market" | "sales"
       skill_component:
         | "vetting_strategic"
@@ -373,6 +611,29 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user", "sysadmin"],
+      hermes_agent_role: ["planner", "worker", "critic", "custom"],
+      hermes_agent_status: [
+        "idle",
+        "running",
+        "completed",
+        "failed",
+        "cancelled",
+      ],
+      hermes_step_type: [
+        "thought",
+        "tool_call",
+        "tool_result",
+        "final",
+        "error",
+      ],
+      hermes_task_status: [
+        "queued",
+        "planning",
+        "running",
+        "completed",
+        "failed",
+        "cancelled",
+      ],
       prompt_category: ["strategic", "compliance", "market", "sales"],
       skill_component: [
         "vetting_strategic",
