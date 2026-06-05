@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, Settings, Sparkles, Users, Activity, LayoutDashboard } from "lucide-react";
+import { Loader2, Flame, Settings, Sparkles, Users, Activity, LayoutDashboard } from "lucide-react";
 import { checkAdmin } from "@/lib/api/prompt-templates.functions";
 import { NotAuthorized } from "@/components/site/NotAuthorized";
 
@@ -37,12 +37,28 @@ function AdminDashboardPage() {
   ] as const;
 
   return (
-    <main className="min-h-screen bg-background text-foreground pt-24">
-      <div className="border-b border-border">
-        <div className="mx-auto max-w-7xl px-6 py-4 flex items-center justify-end">
+    <main className="min-h-screen bg-background text-foreground">
+      <header className="border-b border-border">
+        <div className="mx-auto max-w-7xl px-6 py-5 flex items-center justify-between">
+          <div className="flex items-center gap-6">
+            <Link to="/admin" className="flex items-center gap-2 font-display font-semibold">
+              <span className="grid h-7 w-7 place-items-center rounded-md bg-gradient-ember text-ember-foreground shadow-ember">
+                <Flame className="h-4 w-4" />
+              </span>
+              IdeaForge
+            </Link>
+            <nav className="hidden md:flex items-center gap-5 text-sm text-muted-foreground">
+              <Link to="/dashboard" className="hover:text-foreground transition">My Projects</Link>
+              <Link to="/hermes" className="hover:text-foreground transition">Agents</Link>
+              <Link to="/admin/prompt-templates" className="hover:text-foreground transition">Prompts</Link>
+              <Link to="/admin/skills" className="hover:text-foreground transition">Skills</Link>
+              <Link to="/admin/users" className="hover:text-foreground transition">Users</Link>
+              <Link to="/admin/audit-log" className="hover:text-foreground transition">Audit Log</Link>
+            </nav>
+          </div>
           <span className="text-xs uppercase tracking-[0.2em] text-ember">Admin</span>
         </div>
-      </div>
+      </header>
       <section className="mx-auto max-w-7xl px-6 py-16">
         <p className="text-xs uppercase tracking-[0.2em] text-ember">Control Center</p>
         <h1 className="mt-3 font-display text-4xl sm:text-5xl font-semibold">Admin Dashboard</h1>
