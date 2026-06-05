@@ -99,16 +99,33 @@ function DashboardPage() {
   };
 
 
+  // "Claim admin": any authed user when no admin exists yet.
+  // "Claim sysadmin": admin user when no sysadmin exists yet.
+  const canClaimAdmin = isAuthed === true && adminQuery.isFetched && !adminExists;
+  const canClaimSysadmin = isAuthed === true && adminQuery.isFetched && isAdmin && !sysadminExists;
+  const showClaim = canClaimAdmin || canClaimSysadmin;
+
   return (
     <main className="min-h-screen bg-background text-foreground">
       <header className="border-b border-border">
         <div className="mx-auto max-w-7xl px-6 py-5 flex items-center justify-between">
-          <Link to={isSysadmin ? "/sysadmin" : isAdmin ? "/admin" : "/dashboard"} className="flex items-center gap-2 font-display font-semibold">
-            <span className="grid h-7 w-7 place-items-center rounded-md bg-gradient-ember text-ember-foreground shadow-ember">
-              <Flame className="h-4 w-4" />
-            </span>
-            IdeaForge
-          </Link>
+          <div className="flex items-center gap-6">
+            <Link to={isSysadmin ? "/sysadmin" : isAdmin ? "/admin" : "/dashboard"} className="flex items-center gap-2 font-display font-semibold">
+              <span className="grid h-7 w-7 place-items-center rounded-md bg-gradient-ember text-ember-foreground shadow-ember">
+                <Flame className="h-4 w-4" />
+              </span>
+              IdeaForge
+            </Link>
+            {isAuthed === true && (
+              <Link
+                to="/hermes"
+                className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+                title="Hermes agents"
+              >
+                <Sparkles className="h-4 w-4" /> Agents
+              </Link>
+            )}
+          </div>
           <div className="flex items-center gap-2">
             {isAdmin && (
               <>
@@ -135,14 +152,14 @@ function DashboardPage() {
                 </Link>
               </>
             )}
-            {isAuthed === true && !sysadminExists && adminQuery.isFetched && (
+            {showClaim && (
               <button
                 onClick={handleClaimAdmin}
                 disabled={claiming}
                 className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground px-3 py-2 disabled:opacity-50"
                 title={t("dashboard.claimAdminTitle")}
               >
-                <Sparkles className="h-4 w-4" /> {claiming ? t("dashboard.claiming") : (adminExists ? "Claim sysadmin" : t("dashboard.claimAdmin"))}
+                <Sparkles className="h-4 w-4" /> {claiming ? t("dashboard.claiming") : (canClaimSysadmin ? "Claim sysadmin" : t("dashboard.claimAdmin"))}
               </button>
             )}
             {isAuthed === true && (
@@ -170,15 +187,6 @@ function DashboardPage() {
               </Link>
             ) : (
               <span className="inline-flex w-16" aria-hidden />
-            )}
-            {isAuthed === true && (
-              <Link
-                to="/hermes"
-                className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground px-3 py-2"
-                title="Hermes agents"
-              >
-                <Sparkles className="h-4 w-4" /> Hermes
-              </Link>
             )}
             <Link
               to="/intake"
