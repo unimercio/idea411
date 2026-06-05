@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { listHermesTasks, deleteHermesTask, type HermesTask } from "@/lib/api/hermes.functions";
-import { ArrowRight, Bot, Loader2, Trash2 } from "lucide-react";
+import { ArrowRight, Bot, Loader2, ScrollText, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/hermes/")({
