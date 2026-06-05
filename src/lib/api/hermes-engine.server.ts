@@ -217,12 +217,12 @@ export async function runHermesTask(opts: {
     const workerModel = workerPreset?.default_model ?? task.model;
     const workerPrompt = workerPreset?.system_prompt ?? DEFAULT_WORKER_PROMPT;
 
-    const workerOutputs: Array<{ title: string; objective: string; answer: string }> = [];
-
-    for (const st of subtasks) {
+    const runWorker = async (
+      st: { title: string; objective: string },
+      index: number,
+    ): Promise<{ title: string; objective: string; answer: string }> => {
       if (await isCancelled(supabase, taskId)) {
-        emit({ type: "task_failed", error: "Cancelled by user" });
-        return;
+        return { title: st.title, objective: st.objective, answer: "(cancelled)" };
       }
       const { data: w } = await supabase
         .from("hermes_agents")
@@ -253,11 +253,10 @@ export async function runHermesTask(opts: {
         if (await isCancelled(supabase, taskId)) {
           await supabase.from("hermes_agents").update({ status: "cancelled" }).eq("id", w.id);
           emit({ type: "agent_status", agentId: w.id, status: "cancelled" });
-          emit({ type: "task_failed", error: "Cancelled by user" });
-          return;
+          break;
         }
         const turn = await chat(workerModel, history, { json: true });
-        await recordStep(supabase, userId, taskId, w.id, "thought", { text: turn.content, iter }, turn.tokens, emit);
+        await recordStep(supabase, userId, taskId, w.id, "thought", { text: turn.content, iter, worker: index }, turn.tokens, emit);
         const j = tryParseJSON<{ thought?: string; tool?: string; args?: any }>(turn.content);
         if (!j || !j.tool) {
           await recordStep(supabase, userId, taskId, w.id, "error", { reason: "Worker returned non-JSON" }, 0, emit);
@@ -289,14 +288,27 @@ export async function runHermesTask(opts: {
         .update({ status: answer ? "completed" : "failed", output: { answer: finalAnswer } })
         .eq("id", w.id);
       emit({ type: "agent_status", agentId: w.id, status: answer ? "completed" : "failed" });
-      workerOutputs.push({ title: st.title, objective: st.objective, answer: finalAnswer });
-    }
+      return { title: st.title, objective: st.objective, answer: finalAnswer };
+    };
 
-    // 3. CRITIC
+    // Run workers in parallel — each streams its own progress concurrently via emit().
+    const settled = await Promise.allSettled(subtasks.map((st, i) => runWorker(st, i)));
+    const workerOutputs: Array<{ title: string; objective: string; answer: string }> = settled.map((r, i) =>
+      r.status === "fulfilled"
+        ? r.value
+        : {
+            title: subtasks[i].title,
+            objective: subtasks[i].objective,
+            answer: `(worker error: ${r.reason instanceof Error ? r.reason.message : String(r.reason)})`,
+          },
+    );
+
     if (await isCancelled(supabase, taskId)) {
       emit({ type: "task_failed", error: "Cancelled by user" });
       return;
     }
+
+    // 3. CRITIC
 
     const criticPreset = await loadRolePreset(supabase, "critic");
     const criticModel = criticPreset?.default_model ?? task.model;
