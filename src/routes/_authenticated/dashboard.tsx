@@ -106,97 +106,19 @@ function DashboardPage() {
   const showClaim = canClaimAdmin || canClaimSysadmin;
 
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      <header className="border-b border-border">
-        <div className="mx-auto max-w-7xl px-6 py-5 flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <Link to={isSysadmin ? "/sysadmin" : isAdmin ? "/admin" : "/dashboard"} className="flex items-center gap-2 font-display font-semibold">
-              <span className="grid h-7 w-7 place-items-center rounded-md bg-gradient-ember text-ember-foreground shadow-ember">
-                <Flame className="h-4 w-4" />
-              </span>
-              IdeaForge
-            </Link>
-            {isAuthed === true && (
-              <Link
-                to="/hermes"
-                className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
-                title="Hermes agents"
-              >
-                <Sparkles className="h-4 w-4" /> Agents
-              </Link>
-            )}
-          </div>
-          <div className="flex items-center gap-2">
-            {isAdmin && (
-              <>
-                <Link
-                  to="/admin/prompt-templates"
-                  className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground px-3 py-2"
-                  title={t("dashboard.managePrompts")}
-                >
-                  <Settings className="h-4 w-4" /> {t("dashboard.prompts")}
-                </Link>
-                <Link
-                  to="/admin/skills"
-                  className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground px-3 py-2"
-                  title={t("dashboard.manageSkills")}
-                >
-                  <Sparkles className="h-4 w-4" /> {t("dashboard.skills")}
-                </Link>
-                <Link
-                  to="/admin/users"
-                  className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground px-3 py-2"
-                  title={t("dashboard.manageUsers")}
-                >
-                  <Users className="h-4 w-4" /> {t("dashboard.users")}
-                </Link>
-              </>
-            )}
-            {showClaim && (
-              <button
-                onClick={handleClaimAdmin}
-                disabled={claiming}
-                className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground px-3 py-2 disabled:opacity-50"
-                title={t("dashboard.claimAdminTitle")}
-              >
-                <Sparkles className="h-4 w-4" /> {claiming ? t("dashboard.claiming") : (canClaimSysadmin ? "Claim sysadmin" : t("dashboard.claimAdmin"))}
-              </button>
-            )}
-            {isAuthed === true && (
-              <Link
-                to="/settings"
-                className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground px-3 py-2"
-                title={t("dashboard.accountSettings")}
-              >
-                <Settings className="h-4 w-4" /> {t("dashboard.settings")}
-              </Link>
-            )}
-            {isAuthed === true ? (
-              <button
-                onClick={handleSignOut}
-                className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground px-3 py-2"
-              >
-                {t("dashboard.signOut")}
-              </button>
-            ) : isAuthed === false ? (
-              <Link
-                to="/auth"
-                className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground px-3 py-2"
-              >
-                {t("dashboard.signIn")}
-              </Link>
-            ) : (
-              <span className="inline-flex w-16" aria-hidden />
-            )}
-            <Link
-              to="/intake"
-              className="inline-flex items-center gap-2 rounded-full bg-gradient-ember px-4 py-2 text-sm font-medium text-ember-foreground shadow-ember hover:brightness-110 transition"
-            >
-              <Plus className="h-4 w-4" /> {t("dashboard.newIdea")}
-            </Link>
-          </div>
+    <main className="min-h-screen bg-background text-foreground pt-24">
+      {showClaim && (
+        <div className="mx-auto max-w-7xl px-6 pt-6">
+          <button
+            onClick={handleClaimAdmin}
+            disabled={claiming}
+            className="inline-flex items-center gap-1.5 rounded-full border border-ember/40 bg-ember/10 px-4 py-2 text-sm text-ember hover:brightness-110 transition disabled:opacity-50"
+            title={t("dashboard.claimAdminTitle")}
+          >
+            <Sparkles className="h-4 w-4" /> {claiming ? t("dashboard.claiming") : (canClaimSysadmin ? "Claim sysadmin" : t("dashboard.claimAdmin"))}
+          </button>
         </div>
-      </header>
+      )}
 
       {isAuthed === true && adminQuery.isFetched && (
         <div className="mx-auto max-w-7xl px-6 pt-6">
