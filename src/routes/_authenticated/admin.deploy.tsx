@@ -13,6 +13,7 @@ import {
   Clock,
   CircleDot,
   Terminal,
+  HeartPulse,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -313,6 +314,8 @@ function LiveConsole({
         </div>
       ) : (
         <>
+          <HealthCard job={job} isRunning={isRunning} />
+
           <ol className="mt-5 space-y-1.5">
             {job.steps.map((s) => (
               <StepRow key={`${s.number}-${s.name}`} step={s} />
@@ -403,3 +406,135 @@ function statusFor(r: DeployRun) {
   }
   return { icon: <Clock className="h-4 w-4" />, color: "text-muted-foreground", label: r.conclusion ?? r.status ?? "unknown" };
 }
+
+type HealthCheckKind = "pm2" | "port" | "local" | "public";
+const HEALTH_CHECKS: { kind: HealthCheckKind; label: string; match: RegExp }[] = [
+  { kind: "pm2", label: "PM2 process online", match: /pm2 process up/i },
+  { kind: "port", label: "Port 3000 listening", match: /port 3000 listening/i },
+  { kind: "local", label: "Local smoke request", match: /local smoke request/i },
+  { kind: "public", label: "Public smoke request", match: /public smoke request/i },
+];
+
+type LiveHealth =
+  | { state: "idle" }
+  | { state: "loading" }
+  | { state: "ok"; latencyMs: number; uptimeSeconds?: number | null; commit?: string | null }
+  | { state: "error"; message: string };
+
+function HealthCard({ job, isRunning }: { job: DeployJob; isRunning: boolean }) {
+  const [live, setLive] = useState<LiveHealth>({ state: "idle" });
+
+  const runHealthPing = async () => {
+    setLive({ state: "loading" });
+    const started = performance.now();
+    try {
+      const res = await fetch("/api/public/health", { cache: "no-store" });
+      const latencyMs = Math.round(performance.now() - started);
+      if (!res.ok) {
+        setLive({ state: "error", message: `HTTP ${res.status}` });
+        return;
+      }
+      const body = await res.json();
+      setLive({
+        state: "ok",
+        latencyMs,
+        uptimeSeconds: body?.uptimeSeconds ?? null,
+        commit: body?.commit ?? null,
+      });
+    } catch (e: any) {
+      setLive({ state: "error", message: e?.message ?? "Network error" });
+    }
+  };
+
+  // Auto-ping once the workflow finishes, then let the user re-ping manually.
+  useEffect(() => {
+    if (!isRunning && live.state === "idle") {
+      void runHealthPing();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isRunning]);
+
+  const summary = HEALTH_CHECKS.map((hc) => {
+    const step = job.steps.find((s) => hc.match.test(s.name));
+    return { ...hc, step };
+  });
+
+  const overall = summary.every(
+    (s) => s.step?.conclusion === "success" || s.step?.conclusion === "skipped",
+  )
+    ? "ok"
+    : summary.some((s) => s.step?.conclusion === "failure" || s.step?.conclusion === "timed_out")
+      ? "fail"
+      : "pending";
+
+  return (
+    <div className="mt-5 rounded-2xl border border-border bg-background/40 p-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <HeartPulse
+            className={`h-4 w-4 ${
+              overall === "ok" ? "text-emerald-500" : overall === "fail" ? "text-destructive" : "text-ember"
+            }`}
+          />
+          <h3 className="font-display text-sm font-semibold">Post-deploy health</h3>
+          <Badge variant="outline" className="text-xs">
+            {overall === "ok" ? "all checks passed" : overall === "fail" ? "failures detected" : "pending"}
+          </Badge>
+        </div>
+        <button
+          onClick={runHealthPing}
+          disabled={live.state === "loading"}
+          className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground disabled:opacity-50"
+        >
+          <RefreshCw className={`h-3 w-3 ${live.state === "loading" ? "animate-spin" : ""}`} />
+          Re-ping /api/public/health
+        </button>
+      </div>
+
+      <ul className="mt-3 grid gap-1.5 sm:grid-cols-2">
+        {summary.map((s) => {
+          const meta = s.step
+            ? stepStatus(s.step)
+            : { icon: <CircleDot className="h-4 w-4" />, color: "text-muted-foreground", label: "skipped" };
+          return (
+            <li
+              key={s.kind}
+              className="flex items-center gap-2 rounded-lg border border-border/50 bg-card/40 px-3 py-1.5 text-xs"
+            >
+              <span className={meta.color}>{meta.icon}</span>
+              <span className="flex-1 truncate">{s.label}</span>
+              <span className="text-muted-foreground">{meta.label}</span>
+            </li>
+          );
+        })}
+      </ul>
+
+      <div className="mt-3 rounded-lg border border-border/50 bg-card/40 px-3 py-2 text-xs">
+        <span className="font-medium">Live ping from your browser: </span>
+        {live.state === "idle" ? (
+          <span className="text-muted-foreground">not run yet</span>
+        ) : live.state === "loading" ? (
+          <span className="inline-flex items-center gap-1 text-ember">
+            <Loader2 className="h-3 w-3 animate-spin" /> calling…
+          </span>
+        ) : live.state === "ok" ? (
+          <span className="inline-flex items-center gap-2">
+            <span className="inline-flex items-center gap-1 text-emerald-500">
+              <CheckCircle2 className="h-3 w-3" /> 200 OK
+            </span>
+            <span className="text-muted-foreground">
+              {live.latencyMs}ms
+              {typeof live.uptimeSeconds === "number" ? ` · uptime ${live.uptimeSeconds}s` : ""}
+              {live.commit ? ` · ${live.commit.slice(0, 7)}` : ""}
+            </span>
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1 text-destructive">
+            <XCircle className="h-3 w-3" /> {live.message}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+

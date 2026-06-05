@@ -58,6 +58,23 @@ Set these under **Settings → Secrets and variables → Actions** in
 | `VPS_SSH_KEY`   | full private key, incl. headers  |
 | `VPS_APP_DIR`   | `/home/deploy/idea411`           |
 
+Optional **repository variable** (Settings → Variables → Actions):
+
+| Variable          | Example                          | Purpose                                        |
+| ----------------- | -------------------------------- | ---------------------------------------------- |
+| `PUBLIC_APP_URL`  | `https://your-domain.com`        | Enables the public smoke request health check. |
+
+## Post-deploy health checks
+
+Every deploy runs four checks (visible per-step in the admin **Live console**):
+1. **PM2 process online** — `pm2 jlist` shows `idea411` with status `online`.
+2. **Port 3000 listening** — `ss -ltn` confirms the bind within 30s.
+3. **Local smoke request** — `curl http://127.0.0.1:3000/api/public/health` returns 2xx.
+4. **Public smoke request** — same endpoint via `PUBLIC_APP_URL` (skipped if unset).
+
+The admin page also pings `/api/public/health` directly from your browser after the
+workflow finishes and shows latency + uptime + commit.
+
 ## First deploy
 
 From the admin page click **Deploy now**, or run locally:
