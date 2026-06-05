@@ -240,21 +240,16 @@ export const testFocusGroup = createServerFn({ method: "POST" })
     if (roleErr) throw new Error(roleErr.message);
     if (!isAdmin) throw new Error("Forbidden: admin role required");
 
-    const apiKey = process.env.LOVABLE_API_KEY;
-    if (!apiKey) throw new Error("LOVABLE_API_KEY is not configured on the server.");
-
     const skill = await resolveSkill("focus_group");
-    const model = skill?.model ?? FOCUS_GROUP_MODEL;
+    const modelId = skill?.model ?? FOCUS_GROUP_MODEL;
+    const ep = resolveAiEndpoint(modelId);
     const systemPrompt = withSkillPreamble(FOCUS_GROUP_SYSTEM, skill);
 
-    const res = await fetch(GATEWAY, {
+    const res = await fetch(ep.url, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
+      headers: buildAiHeaders(ep),
       body: JSON.stringify({
-        model,
+        model: ep.model,
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: TEST_USER_PROMPT },
@@ -277,7 +272,7 @@ export const testFocusGroup = createServerFn({ method: "POST" })
     const output = json.choices?.[0]?.message?.content?.trim();
     if (!output) throw new Error("AI returned no output.");
     return {
-      model,
+      model: modelId,
       skillName: skill?.name ?? null,
       output,
     };
