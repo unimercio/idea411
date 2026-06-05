@@ -24,6 +24,12 @@ function HermesTasksPage() {
             Submit a goal, Hermes spawns planner/worker/critic agents using your chosen OpenRouter model.
           </p>
         </div>
+        <Link
+          to="/hermes/agents"
+          className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card/60 px-4 py-2 text-sm text-foreground hover:border-ember/40 hover:text-ember transition"
+        >
+          <ScrollText className="h-3.5 w-3.5" /> Log
+        </Link>
       </div>
 
       {q.isLoading && (
