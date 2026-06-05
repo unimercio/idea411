@@ -88,12 +88,6 @@ export function Nav() {
             ) : (
               <span className="hidden sm:inline-flex w-16" aria-hidden />
             )}
-            <Link
-              to="/intake"
-              className="inline-flex items-center rounded-full bg-gradient-ember px-4 py-2 text-sm font-medium text-ember-foreground shadow-ember hover:brightness-110 transition"
-            >
-              {t("common.startForging")}
-            </Link>
           </div>
         </div>
       </div>
