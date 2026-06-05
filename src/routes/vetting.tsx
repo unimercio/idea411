@@ -205,15 +205,17 @@ function Shell({ children }: { children: React.ReactNode }) {
     <main className="min-h-screen bg-background text-foreground">
       <header className="border-b border-border">
         <div className="mx-auto max-w-7xl px-6 py-5 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 font-display font-semibold">
-            <span className="grid h-7 w-7 place-items-center rounded-md bg-gradient-ember text-ember-foreground shadow-ember">
-              <Flame className="h-4 w-4" />
-            </span>
-            IdeaForge
-          </Link>
-          <Link to="/dashboard" className="text-sm text-muted-foreground hover:text-foreground transition">
-            Dashboard →
-          </Link>
+          <div className="flex items-center gap-6">
+            <Link to="/" className="flex items-center gap-2 font-display font-semibold">
+              <span className="grid h-7 w-7 place-items-center rounded-md bg-gradient-ember text-ember-foreground shadow-ember">
+                <Flame className="h-4 w-4" />
+              </span>
+              IdeaForge
+            </Link>
+            <Link to="/dashboard" className="text-sm text-muted-foreground hover:text-foreground transition">
+              Dashboard
+            </Link>
+          </div>
         </div>
       </header>
       {children}
