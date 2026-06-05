@@ -11,6 +11,7 @@ import {
 import appCss from "../styles.css?url";
 import "../i18n";
 import { LanguageProvider } from "../i18n/LanguageProvider";
+import { Nav } from "../components/site/Nav";
 
 function NotFoundComponent() {
   return (
@@ -130,6 +131,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
+        <Nav />
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
       </LanguageProvider>

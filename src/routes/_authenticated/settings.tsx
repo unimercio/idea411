@@ -1,8 +1,8 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Flame, Save, Upload, Trash2, User } from "lucide-react";
+import { Save, Upload, Trash2, User } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
@@ -159,23 +159,8 @@ function SettingsPage() {
   };
 
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      <header className="border-b border-border">
-        <div className="mx-auto max-w-3xl px-6 py-5 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 font-display font-semibold">
-            <span className="grid h-7 w-7 place-items-center rounded-md bg-gradient-ember text-ember-foreground shadow-ember">
-              <Flame className="h-4 w-4" />
-            </span>
-            IdeaForge
-          </Link>
-          <Link
-            to="/dashboard"
-            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
-          >
-            <ArrowLeft className="h-4 w-4" /> {t("common.backToProjects")}
-          </Link>
-        </div>
-      </header>
+    <main className="min-h-screen bg-background text-foreground pt-24">
+
 
       <section className="mx-auto max-w-3xl px-6 py-10">
         <div className="mb-8">

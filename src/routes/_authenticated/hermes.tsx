@@ -1,5 +1,5 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
-import { Flame, Users2, Plus, Settings as SettingsIcon } from "lucide-react";
+import { Users2, Plus, Settings as SettingsIcon } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/hermes")({
   head: () => ({
@@ -22,15 +22,9 @@ function HermesLayout() {
   const tasksActive = pathname === "/hermes";
   const settingsActive = pathname.startsWith("/hermes/settings");
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      <header className="border-b border-border">
-        <div className="mx-auto max-w-7xl px-6 py-5 flex items-center justify-between gap-4 flex-wrap">
-          <Link to="/dashboard" className="flex items-center gap-2 font-display font-semibold">
-            <span className="grid h-7 w-7 place-items-center rounded-md bg-gradient-ember text-ember-foreground shadow-ember">
-              <Flame className="h-4 w-4" />
-            </span>
-            IdeaForge
-          </Link>
+    <main className="min-h-screen bg-background text-foreground pt-24">
+      <div className="border-b border-border">
+        <div className="mx-auto max-w-7xl px-6 py-4 flex items-center justify-end gap-4 flex-wrap">
           <nav className="flex items-center gap-1.5">
             <Link to="/hermes" className={tabClass(tasksActive)}>
               <Users2 className="h-3.5 w-3.5" /> Agents
@@ -46,7 +40,7 @@ function HermesLayout() {
             </Link>
           </nav>
         </div>
-      </header>
+      </div>
       <Outlet />
     </main>
   );
