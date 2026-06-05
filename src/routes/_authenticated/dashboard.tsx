@@ -7,14 +7,11 @@ import { useTranslation } from "react-i18next";
 import {
   AlertTriangle,
   ArrowRight,
-  Flame,
   Plus,
-  Settings,
   ShieldCheck,
   ShieldQuestion,
   Sparkles,
   Trash2,
-  Users,
 } from "lucide-react";
 import {
   deleteProject,
@@ -88,15 +85,7 @@ function DashboardPage() {
     }
   };
 
-  const handleSignOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    toast.success(t("dashboard.signedOut"));
-    navigate({ to: "/", replace: true });
-  };
+
 
 
   // "Claim admin": any authed user when no admin exists yet.
