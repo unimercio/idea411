@@ -2,11 +2,11 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { analysisSchema, type Analysis } from "./vetting.functions";
 import { resolveSkill, withSkillPreamble } from "./skills.server";
+import { resolveAiEndpoint, buildAiHeaders } from "./ai-gateway.server";
 
 export const FOCUS_GROUP_GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
 /** Fallback model used only if no enabled `focus_group` skill row exists. */
 export const FOCUS_GROUP_MODEL = "openai/gpt-5-mini";
-const GATEWAY = FOCUS_GROUP_GATEWAY;
 
 export const focusGroupInputSchema = z.object({
   idea: z.string().min(1).max(4000),
@@ -166,11 +166,8 @@ export const runFocusGroup = createServerFn({ method: "POST" })
     }),
   )
   .handler(async ({ data }) => {
-    const apiKey = process.env.LOVABLE_API_KEY;
-    if (!apiKey) throw new Error("LOVABLE_API_KEY is not configured on the server.");
-
     const skill = await resolveSkill("focus_group");
-    const model = skill?.model ?? FOCUS_GROUP_MODEL;
+    const ep = resolveAiEndpoint(skill?.model ?? FOCUS_GROUP_MODEL);
     const systemPrompt = withSkillPreamble(FOCUS_GROUP_SYSTEM, skill);
 
     const userPrompt = `PRODUCT/SERVICE IDEA:
@@ -194,14 +191,11 @@ MARKET CONTEXT:
 
 Run the full focus group now following the exact output format.`;
 
-    const res = await fetch(GATEWAY, {
+    const res = await fetch(ep.url, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
+      headers: buildAiHeaders(ep),
       body: JSON.stringify({
-        model,
+        model: ep.model,
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
