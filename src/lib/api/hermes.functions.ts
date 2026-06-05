@@ -42,7 +42,7 @@ export type HermesStep = {
   agent_id: string;
   task_id: string;
   step_type: HermesStepType;
-  content: Record<string, unknown>;
+  content: Record<string, any>;
   tokens_used: number;
   created_at: string;
 };
