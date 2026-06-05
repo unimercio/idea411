@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { listHermesTasks, deleteHermesTask, type HermesTask } from "@/lib/api/hermes.functions";
-import { ArrowRight, Bot, Loader2, Trash2 } from "lucide-react";
+import { ArrowRight, Bot, Loader2, ScrollText, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/hermes/")({
@@ -24,6 +24,12 @@ function HermesTasksPage() {
             Submit a goal, Hermes spawns planner/worker/critic agents using your chosen OpenRouter model.
           </p>
         </div>
+        <Link
+          to="/hermes/agents"
+          className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card/60 px-4 py-2 text-sm text-foreground hover:border-ember/40 hover:text-ember transition"
+        >
+          <ScrollText className="h-3.5 w-3.5" /> Log
+        </Link>
       </div>
 
       {q.isLoading && (

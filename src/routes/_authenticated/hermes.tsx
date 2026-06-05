@@ -1,5 +1,5 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
-import { Flame, Users2, Plus, Settings as SettingsIcon, ScrollText } from "lucide-react";
+import { Flame, Users2, Plus, Settings as SettingsIcon } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/hermes")({
   head: () => ({
@@ -20,7 +20,6 @@ function HermesLayout() {
         : "text-muted-foreground hover:text-foreground"
     }`;
   const tasksActive = pathname === "/hermes";
-  const agentsActive = pathname.startsWith("/hermes/agents");
   const settingsActive = pathname.startsWith("/hermes/settings");
   return (
     <main className="min-h-screen bg-background text-foreground">
@@ -35,9 +34,6 @@ function HermesLayout() {
           <nav className="flex items-center gap-1.5">
             <Link to="/hermes" className={tabClass(tasksActive)}>
               <Users2 className="h-3.5 w-3.5" /> Agents
-            </Link>
-            <Link to="/hermes/agents" className={tabClass(agentsActive)}>
-              <ScrollText className="h-3.5 w-3.5" /> Log
             </Link>
             <Link to="/hermes/settings" className={tabClass(settingsActive)}>
               <SettingsIcon className="h-3.5 w-3.5" /> Settings
