@@ -482,3 +482,97 @@ function FocusGroupTester() {
     </div>
   );
 }
+
+function ModelCombobox({
+  value,
+  onChange,
+  isPerplexity,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  isPerplexity: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const listFn = useServerFn(listOpenRouterModels);
+  const orQuery = useQuery({
+    queryKey: ["openrouterModels"],
+    queryFn: () => listFn(),
+    enabled: !isPerplexity,
+    staleTime: 10 * 60 * 1000,
+  });
+
+  const options = useMemo(() => {
+    if (isPerplexity) {
+      return PERPLEXITY_MODELS.map((m) => ({ id: m, label: m, group: "Perplexity" }));
+    }
+    const gw = GATEWAY_MODELS.map((m) => ({ id: m, label: m, group: "Lovable AI Gateway" }));
+    const or = (orQuery.data?.models ?? []).map((m) => ({
+      id: `openrouter/${m.id}`,
+      label: `${m.name} — ${m.id}`,
+      group: "OpenRouter",
+    }));
+    return [...gw, ...or];
+  }, [isPerplexity, orQuery.data]);
+
+  const grouped = useMemo(() => {
+    const g: Record<string, { id: string; label: string }[]> = {};
+    for (const o of options) {
+      (g[o.group] ||= []).push({ id: o.id, label: o.label });
+    }
+    return g;
+  }, [options]);
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="mt-1 w-full justify-between font-mono text-xs"
+        >
+          <span className="truncate">{value || "Select a model…"}</span>
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[420px] p-0" align="start">
+        <Command>
+          <CommandInput placeholder="Search models…" />
+          <CommandList className="max-h-80">
+            {orQuery.isLoading && !isPerplexity && (
+              <div className="p-3 text-xs text-muted-foreground">Loading OpenRouter…</div>
+            )}
+            {orQuery.isError && !isPerplexity && (
+              <div className="p-3 text-xs text-destructive">
+                Failed to load OpenRouter models: {(orQuery.error as Error).message}
+              </div>
+            )}
+            <CommandEmpty>No models found.</CommandEmpty>
+            {Object.entries(grouped).map(([group, items]) => (
+              <CommandGroup key={group} heading={group}>
+                {items.map((o) => (
+                  <CommandItem
+                    key={o.id}
+                    value={`${o.id} ${o.label}`}
+                    onSelect={() => {
+                      onChange(o.id);
+                      setOpen(false);
+                    }}
+                  >
+                    <Check
+                      className={cn(
+                        "mr-2 h-4 w-4",
+                        value === o.id ? "opacity-100" : "opacity-0",
+                      )}
+                    />
+                    <span className="truncate font-mono text-xs">{o.label}</span>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            ))}
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+}
