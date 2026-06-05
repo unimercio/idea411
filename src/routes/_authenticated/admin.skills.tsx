@@ -306,7 +306,7 @@ function EditorDrawer({
   onSave: () => void;
   saving: boolean;
 }) {
-  const models = modelsForComponent(draft.component);
+  const isPerplexity = draft.component === "market_research";
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-end bg-background/60 backdrop-blur-sm">
       <div className="h-full w-full max-w-xl overflow-y-auto border-l border-border bg-card p-6 shadow-2xl">
@@ -355,21 +355,16 @@ function EditorDrawer({
 
           <div>
             <label className="text-xs text-muted-foreground">Model</label>
-            <Select
+            <ModelCombobox
               value={draft.model}
-              onValueChange={(v) => onChange({ ...draft, model: v })}
-            >
-              <SelectTrigger className="mt-1">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {models.map((m) => (
-                  <SelectItem key={m} value={m}>
-                    {m}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              onChange={(v) => onChange({ ...draft, model: v })}
+              isPerplexity={isPerplexity}
+            />
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              {isPerplexity
+                ? "Market research uses Perplexity models."
+                : "Lovable AI Gateway models or any OpenRouter model (openrouter/…)."}
+            </p>
           </div>
 
           <div>
