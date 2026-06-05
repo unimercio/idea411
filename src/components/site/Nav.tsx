@@ -6,7 +6,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { checkAdmin } from "@/lib/api/prompt-templates.functions";
-import { LanguageSwitcher } from "./LanguageSwitcher";
+
 import { toast } from "sonner";
 import { getHomePath } from "@/lib/home-path";
 
