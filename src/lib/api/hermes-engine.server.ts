@@ -309,10 +309,6 @@ export async function runHermesTask(opts: {
     }
 
     // 3. CRITIC
-    if (await isCancelled(supabase, taskId)) {
-      emit({ type: "task_failed", error: "Cancelled by user" });
-      return;
-    }
 
     const criticPreset = await loadRolePreset(supabase, "critic");
     const criticModel = criticPreset?.default_model ?? task.model;
