@@ -73,8 +73,8 @@ export function Nav() {
             )}
           </nav>
           <div className="flex items-center gap-2">
-            <LanguageSwitcher />
             {isAuthed === true ? (
+
               <button
                 onClick={handleSignOut}
                 className="hidden sm:inline-flex items-center text-sm text-muted-foreground hover:text-foreground px-3 py-1.5"
