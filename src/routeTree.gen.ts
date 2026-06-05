@@ -23,7 +23,6 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedSysadminIndexRouteImport } from './routes/_authenticated/sysadmin.index'
 import { Route as AuthenticatedHermesIndexRouteImport } from './routes/_authenticated/hermes.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
-import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as AuthenticatedHermesSettingsRouteImport } from './routes/_authenticated/hermes.settings'
 import { Route as AuthenticatedHermesNewRouteImport } from './routes/_authenticated/hermes.new'
 import { Route as AuthenticatedHermesAgentsRouteImport } from './routes/_authenticated/hermes.agents'
@@ -32,7 +31,6 @@ import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminSkillsRouteImport } from './routes/_authenticated/admin.skills'
 import { Route as AuthenticatedAdminPromptTemplatesRouteImport } from './routes/_authenticated/admin.prompt-templates'
 import { Route as AuthenticatedAdminHermesPresetsRouteImport } from './routes/_authenticated/admin.hermes-presets'
-import { Route as AuthenticatedAdminDeployRouteImport } from './routes/_authenticated/admin.deploy'
 import { Route as AuthenticatedAdminAuditLogRouteImport } from './routes/_authenticated/admin.audit-log'
 
 const VettingRoute = VettingRouteImport.update({
@@ -106,11 +104,6 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   path: '/admin/',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const ApiPublicHealthRoute = ApiPublicHealthRouteImport.update({
-  id: '/api/public/health',
-  path: '/api/public/health',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthenticatedHermesSettingsRoute =
   AuthenticatedHermesSettingsRouteImport.update({
     id: '/settings',
@@ -157,12 +150,6 @@ const AuthenticatedAdminHermesPresetsRoute =
     path: '/admin/hermes-presets',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedAdminDeployRoute =
-  AuthenticatedAdminDeployRouteImport.update({
-    id: '/admin/deploy',
-    path: '/admin/deploy',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
 const AuthenticatedAdminAuditLogRoute =
   AuthenticatedAdminAuditLogRouteImport.update({
     id: '/admin/audit-log',
@@ -182,7 +169,6 @@ export interface FileRoutesByFullPath {
   '/api/focus-group-stream': typeof ApiFocusGroupStreamRoute
   '/api/hermes-run': typeof ApiHermesRunRoute
   '/admin/audit-log': typeof AuthenticatedAdminAuditLogRoute
-  '/admin/deploy': typeof AuthenticatedAdminDeployRoute
   '/admin/hermes-presets': typeof AuthenticatedAdminHermesPresetsRoute
   '/admin/prompt-templates': typeof AuthenticatedAdminPromptTemplatesRoute
   '/admin/skills': typeof AuthenticatedAdminSkillsRoute
@@ -191,7 +177,6 @@ export interface FileRoutesByFullPath {
   '/hermes/agents': typeof AuthenticatedHermesAgentsRoute
   '/hermes/new': typeof AuthenticatedHermesNewRoute
   '/hermes/settings': typeof AuthenticatedHermesSettingsRoute
-  '/api/public/health': typeof ApiPublicHealthRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/hermes/': typeof AuthenticatedHermesIndexRoute
   '/sysadmin/': typeof AuthenticatedSysadminIndexRoute
@@ -207,7 +192,6 @@ export interface FileRoutesByTo {
   '/api/focus-group-stream': typeof ApiFocusGroupStreamRoute
   '/api/hermes-run': typeof ApiHermesRunRoute
   '/admin/audit-log': typeof AuthenticatedAdminAuditLogRoute
-  '/admin/deploy': typeof AuthenticatedAdminDeployRoute
   '/admin/hermes-presets': typeof AuthenticatedAdminHermesPresetsRoute
   '/admin/prompt-templates': typeof AuthenticatedAdminPromptTemplatesRoute
   '/admin/skills': typeof AuthenticatedAdminSkillsRoute
@@ -216,7 +200,6 @@ export interface FileRoutesByTo {
   '/hermes/agents': typeof AuthenticatedHermesAgentsRoute
   '/hermes/new': typeof AuthenticatedHermesNewRoute
   '/hermes/settings': typeof AuthenticatedHermesSettingsRoute
-  '/api/public/health': typeof ApiPublicHealthRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/hermes': typeof AuthenticatedHermesIndexRoute
   '/sysadmin': typeof AuthenticatedSysadminIndexRoute
@@ -235,7 +218,6 @@ export interface FileRoutesById {
   '/api/focus-group-stream': typeof ApiFocusGroupStreamRoute
   '/api/hermes-run': typeof ApiHermesRunRoute
   '/_authenticated/admin/audit-log': typeof AuthenticatedAdminAuditLogRoute
-  '/_authenticated/admin/deploy': typeof AuthenticatedAdminDeployRoute
   '/_authenticated/admin/hermes-presets': typeof AuthenticatedAdminHermesPresetsRoute
   '/_authenticated/admin/prompt-templates': typeof AuthenticatedAdminPromptTemplatesRoute
   '/_authenticated/admin/skills': typeof AuthenticatedAdminSkillsRoute
@@ -244,7 +226,6 @@ export interface FileRoutesById {
   '/_authenticated/hermes/agents': typeof AuthenticatedHermesAgentsRoute
   '/_authenticated/hermes/new': typeof AuthenticatedHermesNewRoute
   '/_authenticated/hermes/settings': typeof AuthenticatedHermesSettingsRoute
-  '/api/public/health': typeof ApiPublicHealthRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/hermes/': typeof AuthenticatedHermesIndexRoute
   '/_authenticated/sysadmin/': typeof AuthenticatedSysadminIndexRoute
@@ -263,7 +244,6 @@ export interface FileRouteTypes {
     | '/api/focus-group-stream'
     | '/api/hermes-run'
     | '/admin/audit-log'
-    | '/admin/deploy'
     | '/admin/hermes-presets'
     | '/admin/prompt-templates'
     | '/admin/skills'
@@ -272,7 +252,6 @@ export interface FileRouteTypes {
     | '/hermes/agents'
     | '/hermes/new'
     | '/hermes/settings'
-    | '/api/public/health'
     | '/admin/'
     | '/hermes/'
     | '/sysadmin/'
@@ -288,7 +267,6 @@ export interface FileRouteTypes {
     | '/api/focus-group-stream'
     | '/api/hermes-run'
     | '/admin/audit-log'
-    | '/admin/deploy'
     | '/admin/hermes-presets'
     | '/admin/prompt-templates'
     | '/admin/skills'
@@ -297,7 +275,6 @@ export interface FileRouteTypes {
     | '/hermes/agents'
     | '/hermes/new'
     | '/hermes/settings'
-    | '/api/public/health'
     | '/admin'
     | '/hermes'
     | '/sysadmin'
@@ -315,7 +292,6 @@ export interface FileRouteTypes {
     | '/api/focus-group-stream'
     | '/api/hermes-run'
     | '/_authenticated/admin/audit-log'
-    | '/_authenticated/admin/deploy'
     | '/_authenticated/admin/hermes-presets'
     | '/_authenticated/admin/prompt-templates'
     | '/_authenticated/admin/skills'
@@ -324,7 +300,6 @@ export interface FileRouteTypes {
     | '/_authenticated/hermes/agents'
     | '/_authenticated/hermes/new'
     | '/_authenticated/hermes/settings'
-    | '/api/public/health'
     | '/_authenticated/admin/'
     | '/_authenticated/hermes/'
     | '/_authenticated/sysadmin/'
@@ -339,7 +314,6 @@ export interface RootRouteChildren {
   VettingRoute: typeof VettingRoute
   ApiFocusGroupStreamRoute: typeof ApiFocusGroupStreamRoute
   ApiHermesRunRoute: typeof ApiHermesRunRoute
-  ApiPublicHealthRoute: typeof ApiPublicHealthRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -442,13 +416,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/api/public/health': {
-      id: '/api/public/health'
-      path: '/api/public/health'
-      fullPath: '/api/public/health'
-      preLoaderRoute: typeof ApiPublicHealthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_authenticated/hermes/settings': {
       id: '/_authenticated/hermes/settings'
       path: '/settings'
@@ -505,13 +472,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminHermesPresetsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/admin/deploy': {
-      id: '/_authenticated/admin/deploy'
-      path: '/admin/deploy'
-      fullPath: '/admin/deploy'
-      preLoaderRoute: typeof AuthenticatedAdminDeployRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/admin/audit-log': {
       id: '/_authenticated/admin/audit-log'
       path: '/admin/audit-log'
@@ -546,7 +506,6 @@ interface AuthenticatedRouteChildren {
   AuthenticatedHermesRoute: typeof AuthenticatedHermesRouteWithChildren
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedAdminAuditLogRoute: typeof AuthenticatedAdminAuditLogRoute
-  AuthenticatedAdminDeployRoute: typeof AuthenticatedAdminDeployRoute
   AuthenticatedAdminHermesPresetsRoute: typeof AuthenticatedAdminHermesPresetsRoute
   AuthenticatedAdminPromptTemplatesRoute: typeof AuthenticatedAdminPromptTemplatesRoute
   AuthenticatedAdminSkillsRoute: typeof AuthenticatedAdminSkillsRoute
@@ -560,7 +519,6 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedHermesRoute: AuthenticatedHermesRouteWithChildren,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedAdminAuditLogRoute: AuthenticatedAdminAuditLogRoute,
-  AuthenticatedAdminDeployRoute: AuthenticatedAdminDeployRoute,
   AuthenticatedAdminHermesPresetsRoute: AuthenticatedAdminHermesPresetsRoute,
   AuthenticatedAdminPromptTemplatesRoute:
     AuthenticatedAdminPromptTemplatesRoute,
@@ -583,8 +541,17 @@ const rootRouteChildren: RootRouteChildren = {
   VettingRoute: VettingRoute,
   ApiFocusGroupStreamRoute: ApiFocusGroupStreamRoute,
   ApiHermesRunRoute: ApiHermesRunRoute,
-  ApiPublicHealthRoute: ApiPublicHealthRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
