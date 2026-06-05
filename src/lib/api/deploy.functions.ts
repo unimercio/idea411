@@ -36,6 +36,33 @@ export type DeployRun = {
   actor: string | null;
 };
 
+export type DeployStep = {
+  name: string;
+  status: string | null;
+  conclusion: string | null;
+  number: number;
+  started_at: string | null;
+  completed_at: string | null;
+};
+
+export type DeployJob = {
+  id: number;
+  name: string;
+  status: string | null;
+  conclusion: string | null;
+  started_at: string | null;
+  completed_at: string | null;
+  html_url: string | null;
+  steps: DeployStep[];
+};
+
+export type DeployRunDetail = {
+  run: DeployRun;
+  jobs: DeployJob[];
+  logs: string | null;
+  logsTruncated: boolean;
+};
+
 export const triggerVpsDeploy = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
