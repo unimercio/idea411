@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, Flame, Settings, Sparkles, Users, Activity, LayoutDashboard } from "lucide-react";
+import { Loader2, Flame, Settings, Sparkles, Users, Activity, LayoutDashboard, Rocket } from "lucide-react";
 import { checkAdmin } from "@/lib/api/prompt-templates.functions";
 import { NotAuthorized } from "@/components/site/NotAuthorized";
 
@@ -33,6 +33,7 @@ function AdminDashboardPage() {
     { to: "/admin/skills", icon: Sparkles, label: "Skills", desc: "Configure skills" },
     { to: "/admin/users", icon: Users, label: "Users", desc: "Manage users & roles" },
     { to: "/admin/audit-log", icon: Activity, label: "Audit Log", desc: "Review admin activity" },
+    { to: "/admin/deploy", icon: Rocket, label: "Deploy", desc: "Push to Hostinger VPS" },
     { to: "/dashboard", icon: LayoutDashboard, label: "My Projects", desc: "Your personal dashboard" },
   ] as const;
 

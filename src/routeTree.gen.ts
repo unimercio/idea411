@@ -31,6 +31,7 @@ import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminSkillsRouteImport } from './routes/_authenticated/admin.skills'
 import { Route as AuthenticatedAdminPromptTemplatesRouteImport } from './routes/_authenticated/admin.prompt-templates'
 import { Route as AuthenticatedAdminHermesPresetsRouteImport } from './routes/_authenticated/admin.hermes-presets'
+import { Route as AuthenticatedAdminDeployRouteImport } from './routes/_authenticated/admin.deploy'
 import { Route as AuthenticatedAdminAuditLogRouteImport } from './routes/_authenticated/admin.audit-log'
 
 const VettingRoute = VettingRouteImport.update({
@@ -150,6 +151,12 @@ const AuthenticatedAdminHermesPresetsRoute =
     path: '/admin/hermes-presets',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedAdminDeployRoute =
+  AuthenticatedAdminDeployRouteImport.update({
+    id: '/admin/deploy',
+    path: '/admin/deploy',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedAdminAuditLogRoute =
   AuthenticatedAdminAuditLogRouteImport.update({
     id: '/admin/audit-log',
@@ -169,6 +176,7 @@ export interface FileRoutesByFullPath {
   '/api/focus-group-stream': typeof ApiFocusGroupStreamRoute
   '/api/hermes-run': typeof ApiHermesRunRoute
   '/admin/audit-log': typeof AuthenticatedAdminAuditLogRoute
+  '/admin/deploy': typeof AuthenticatedAdminDeployRoute
   '/admin/hermes-presets': typeof AuthenticatedAdminHermesPresetsRoute
   '/admin/prompt-templates': typeof AuthenticatedAdminPromptTemplatesRoute
   '/admin/skills': typeof AuthenticatedAdminSkillsRoute
@@ -192,6 +200,7 @@ export interface FileRoutesByTo {
   '/api/focus-group-stream': typeof ApiFocusGroupStreamRoute
   '/api/hermes-run': typeof ApiHermesRunRoute
   '/admin/audit-log': typeof AuthenticatedAdminAuditLogRoute
+  '/admin/deploy': typeof AuthenticatedAdminDeployRoute
   '/admin/hermes-presets': typeof AuthenticatedAdminHermesPresetsRoute
   '/admin/prompt-templates': typeof AuthenticatedAdminPromptTemplatesRoute
   '/admin/skills': typeof AuthenticatedAdminSkillsRoute
@@ -218,6 +227,7 @@ export interface FileRoutesById {
   '/api/focus-group-stream': typeof ApiFocusGroupStreamRoute
   '/api/hermes-run': typeof ApiHermesRunRoute
   '/_authenticated/admin/audit-log': typeof AuthenticatedAdminAuditLogRoute
+  '/_authenticated/admin/deploy': typeof AuthenticatedAdminDeployRoute
   '/_authenticated/admin/hermes-presets': typeof AuthenticatedAdminHermesPresetsRoute
   '/_authenticated/admin/prompt-templates': typeof AuthenticatedAdminPromptTemplatesRoute
   '/_authenticated/admin/skills': typeof AuthenticatedAdminSkillsRoute
@@ -244,6 +254,7 @@ export interface FileRouteTypes {
     | '/api/focus-group-stream'
     | '/api/hermes-run'
     | '/admin/audit-log'
+    | '/admin/deploy'
     | '/admin/hermes-presets'
     | '/admin/prompt-templates'
     | '/admin/skills'
@@ -267,6 +278,7 @@ export interface FileRouteTypes {
     | '/api/focus-group-stream'
     | '/api/hermes-run'
     | '/admin/audit-log'
+    | '/admin/deploy'
     | '/admin/hermes-presets'
     | '/admin/prompt-templates'
     | '/admin/skills'
@@ -292,6 +304,7 @@ export interface FileRouteTypes {
     | '/api/focus-group-stream'
     | '/api/hermes-run'
     | '/_authenticated/admin/audit-log'
+    | '/_authenticated/admin/deploy'
     | '/_authenticated/admin/hermes-presets'
     | '/_authenticated/admin/prompt-templates'
     | '/_authenticated/admin/skills'
@@ -472,6 +485,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminHermesPresetsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/admin/deploy': {
+      id: '/_authenticated/admin/deploy'
+      path: '/admin/deploy'
+      fullPath: '/admin/deploy'
+      preLoaderRoute: typeof AuthenticatedAdminDeployRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/admin/audit-log': {
       id: '/_authenticated/admin/audit-log'
       path: '/admin/audit-log'
@@ -506,6 +526,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedHermesRoute: typeof AuthenticatedHermesRouteWithChildren
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedAdminAuditLogRoute: typeof AuthenticatedAdminAuditLogRoute
+  AuthenticatedAdminDeployRoute: typeof AuthenticatedAdminDeployRoute
   AuthenticatedAdminHermesPresetsRoute: typeof AuthenticatedAdminHermesPresetsRoute
   AuthenticatedAdminPromptTemplatesRoute: typeof AuthenticatedAdminPromptTemplatesRoute
   AuthenticatedAdminSkillsRoute: typeof AuthenticatedAdminSkillsRoute
@@ -519,6 +540,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedHermesRoute: AuthenticatedHermesRouteWithChildren,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedAdminAuditLogRoute: AuthenticatedAdminAuditLogRoute,
+  AuthenticatedAdminDeployRoute: AuthenticatedAdminDeployRoute,
   AuthenticatedAdminHermesPresetsRoute: AuthenticatedAdminHermesPresetsRoute,
   AuthenticatedAdminPromptTemplatesRoute:
     AuthenticatedAdminPromptTemplatesRoute,
@@ -545,13 +567,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
