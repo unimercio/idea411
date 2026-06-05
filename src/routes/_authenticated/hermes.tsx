@@ -20,7 +20,6 @@ function HermesLayout() {
         : "text-muted-foreground hover:text-foreground"
     }`;
   const tasksActive = pathname === "/hermes";
-  const agentsActive = pathname.startsWith("/hermes/agents");
   const settingsActive = pathname.startsWith("/hermes/settings");
   return (
     <main className="min-h-screen bg-background text-foreground">
