@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, Flame, Settings, Sparkles, Users, Activity, LayoutDashboard, Crown, Shield } from "lucide-react";
+import { Loader2, Settings, Sparkles, Users, Activity, LayoutDashboard, Crown, Shield } from "lucide-react";
 import { checkAdmin } from "@/lib/api/prompt-templates.functions";
 import { NotAuthorized } from "@/components/site/NotAuthorized";
 
@@ -39,20 +39,14 @@ function SysadminDashboardPage() {
   ] as const;
 
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      <header className="border-b border-border">
-        <div className="mx-auto max-w-7xl px-6 py-5 flex items-center justify-between">
-          <Link to="/sysadmin" className="flex items-center gap-2 font-display font-semibold">
-            <span className="grid h-7 w-7 place-items-center rounded-md bg-gradient-ember text-ember-foreground shadow-ember">
-              <Flame className="h-4 w-4" />
-            </span>
-            IdeaForge
-          </Link>
+    <main className="min-h-screen bg-background text-foreground pt-24">
+      <div className="border-b border-border">
+        <div className="mx-auto max-w-7xl px-6 py-4 flex items-center justify-end">
           <span className="inline-flex items-center gap-1.5 text-xs uppercase tracking-[0.2em] text-ember">
             <Crown className="h-3.5 w-3.5" /> Sysadmin
           </span>
         </div>
-      </header>
+      </div>
       <section className="mx-auto max-w-7xl px-6 py-16">
         <p className="text-xs uppercase tracking-[0.2em] text-ember">Super User</p>
         <h1 className="mt-3 font-display text-4xl sm:text-5xl font-semibold">Sysadmin Dashboard</h1>
