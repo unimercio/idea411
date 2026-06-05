@@ -15,6 +15,7 @@ import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiHermesRunRouteImport } from './routes/api/hermes-run'
 import { Route as ApiFocusGroupStreamRouteImport } from './routes/api/focus-group-stream'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
@@ -52,6 +53,11 @@ const AuthenticatedRoute = AuthenticatedRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiHermesRunRoute = ApiHermesRunRouteImport.update({
+  id: '/api/hermes-run',
+  path: '/api/hermes-run',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiFocusGroupStreamRoute = ApiFocusGroupStreamRouteImport.update({
@@ -113,6 +119,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/api/focus-group-stream': typeof ApiFocusGroupStreamRoute
+  '/api/hermes-run': typeof ApiHermesRunRoute
   '/admin/audit-log': typeof AuthenticatedAdminAuditLogRoute
   '/admin/prompt-templates': typeof AuthenticatedAdminPromptTemplatesRoute
   '/admin/skills': typeof AuthenticatedAdminSkillsRoute
@@ -129,6 +136,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/api/focus-group-stream': typeof ApiFocusGroupStreamRoute
+  '/api/hermes-run': typeof ApiHermesRunRoute
   '/admin/audit-log': typeof AuthenticatedAdminAuditLogRoute
   '/admin/prompt-templates': typeof AuthenticatedAdminPromptTemplatesRoute
   '/admin/skills': typeof AuthenticatedAdminSkillsRoute
@@ -147,6 +155,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/api/focus-group-stream': typeof ApiFocusGroupStreamRoute
+  '/api/hermes-run': typeof ApiHermesRunRoute
   '/_authenticated/admin/audit-log': typeof AuthenticatedAdminAuditLogRoute
   '/_authenticated/admin/prompt-templates': typeof AuthenticatedAdminPromptTemplatesRoute
   '/_authenticated/admin/skills': typeof AuthenticatedAdminSkillsRoute
@@ -165,6 +174,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/settings'
     | '/api/focus-group-stream'
+    | '/api/hermes-run'
     | '/admin/audit-log'
     | '/admin/prompt-templates'
     | '/admin/skills'
@@ -181,6 +191,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/settings'
     | '/api/focus-group-stream'
+    | '/api/hermes-run'
     | '/admin/audit-log'
     | '/admin/prompt-templates'
     | '/admin/skills'
@@ -198,6 +209,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/settings'
     | '/api/focus-group-stream'
+    | '/api/hermes-run'
     | '/_authenticated/admin/audit-log'
     | '/_authenticated/admin/prompt-templates'
     | '/_authenticated/admin/skills'
@@ -214,6 +226,7 @@ export interface RootRouteChildren {
   IntakeRoute: typeof IntakeRoute
   VettingRoute: typeof VettingRoute
   ApiFocusGroupStreamRoute: typeof ApiFocusGroupStreamRoute
+  ApiHermesRunRoute: typeof ApiHermesRunRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -258,6 +271,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/hermes-run': {
+      id: '/api/hermes-run'
+      path: '/api/hermes-run'
+      fullPath: '/api/hermes-run'
+      preLoaderRoute: typeof ApiHermesRunRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/focus-group-stream': {
@@ -361,6 +381,7 @@ const rootRouteChildren: RootRouteChildren = {
   IntakeRoute: IntakeRoute,
   VettingRoute: VettingRoute,
   ApiFocusGroupStreamRoute: ApiFocusGroupStreamRoute,
+  ApiHermesRunRoute: ApiHermesRunRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

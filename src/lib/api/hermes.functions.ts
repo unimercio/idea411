@@ -16,7 +16,7 @@ export type HermesTask = {
   max_agents: number;
   max_iterations: number;
   result_summary: string | null;
-  final_output: unknown;
+  final_output: any;
   error: string | null;
   created_at: string;
   updated_at: string;
@@ -32,7 +32,7 @@ export type HermesAgent = {
   objective: string | null;
   status: HermesAgentStatus;
   iteration_count: number;
-  output: unknown;
+  output: any;
   created_at: string;
   updated_at: string;
 };
