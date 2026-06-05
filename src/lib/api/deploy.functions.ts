@@ -36,6 +36,33 @@ export type DeployRun = {
   actor: string | null;
 };
 
+export type DeployStep = {
+  name: string;
+  status: string | null;
+  conclusion: string | null;
+  number: number;
+  started_at: string | null;
+  completed_at: string | null;
+};
+
+export type DeployJob = {
+  id: number;
+  name: string;
+  status: string | null;
+  conclusion: string | null;
+  started_at: string | null;
+  completed_at: string | null;
+  html_url: string | null;
+  steps: DeployStep[];
+};
+
+export type DeployRunDetail = {
+  run: DeployRun;
+  jobs: DeployJob[];
+  logs: string | null;
+  logsTruncated: boolean;
+};
+
 export const triggerVpsDeploy = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
@@ -103,3 +130,93 @@ export const listVpsDeployRuns = createServerFn({ method: "GET" })
     }));
     return { runs };
   });
+
+function mapRun(r: any): DeployRun {
+  return {
+    id: r.id,
+    status: r.status,
+    conclusion: r.conclusion,
+    created_at: r.created_at,
+    updated_at: r.updated_at,
+    html_url: r.html_url,
+    display_title: r.display_title ?? r.name ?? "Deploy",
+    head_branch: r.head_branch,
+    run_number: r.run_number,
+    actor: r.actor?.login ?? null,
+  };
+}
+
+const MAX_LOG_BYTES = 256 * 1024; // 256 KB cap returned to client
+
+export const getDeployRunDetail = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z.object({ runId: z.number().int().positive() }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context as any;
+    await assertAdmin(supabase, userId);
+    const token = process.env.GITHUB_TOKEN;
+    if (!token) throw new Error("GITHUB_TOKEN not configured");
+
+    const [runRes, jobsRes] = await Promise.all([
+      fetch(`https://api.github.com/repos/${REPO}/actions/runs/${data.runId}`, {
+        headers: ghHeaders(token),
+      }),
+      fetch(
+        `https://api.github.com/repos/${REPO}/actions/runs/${data.runId}/jobs?per_page=20`,
+        { headers: ghHeaders(token) },
+      ),
+    ]);
+    if (!runRes.ok) throw new Error(`GitHub run fetch failed (${runRes.status})`);
+    if (!jobsRes.ok) throw new Error(`GitHub jobs fetch failed (${jobsRes.status})`);
+
+    const runJson = await runRes.json();
+    const jobsJson = (await jobsRes.json()) as any;
+
+    const jobs: DeployJob[] = (jobsJson.jobs ?? []).map((j: any) => ({
+      id: j.id,
+      name: j.name,
+      status: j.status,
+      conclusion: j.conclusion,
+      started_at: j.started_at,
+      completed_at: j.completed_at,
+      html_url: j.html_url,
+      steps: (j.steps ?? []).map((s: any) => ({
+        name: s.name,
+        status: s.status,
+        conclusion: s.conclusion,
+        number: s.number,
+        started_at: s.started_at,
+        completed_at: s.completed_at,
+      })),
+    }));
+
+    // Logs only become available once a job is finished.
+    let logs: string | null = null;
+    let logsTruncated = false;
+    const completedJob = jobs.find((j) => j.status === "completed");
+    if (completedJob) {
+      const logRes = await fetch(
+        `https://api.github.com/repos/${REPO}/actions/jobs/${completedJob.id}/logs`,
+        { headers: ghHeaders(token), redirect: "follow" },
+      );
+      if (logRes.ok) {
+        const text = await logRes.text();
+        if (text.length > MAX_LOG_BYTES) {
+          logs = text.slice(text.length - MAX_LOG_BYTES);
+          logsTruncated = true;
+        } else {
+          logs = text;
+        }
+      }
+    }
+
+    return {
+      run: mapRun(runJson),
+      jobs,
+      logs,
+      logsTruncated,
+    } satisfies DeployRunDetail;
+  });
+
