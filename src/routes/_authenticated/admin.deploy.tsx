@@ -1,8 +1,19 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
-import { ArrowLeft, Loader2, Rocket, RefreshCw, ExternalLink, CheckCircle2, XCircle, Clock } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  ArrowLeft,
+  Loader2,
+  Rocket,
+  RefreshCw,
+  ExternalLink,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  CircleDot,
+  Terminal,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -10,7 +21,10 @@ import { checkAdmin } from "@/lib/api/prompt-templates.functions";
 import {
   triggerVpsDeploy,
   listVpsDeployRuns,
+  getDeployRunDetail,
   type DeployRun,
+  type DeployStep,
+  type DeployJob,
 } from "@/lib/api/deploy.functions";
 import { NotAuthorized } from "@/components/site/NotAuthorized";
 import { AdminHeader } from "@/components/site/AdminHeader";
