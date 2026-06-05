@@ -34,10 +34,10 @@ function HermesLayout() {
           </Link>
           <nav className="flex items-center gap-1.5">
             <Link to="/hermes" className={tabClass(tasksActive)}>
-              <ListTodo className="h-3.5 w-3.5" /> Tasks
+              <Users2 className="h-3.5 w-3.5" /> Agents
             </Link>
             <Link to="/hermes/agents" className={tabClass(agentsActive)}>
-              <Users2 className="h-3.5 w-3.5" /> Agents
+              <ScrollText className="h-3.5 w-3.5" /> Log
             </Link>
             <Link to="/hermes/settings" className={tabClass(settingsActive)}>
               <SettingsIcon className="h-3.5 w-3.5" /> Settings
