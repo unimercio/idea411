@@ -18,12 +18,19 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiHermesRunRouteImport } from './routes/api/hermes-run'
 import { Route as ApiFocusGroupStreamRouteImport } from './routes/api/focus-group-stream'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedHermesRouteImport } from './routes/_authenticated/hermes'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedSysadminIndexRouteImport } from './routes/_authenticated/sysadmin.index'
+import { Route as AuthenticatedHermesIndexRouteImport } from './routes/_authenticated/hermes.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
+import { Route as AuthenticatedHermesSettingsRouteImport } from './routes/_authenticated/hermes.settings'
+import { Route as AuthenticatedHermesNewRouteImport } from './routes/_authenticated/hermes.new'
+import { Route as AuthenticatedHermesAgentsRouteImport } from './routes/_authenticated/hermes.agents'
+import { Route as AuthenticatedHermesTaskIdRouteImport } from './routes/_authenticated/hermes.$taskId'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin.users'
 import { Route as AuthenticatedAdminSkillsRouteImport } from './routes/_authenticated/admin.skills'
 import { Route as AuthenticatedAdminPromptTemplatesRouteImport } from './routes/_authenticated/admin.prompt-templates'
+import { Route as AuthenticatedAdminHermesPresetsRouteImport } from './routes/_authenticated/admin.hermes-presets'
 import { Route as AuthenticatedAdminAuditLogRouteImport } from './routes/_authenticated/admin.audit-log'
 
 const VettingRoute = VettingRouteImport.update({
@@ -70,6 +77,11 @@ const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedHermesRoute = AuthenticatedHermesRouteImport.update({
+  id: '/hermes',
+  path: '/hermes',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -81,11 +93,40 @@ const AuthenticatedSysadminIndexRoute =
     path: '/sysadmin/',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedHermesIndexRoute =
+  AuthenticatedHermesIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedHermesRoute,
+  } as any)
 const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   id: '/admin/',
   path: '/admin/',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedHermesSettingsRoute =
+  AuthenticatedHermesSettingsRouteImport.update({
+    id: '/settings',
+    path: '/settings',
+    getParentRoute: () => AuthenticatedHermesRoute,
+  } as any)
+const AuthenticatedHermesNewRoute = AuthenticatedHermesNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AuthenticatedHermesRoute,
+} as any)
+const AuthenticatedHermesAgentsRoute =
+  AuthenticatedHermesAgentsRouteImport.update({
+    id: '/agents',
+    path: '/agents',
+    getParentRoute: () => AuthenticatedHermesRoute,
+  } as any)
+const AuthenticatedHermesTaskIdRoute =
+  AuthenticatedHermesTaskIdRouteImport.update({
+    id: '/$taskId',
+    path: '/$taskId',
+    getParentRoute: () => AuthenticatedHermesRoute,
+  } as any)
 const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
   id: '/admin/users',
   path: '/admin/users',
@@ -103,6 +144,12 @@ const AuthenticatedAdminPromptTemplatesRoute =
     path: '/admin/prompt-templates',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedAdminHermesPresetsRoute =
+  AuthenticatedAdminHermesPresetsRouteImport.update({
+    id: '/admin/hermes-presets',
+    path: '/admin/hermes-presets',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedAdminAuditLogRoute =
   AuthenticatedAdminAuditLogRouteImport.update({
     id: '/admin/audit-log',
@@ -117,14 +164,21 @@ export interface FileRoutesByFullPath {
   '/intake': typeof IntakeRoute
   '/vetting': typeof VettingRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/hermes': typeof AuthenticatedHermesRouteWithChildren
   '/settings': typeof AuthenticatedSettingsRoute
   '/api/focus-group-stream': typeof ApiFocusGroupStreamRoute
   '/api/hermes-run': typeof ApiHermesRunRoute
   '/admin/audit-log': typeof AuthenticatedAdminAuditLogRoute
+  '/admin/hermes-presets': typeof AuthenticatedAdminHermesPresetsRoute
   '/admin/prompt-templates': typeof AuthenticatedAdminPromptTemplatesRoute
   '/admin/skills': typeof AuthenticatedAdminSkillsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/hermes/$taskId': typeof AuthenticatedHermesTaskIdRoute
+  '/hermes/agents': typeof AuthenticatedHermesAgentsRoute
+  '/hermes/new': typeof AuthenticatedHermesNewRoute
+  '/hermes/settings': typeof AuthenticatedHermesSettingsRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
+  '/hermes/': typeof AuthenticatedHermesIndexRoute
   '/sysadmin/': typeof AuthenticatedSysadminIndexRoute
 }
 export interface FileRoutesByTo {
@@ -138,10 +192,16 @@ export interface FileRoutesByTo {
   '/api/focus-group-stream': typeof ApiFocusGroupStreamRoute
   '/api/hermes-run': typeof ApiHermesRunRoute
   '/admin/audit-log': typeof AuthenticatedAdminAuditLogRoute
+  '/admin/hermes-presets': typeof AuthenticatedAdminHermesPresetsRoute
   '/admin/prompt-templates': typeof AuthenticatedAdminPromptTemplatesRoute
   '/admin/skills': typeof AuthenticatedAdminSkillsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/hermes/$taskId': typeof AuthenticatedHermesTaskIdRoute
+  '/hermes/agents': typeof AuthenticatedHermesAgentsRoute
+  '/hermes/new': typeof AuthenticatedHermesNewRoute
+  '/hermes/settings': typeof AuthenticatedHermesSettingsRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
+  '/hermes': typeof AuthenticatedHermesIndexRoute
   '/sysadmin': typeof AuthenticatedSysadminIndexRoute
 }
 export interface FileRoutesById {
@@ -153,14 +213,21 @@ export interface FileRoutesById {
   '/intake': typeof IntakeRoute
   '/vetting': typeof VettingRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/hermes': typeof AuthenticatedHermesRouteWithChildren
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/api/focus-group-stream': typeof ApiFocusGroupStreamRoute
   '/api/hermes-run': typeof ApiHermesRunRoute
   '/_authenticated/admin/audit-log': typeof AuthenticatedAdminAuditLogRoute
+  '/_authenticated/admin/hermes-presets': typeof AuthenticatedAdminHermesPresetsRoute
   '/_authenticated/admin/prompt-templates': typeof AuthenticatedAdminPromptTemplatesRoute
   '/_authenticated/admin/skills': typeof AuthenticatedAdminSkillsRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/_authenticated/hermes/$taskId': typeof AuthenticatedHermesTaskIdRoute
+  '/_authenticated/hermes/agents': typeof AuthenticatedHermesAgentsRoute
+  '/_authenticated/hermes/new': typeof AuthenticatedHermesNewRoute
+  '/_authenticated/hermes/settings': typeof AuthenticatedHermesSettingsRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
+  '/_authenticated/hermes/': typeof AuthenticatedHermesIndexRoute
   '/_authenticated/sysadmin/': typeof AuthenticatedSysadminIndexRoute
 }
 export interface FileRouteTypes {
@@ -172,14 +239,21 @@ export interface FileRouteTypes {
     | '/intake'
     | '/vetting'
     | '/dashboard'
+    | '/hermes'
     | '/settings'
     | '/api/focus-group-stream'
     | '/api/hermes-run'
     | '/admin/audit-log'
+    | '/admin/hermes-presets'
     | '/admin/prompt-templates'
     | '/admin/skills'
     | '/admin/users'
+    | '/hermes/$taskId'
+    | '/hermes/agents'
+    | '/hermes/new'
+    | '/hermes/settings'
     | '/admin/'
+    | '/hermes/'
     | '/sysadmin/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -193,10 +267,16 @@ export interface FileRouteTypes {
     | '/api/focus-group-stream'
     | '/api/hermes-run'
     | '/admin/audit-log'
+    | '/admin/hermes-presets'
     | '/admin/prompt-templates'
     | '/admin/skills'
     | '/admin/users'
+    | '/hermes/$taskId'
+    | '/hermes/agents'
+    | '/hermes/new'
+    | '/hermes/settings'
     | '/admin'
+    | '/hermes'
     | '/sysadmin'
   id:
     | '__root__'
@@ -207,14 +287,21 @@ export interface FileRouteTypes {
     | '/intake'
     | '/vetting'
     | '/_authenticated/dashboard'
+    | '/_authenticated/hermes'
     | '/_authenticated/settings'
     | '/api/focus-group-stream'
     | '/api/hermes-run'
     | '/_authenticated/admin/audit-log'
+    | '/_authenticated/admin/hermes-presets'
     | '/_authenticated/admin/prompt-templates'
     | '/_authenticated/admin/skills'
     | '/_authenticated/admin/users'
+    | '/_authenticated/hermes/$taskId'
+    | '/_authenticated/hermes/agents'
+    | '/_authenticated/hermes/new'
+    | '/_authenticated/hermes/settings'
     | '/_authenticated/admin/'
+    | '/_authenticated/hermes/'
     | '/_authenticated/sysadmin/'
   fileRoutesById: FileRoutesById
 }
@@ -294,6 +381,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/hermes': {
+      id: '/_authenticated/hermes'
+      path: '/hermes'
+      fullPath: '/hermes'
+      preLoaderRoute: typeof AuthenticatedHermesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -308,12 +402,47 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSysadminIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/hermes/': {
+      id: '/_authenticated/hermes/'
+      path: '/'
+      fullPath: '/hermes/'
+      preLoaderRoute: typeof AuthenticatedHermesIndexRouteImport
+      parentRoute: typeof AuthenticatedHermesRoute
+    }
     '/_authenticated/admin/': {
       id: '/_authenticated/admin/'
       path: '/admin'
       fullPath: '/admin/'
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/hermes/settings': {
+      id: '/_authenticated/hermes/settings'
+      path: '/settings'
+      fullPath: '/hermes/settings'
+      preLoaderRoute: typeof AuthenticatedHermesSettingsRouteImport
+      parentRoute: typeof AuthenticatedHermesRoute
+    }
+    '/_authenticated/hermes/new': {
+      id: '/_authenticated/hermes/new'
+      path: '/new'
+      fullPath: '/hermes/new'
+      preLoaderRoute: typeof AuthenticatedHermesNewRouteImport
+      parentRoute: typeof AuthenticatedHermesRoute
+    }
+    '/_authenticated/hermes/agents': {
+      id: '/_authenticated/hermes/agents'
+      path: '/agents'
+      fullPath: '/hermes/agents'
+      preLoaderRoute: typeof AuthenticatedHermesAgentsRouteImport
+      parentRoute: typeof AuthenticatedHermesRoute
+    }
+    '/_authenticated/hermes/$taskId': {
+      id: '/_authenticated/hermes/$taskId'
+      path: '/$taskId'
+      fullPath: '/hermes/$taskId'
+      preLoaderRoute: typeof AuthenticatedHermesTaskIdRouteImport
+      parentRoute: typeof AuthenticatedHermesRoute
     }
     '/_authenticated/admin/users': {
       id: '/_authenticated/admin/users'
@@ -336,6 +465,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminPromptTemplatesRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/admin/hermes-presets': {
+      id: '/_authenticated/admin/hermes-presets'
+      path: '/admin/hermes-presets'
+      fullPath: '/admin/hermes-presets'
+      preLoaderRoute: typeof AuthenticatedAdminHermesPresetsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/admin/audit-log': {
       id: '/_authenticated/admin/audit-log'
       path: '/admin/audit-log'
@@ -346,10 +482,31 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedHermesRouteChildren {
+  AuthenticatedHermesTaskIdRoute: typeof AuthenticatedHermesTaskIdRoute
+  AuthenticatedHermesAgentsRoute: typeof AuthenticatedHermesAgentsRoute
+  AuthenticatedHermesNewRoute: typeof AuthenticatedHermesNewRoute
+  AuthenticatedHermesSettingsRoute: typeof AuthenticatedHermesSettingsRoute
+  AuthenticatedHermesIndexRoute: typeof AuthenticatedHermesIndexRoute
+}
+
+const AuthenticatedHermesRouteChildren: AuthenticatedHermesRouteChildren = {
+  AuthenticatedHermesTaskIdRoute: AuthenticatedHermesTaskIdRoute,
+  AuthenticatedHermesAgentsRoute: AuthenticatedHermesAgentsRoute,
+  AuthenticatedHermesNewRoute: AuthenticatedHermesNewRoute,
+  AuthenticatedHermesSettingsRoute: AuthenticatedHermesSettingsRoute,
+  AuthenticatedHermesIndexRoute: AuthenticatedHermesIndexRoute,
+}
+
+const AuthenticatedHermesRouteWithChildren =
+  AuthenticatedHermesRoute._addFileChildren(AuthenticatedHermesRouteChildren)
+
 interface AuthenticatedRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedHermesRoute: typeof AuthenticatedHermesRouteWithChildren
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedAdminAuditLogRoute: typeof AuthenticatedAdminAuditLogRoute
+  AuthenticatedAdminHermesPresetsRoute: typeof AuthenticatedAdminHermesPresetsRoute
   AuthenticatedAdminPromptTemplatesRoute: typeof AuthenticatedAdminPromptTemplatesRoute
   AuthenticatedAdminSkillsRoute: typeof AuthenticatedAdminSkillsRoute
   AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
@@ -359,8 +516,10 @@ interface AuthenticatedRouteChildren {
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedHermesRoute: AuthenticatedHermesRouteWithChildren,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedAdminAuditLogRoute: AuthenticatedAdminAuditLogRoute,
+  AuthenticatedAdminHermesPresetsRoute: AuthenticatedAdminHermesPresetsRoute,
   AuthenticatedAdminPromptTemplatesRoute:
     AuthenticatedAdminPromptTemplatesRoute,
   AuthenticatedAdminSkillsRoute: AuthenticatedAdminSkillsRoute,
