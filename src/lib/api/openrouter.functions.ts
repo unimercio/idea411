@@ -12,7 +12,15 @@ export type OpenRouterModel = {
 // `openrouter/<id>` so the gateway resolver routes calls to OpenRouter.
 export const listOpenRouterModels = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async () => {
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context as { supabase: any; userId: string };
+    const { data: isAdmin, error: roleErr } = await supabase.rpc("has_role", {
+      _user_id: userId,
+      _role: "admin",
+    });
+    if (roleErr) throw new Error(roleErr.message);
+    if (!isAdmin) throw new Error("Forbidden: admin role required");
+
     const apiKey = process.env.OPENROUTER_API_KEY;
     if (!apiKey) throw new Error("OPENROUTER_API_KEY is not configured on the server.");
 

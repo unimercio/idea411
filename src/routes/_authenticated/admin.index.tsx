@@ -40,22 +40,12 @@ function AdminDashboardPage() {
     <main className="min-h-screen bg-background text-foreground">
       <header className="border-b border-border">
         <div className="mx-auto max-w-7xl px-6 py-5 flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <Link to="/admin" className="flex items-center gap-2 font-display font-semibold">
-              <span className="grid h-7 w-7 place-items-center rounded-md bg-gradient-ember text-ember-foreground shadow-ember">
-                <Flame className="h-4 w-4" />
-              </span>
-              IdeaForge
-            </Link>
-            <nav className="hidden md:flex items-center gap-5 text-sm text-muted-foreground">
-              <Link to="/dashboard" className="hover:text-foreground transition">My Projects</Link>
-              <Link to="/hermes" className="hover:text-foreground transition">Agents</Link>
-              <Link to="/admin/prompt-templates" className="hover:text-foreground transition">Prompts</Link>
-              <Link to="/admin/skills" className="hover:text-foreground transition">Skills</Link>
-              <Link to="/admin/users" className="hover:text-foreground transition">Users</Link>
-              <Link to="/admin/audit-log" className="hover:text-foreground transition">Audit Log</Link>
-            </nav>
-          </div>
+          <Link to="/admin" className="flex items-center gap-2 font-display font-semibold">
+            <span className="grid h-7 w-7 place-items-center rounded-md bg-gradient-ember text-ember-foreground shadow-ember">
+              <Flame className="h-4 w-4" />
+            </span>
+            IdeaForge
+          </Link>
           <span className="text-xs uppercase tracking-[0.2em] text-ember">Admin</span>
         </div>
       </header>

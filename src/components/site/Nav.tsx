@@ -6,7 +6,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { checkAdmin } from "@/lib/api/prompt-templates.functions";
-
+import { LanguageSwitcher } from "./LanguageSwitcher";
 import { toast } from "sonner";
 import { getHomePath } from "@/lib/home-path";
 
@@ -73,8 +73,8 @@ export function Nav() {
             )}
           </nav>
           <div className="flex items-center gap-2">
+            <LanguageSwitcher />
             {isAuthed === true ? (
-
               <button
                 onClick={handleSignOut}
                 className="hidden sm:inline-flex items-center text-sm text-muted-foreground hover:text-foreground px-3 py-1.5"
@@ -88,6 +88,12 @@ export function Nav() {
             ) : (
               <span className="hidden sm:inline-flex w-16" aria-hidden />
             )}
+            <Link
+              to="/intake"
+              className="inline-flex items-center rounded-full bg-gradient-ember px-4 py-2 text-sm font-medium text-ember-foreground shadow-ember hover:brightness-110 transition"
+            >
+              {t("common.startForging")}
+            </Link>
           </div>
         </div>
       </div>
