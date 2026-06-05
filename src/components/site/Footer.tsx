@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Flame } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 
 export function Footer() {
   const { t } = useTranslation();
@@ -13,9 +14,12 @@ export function Footer() {
           </span>
           IdeaForge
         </Link>
-        <p className="text-xs text-muted-foreground">
-          {t("footer.copyright", { year: new Date().getFullYear() })}
-        </p>
+        <div className="flex items-center gap-4">
+          <LanguageSwitcher />
+          <p className="text-xs text-muted-foreground">
+            {t("footer.copyright", { year: new Date().getFullYear() })}
+          </p>
+        </div>
       </div>
     </footer>
   );
