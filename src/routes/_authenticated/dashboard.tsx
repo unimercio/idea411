@@ -39,7 +39,6 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 function DashboardPage() {
   const { t } = useTranslation();
   const projects = useProjects();
-  const navigate = useNavigate();
   const [isAuthed, setIsAuthed] = useState<boolean | null>(null);
 
   useEffect(() => {
