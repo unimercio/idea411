@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, Loader2, Pencil, Play, Plus, Star, Trash2 } from "lucide-react";
+import { ArrowLeft, Check, ChevronsUpDown, Loader2, Pencil, Play, Plus, Star, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -18,6 +18,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { cn } from "@/lib/utils";
 import {
   deleteSkill,
   listSkills,
@@ -27,12 +37,15 @@ import {
 } from "@/lib/api/skills.functions";
 import {
   COMPONENT_LABEL,
+  GATEWAY_MODELS,
+  PERPLEXITY_MODELS,
   SKILL_COMPONENTS,
   modelsForComponent,
   type SkillComponent,
 } from "@/lib/api/skills.shared";
 import { checkAdmin } from "@/lib/api/prompt-templates.functions";
 import { testFocusGroup } from "@/lib/api/focus-group.functions";
+import { listOpenRouterModels } from "@/lib/api/openrouter.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/skills")({
   head: () => ({
@@ -293,7 +306,7 @@ function EditorDrawer({
   onSave: () => void;
   saving: boolean;
 }) {
-  const models = modelsForComponent(draft.component);
+  const isPerplexity = draft.component === "market_research";
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-end bg-background/60 backdrop-blur-sm">
       <div className="h-full w-full max-w-xl overflow-y-auto border-l border-border bg-card p-6 shadow-2xl">
@@ -342,21 +355,16 @@ function EditorDrawer({
 
           <div>
             <label className="text-xs text-muted-foreground">Model</label>
-            <Select
+            <ModelCombobox
               value={draft.model}
-              onValueChange={(v) => onChange({ ...draft, model: v })}
-            >
-              <SelectTrigger className="mt-1">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {models.map((m) => (
-                  <SelectItem key={m} value={m}>
-                    {m}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              onChange={(v) => onChange({ ...draft, model: v })}
+              isPerplexity={isPerplexity}
+            />
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              {isPerplexity
+                ? "Market research uses Perplexity models."
+                : "Lovable AI Gateway models or any OpenRouter model (openrouter/…)."}
+            </p>
           </div>
 
           <div>
@@ -472,5 +480,99 @@ function FocusGroupTester() {
         </div>
       )}
     </div>
+  );
+}
+
+function ModelCombobox({
+  value,
+  onChange,
+  isPerplexity,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  isPerplexity: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const listFn = useServerFn(listOpenRouterModels);
+  const orQuery = useQuery({
+    queryKey: ["openrouterModels"],
+    queryFn: () => listFn(),
+    enabled: !isPerplexity,
+    staleTime: 10 * 60 * 1000,
+  });
+
+  const options = useMemo(() => {
+    if (isPerplexity) {
+      return PERPLEXITY_MODELS.map((m) => ({ id: m, label: m, group: "Perplexity" }));
+    }
+    const gw = GATEWAY_MODELS.map((m) => ({ id: m, label: m, group: "Lovable AI Gateway" }));
+    const or = (orQuery.data?.models ?? []).map((m) => ({
+      id: `openrouter/${m.id}`,
+      label: `${m.name} — ${m.id}`,
+      group: "OpenRouter",
+    }));
+    return [...gw, ...or];
+  }, [isPerplexity, orQuery.data]);
+
+  const grouped = useMemo(() => {
+    const g: Record<string, { id: string; label: string }[]> = {};
+    for (const o of options) {
+      (g[o.group] ||= []).push({ id: o.id, label: o.label });
+    }
+    return g;
+  }, [options]);
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="mt-1 w-full justify-between font-mono text-xs"
+        >
+          <span className="truncate">{value || "Select a model…"}</span>
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[420px] p-0" align="start">
+        <Command>
+          <CommandInput placeholder="Search models…" />
+          <CommandList className="max-h-80">
+            {orQuery.isLoading && !isPerplexity && (
+              <div className="p-3 text-xs text-muted-foreground">Loading OpenRouter…</div>
+            )}
+            {orQuery.isError && !isPerplexity && (
+              <div className="p-3 text-xs text-destructive">
+                Failed to load OpenRouter models: {(orQuery.error as Error).message}
+              </div>
+            )}
+            <CommandEmpty>No models found.</CommandEmpty>
+            {Object.entries(grouped).map(([group, items]) => (
+              <CommandGroup key={group} heading={group}>
+                {items.map((o) => (
+                  <CommandItem
+                    key={o.id}
+                    value={`${o.id} ${o.label}`}
+                    onSelect={() => {
+                      onChange(o.id);
+                      setOpen(false);
+                    }}
+                  >
+                    <Check
+                      className={cn(
+                        "mr-2 h-4 w-4",
+                        value === o.id ? "opacity-100" : "opacity-0",
+                      )}
+                    />
+                    <span className="truncate font-mono text-xs">{o.label}</span>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            ))}
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 }

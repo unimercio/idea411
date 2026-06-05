@@ -2,8 +2,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { analysisSchema } from "./vetting.functions";
 import { resolveSkill, withSkillPreamble } from "./skills.server";
+import { resolveAiEndpoint, buildAiHeaders } from "./ai-gateway.server";
 
-const GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
 const DEFAULT_MODEL = "google/gemini-3-flash-preview";
 
 const messageSchema = z.object({
@@ -20,9 +20,6 @@ export const chatAboutIdea = createServerFn({ method: "POST" })
     }),
   )
   .handler(async ({ data }) => {
-    const apiKey = process.env.LOVABLE_API_KEY;
-    if (!apiKey) throw new Error("LOVABLE_API_KEY is not configured on the server.");
-
     const baseSystem = `You are the same senior product-innovation partner who produced the
 vetting report below. You answer follow-up questions from the founder with
 sharp, specific, actionable advice. Reference the report's scores and findings
@@ -37,16 +34,13 @@ ${JSON.stringify(data.analysis)}`;
 
     const skill = await resolveSkill("chat");
     const systemPrompt = withSkillPreamble(baseSystem, skill);
-    const model = skill?.model || DEFAULT_MODEL;
+    const ep = resolveAiEndpoint(skill?.model || DEFAULT_MODEL);
 
-    const res = await fetch(GATEWAY, {
+    const res = await fetch(ep.url, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
+      headers: buildAiHeaders(ep),
       body: JSON.stringify({
-        model,
+        model: ep.model,
         messages: [
           { role: "system", content: systemPrompt },
           ...data.messages,
