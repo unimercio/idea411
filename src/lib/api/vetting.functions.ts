@@ -69,7 +69,7 @@ export const analysisSchema = strategicSchema.extend({
 
 export type Analysis = z.infer<typeof analysisSchema>;
 
-const GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
+import { resolveAiEndpoint, buildAiHeaders } from "./ai-gateway.server";
 const DEFAULT_MODEL = "google/gemini-3-flash-preview";
 
 // ───────── System prompts per pillar ─────────
@@ -271,16 +271,13 @@ async function callPillar<T>(opts: {
   label: string;
 }): Promise<T> {
   const systemPrompt = withSkillPreamble(opts.baseSystem, opts.skill);
-  const model = opts.skill?.model || DEFAULT_MODEL;
+  const ep = resolveAiEndpoint(opts.skill?.model || DEFAULT_MODEL);
 
-  const res = await fetch(GATEWAY, {
+  const res = await fetch(ep.url, {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${opts.apiKey}`,
-      "Content-Type": "application/json",
-    },
+    headers: buildAiHeaders(ep),
     body: JSON.stringify({
-      model,
+      model: ep.model,
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: opts.userPrompt },
