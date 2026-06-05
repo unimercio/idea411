@@ -1,21 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import {
-  FOCUS_GROUP_GATEWAY,
   FOCUS_GROUP_MODEL,
   FOCUS_GROUP_SYSTEM,
   buildFocusGroupUserPrompt,
   focusGroupInputSchema,
 } from "@/lib/api/focus-group.functions";
 import { resolveSkill, withSkillPreamble } from "@/lib/api/skills.server";
+import { resolveAiEndpoint, buildAiHeaders } from "@/lib/api/ai-gateway.server";
 
 export const Route = createFileRoute("/api/focus-group-stream")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const apiKey = process.env.LOVABLE_API_KEY;
-        if (!apiKey)
-          return new Response("LOVABLE_API_KEY missing", { status: 500 });
-
         let body: unknown;
         try {
           body = await request.json();
@@ -27,17 +23,21 @@ export const Route = createFileRoute("/api/focus-group-stream")({
           return new Response("Invalid input", { status: 400 });
 
         const skill = await resolveSkill("focus_group");
-        const model = skill?.model ?? FOCUS_GROUP_MODEL;
+        const modelId = skill?.model ?? FOCUS_GROUP_MODEL;
         const systemPrompt = withSkillPreamble(FOCUS_GROUP_SYSTEM, skill);
 
-        const upstream = await fetch(FOCUS_GROUP_GATEWAY, {
+        let ep;
+        try {
+          ep = resolveAiEndpoint(modelId);
+        } catch (e) {
+          return new Response((e as Error).message, { status: 500 });
+        }
+
+        const upstream = await fetch(ep.url, {
           method: "POST",
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-            "Content-Type": "application/json",
-          },
+          headers: buildAiHeaders(ep),
           body: JSON.stringify({
-            model,
+            model: ep.model,
             stream: true,
             messages: [
               { role: "system", content: systemPrompt },
