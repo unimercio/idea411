@@ -10,7 +10,7 @@ import {
   type HermesStep,
   type HermesTask,
 } from "@/lib/api/hermes.functions";
-import { Bot, Loader2, Play, Square, User2, Wrench, Sparkles, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Bot, Loader2, Play, Square, User2, Wrench, Sparkles, AlertCircle, CheckCircle2, ChevronDown, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 
