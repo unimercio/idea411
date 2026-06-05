@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, Loader2, Pencil, Play, Plus, Star, Trash2 } from "lucide-react";
+import { ArrowLeft, Check, ChevronsUpDown, Loader2, Pencil, Play, Plus, Star, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -18,6 +18,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { cn } from "@/lib/utils";
 import {
   deleteSkill,
   listSkills,
@@ -27,12 +37,15 @@ import {
 } from "@/lib/api/skills.functions";
 import {
   COMPONENT_LABEL,
+  GATEWAY_MODELS,
+  PERPLEXITY_MODELS,
   SKILL_COMPONENTS,
   modelsForComponent,
   type SkillComponent,
 } from "@/lib/api/skills.shared";
 import { checkAdmin } from "@/lib/api/prompt-templates.functions";
 import { testFocusGroup } from "@/lib/api/focus-group.functions";
+import { listOpenRouterModels } from "@/lib/api/openrouter.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/skills")({
   head: () => ({
