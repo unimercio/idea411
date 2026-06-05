@@ -20,6 +20,18 @@ export const chatAboutIdea = createServerFn({ method: "POST" })
     }),
   )
   .handler(async ({ data }) => {
+    const baseSystem = `You are the same senior product-innovation partner who produced the
+vetting report below. You answer follow-up questions from the founder with
+sharp, specific, actionable advice. Reference the report's scores and findings
+when relevant. Be concise: 2–5 short paragraphs or a tight bulleted list.
+Use Markdown. Never invent new scores — only the report below is authoritative.
+
+ORIGINAL IDEA:
+${data.idea}
+
+VETTING REPORT (JSON):
+${JSON.stringify(data.analysis)}`;
+
     const skill = await resolveSkill("chat");
     const systemPrompt = withSkillPreamble(baseSystem, skill);
     const ep = resolveAiEndpoint(skill?.model || DEFAULT_MODEL);
