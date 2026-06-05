@@ -1,5 +1,5 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
-import { Flame, Users2, Plus, Settings as SettingsIcon, ScrollText } from "lucide-react";
+import { Flame, Users2, Plus, Settings as SettingsIcon } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/hermes")({
   head: () => ({
