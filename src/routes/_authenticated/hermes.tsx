@@ -36,9 +36,6 @@ function HermesLayout() {
             <Link to="/hermes" className={tabClass(tasksActive)}>
               <Users2 className="h-3.5 w-3.5" /> Agents
             </Link>
-            <Link to="/hermes/agents" className={tabClass(agentsActive)}>
-              <ScrollText className="h-3.5 w-3.5" /> Log
-            </Link>
             <Link to="/hermes/settings" className={tabClass(settingsActive)}>
               <SettingsIcon className="h-3.5 w-3.5" /> Settings
             </Link>
