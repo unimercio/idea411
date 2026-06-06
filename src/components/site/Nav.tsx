@@ -5,7 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { checkAdmin } from "@/lib/api/prompt-templates.functions";
-import { LanguageSwitcher } from "./LanguageSwitcher";
+
 import { HeaderBrand } from "./HeaderBrand";
 import { toast } from "sonner";
 import { getHomePath } from "@/lib/home-path";
@@ -71,7 +71,6 @@ export function Nav() {
             )}
           </nav>
           <div className="flex items-center gap-2">
-            <LanguageSwitcher />
             {isAuthed === true ? (
               <button
                 onClick={handleSignOut}
