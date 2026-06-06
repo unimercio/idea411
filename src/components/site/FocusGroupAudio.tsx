@@ -215,6 +215,7 @@ export function FocusGroupAudio({
     currentIdx != null && turns[currentIdx] ? turns[currentIdx].speaker : null;
 
   return (
+    <div className="flex flex-col gap-2">
     <div className="flex flex-wrap items-center gap-2">
       {live && (
         <button
