@@ -1,20 +1,26 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { HeaderBrand } from "@/components/site/HeaderBrand";
+import { Input } from "@/components/ui/input";
 import {
   AlertTriangle,
   ArrowRight,
   Plus,
+  Search,
   Settings,
   ShieldCheck,
   ShieldQuestion,
   Sparkles,
   Trash2,
   Users,
+  Trophy,
+  Clock,
+  GitCompare,
+  X,
 } from "lucide-react";
 import {
   deleteProject,
@@ -308,34 +314,178 @@ function DashboardPage() {
 
 
 
-      <section className="mx-auto max-w-7xl px-6 py-16">
-        <div className="flex items-end justify-between flex-wrap gap-4">
-          <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-ember">{t("dashboard.eyebrow")}</p>
-            <h1 className="mt-3 font-display text-4xl sm:text-5xl font-semibold">{t("dashboard.title")}</h1>
-            <p className="mt-2 text-muted-foreground">
-              {projects.length === 0
-                ? t("dashboard.emptyCount")
-                : projects.length === 1
-                  ? t("dashboard.countOne", { count: projects.length })
-                  : t("dashboard.countMany", { count: projects.length })}
-            </p>
-          </div>
-        </div>
+      <DashboardBody projects={projects} />
+    </main>
+  );
+}
 
-        {projects.length === 0 ? (
-          <EmptyState />
-        ) : (
-          <div className="mt-12 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+function DashboardBody({ projects }: { projects: Project[] }) {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const [query, setQuery] = useState("");
+  const [status, setStatus] = useState<"all" | "ready" | "vetting">("all");
+  const [sort, setSort] = useState<"recent" | "score" | "title">("recent");
+  const [compareMode, setCompareMode] = useState(false);
+  const [selected, setSelected] = useState<string[]>([]);
+
+  const stats = useMemo(() => {
+    const ready = projects.filter((p) => !!p.scores).length;
+    const vetting = projects.length - ready;
+    const scores = projects
+      .map((p) => overallScore(p.scores))
+      .filter((s): s is number => s !== null);
+    const avg = scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+    const thisMonth = projects.filter((p) => p.createdAt >= monthStart).length;
+    return { total: projects.length, ready, vetting, avg, thisMonth };
+  }, [projects]);
+
+  const spotlight = useMemo(() => {
+    let best: { project: Project; score: number } | null = null;
+    for (const p of projects) {
+      const s = overallScore(p.scores);
+      if (s !== null && (!best || s > best.score)) best = { project: p, score: s };
+    }
+    return best;
+  }, [projects]);
+
+  const continueProject = useMemo(() => {
+    const sorted = [...projects].sort((a, b) => b.updatedAt - a.updatedAt);
+    return sorted.find((p) => p.id !== spotlight?.project.id) ?? sorted[0] ?? null;
+  }, [projects, spotlight]);
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    let list = projects.filter((p) => {
+      if (status === "ready" && !p.scores) return false;
+      if (status === "vetting" && p.scores) return false;
+      if (q && !`${p.title} ${p.idea}`.toLowerCase().includes(q)) return false;
+      return true;
+    });
+    list = [...list];
+    if (sort === "title") list.sort((a, b) => a.title.localeCompare(b.title));
+    else if (sort === "score")
+      list.sort((a, b) => (overallScore(b.scores) ?? -1) - (overallScore(a.scores) ?? -1));
+    else list.sort((a, b) => b.updatedAt - a.updatedAt);
+    return list;
+  }, [projects, query, status, sort]);
+
+  const toggleSelected = (id: string) => {
+    setSelected((prev) => {
+      if (prev.includes(id)) return prev.filter((x) => x !== id);
+      if (prev.length >= 3) return prev;
+      return [...prev, id];
+    });
+  };
+
+  const compareProjects = projects.filter((p) => selected.includes(p.id));
+
+  return (
+    <section className="mx-auto max-w-7xl px-6 py-12 space-y-10">
+      <div className="flex items-end justify-between flex-wrap gap-4">
+        <div>
+          <p className="text-xs uppercase tracking-[0.2em] text-ember">{t("dashboard.eyebrow")}</p>
+          <h1 className="mt-3 font-display text-4xl sm:text-5xl font-semibold">{t("dashboard.title")}</h1>
+          <p className="mt-2 text-muted-foreground">
+            {projects.length === 0
+              ? t("dashboard.emptyCount")
+              : projects.length === 1
+                ? t("dashboard.countOne", { count: projects.length })
+                : t("dashboard.countMany", { count: projects.length })}
+          </p>
+        </div>
+      </div>
+
+      {projects.length === 0 ? (
+        <EmptyState />
+      ) : (
+        <>
+          <StatsStrip stats={stats} />
+
+          <div className="grid gap-4 md:grid-cols-2">
+            {continueProject && (
+              <HighlightCard
+                icon={Clock}
+                eyebrow="Continue where you left off"
+                project={continueProject}
+                onOpen={() => navigate({ to: "/vetting", search: { id: continueProject.id } })}
+              />
+            )}
+            {spotlight && spotlight.project.id !== continueProject?.id && (
+              <HighlightCard
+                icon={Trophy}
+                eyebrow={`Top idea · ${spotlight.score}/100`}
+                project={spotlight.project}
+                onOpen={() => navigate({ to: "/vetting", search: { id: spotlight.project.id } })}
+                accent
+              />
+            )}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative flex-1 min-w-[220px] max-w-md">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Search ideas…"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <FilterChip label="All" active={status === "all"} onClick={() => setStatus("all")} />
+            <FilterChip label="Ready" active={status === "ready"} onClick={() => setStatus("ready")} />
+            <FilterChip label="Vetting" active={status === "vetting"} onClick={() => setStatus("vetting")} />
+            <div className="h-5 w-px bg-border mx-1" />
+            <FilterChip label="Recent" active={sort === "recent"} onClick={() => setSort("recent")} />
+            <FilterChip label="Score" active={sort === "score"} onClick={() => setSort("score")} />
+            <FilterChip label="Title" active={sort === "title"} onClick={() => setSort("title")} />
+            <button
+              onClick={() => {
+                setCompareMode((v) => !v);
+                setSelected([]);
+              }}
+              className={`ml-auto inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs transition ${
+                compareMode
+                  ? "border-ember/50 bg-ember/10 text-foreground"
+                  : "border-border text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <GitCompare className="h-3.5 w-3.5" /> {compareMode ? "Exit compare" : "Compare"}
+            </button>
+          </div>
+
+          {compareMode && compareProjects.length >= 2 && (
+            <CompareTable projects={compareProjects} onRemove={toggleSelected} />
+          )}
+          {compareMode && (
+            <p className="text-xs text-muted-foreground">
+              Select 2–3 projects to compare side-by-side ({selected.length}/3 selected).
+            </p>
+          )}
+
+          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
             <AnimatePresence initial={false}>
-              {projects.map((p, i) => (
-                <ProjectCard key={p.id} project={p} index={i} />
+              {filtered.map((p, i) => (
+                <ProjectCard
+                  key={p.id}
+                  project={p}
+                  index={i}
+                  selectable={compareMode}
+                  selected={selected.includes(p.id)}
+                  onToggle={() => toggleSelected(p.id)}
+                />
               ))}
             </AnimatePresence>
           </div>
-        )}
-      </section>
-    </main>
+          {filtered.length === 0 && (
+            <p className="text-center text-sm text-muted-foreground py-10">
+              No ideas match your filters.
+            </p>
+          )}
+        </>
+      )}
+    </section>
   );
 }
 
@@ -345,7 +495,19 @@ function ShieldIcon({ status }: { status: "admin" | "not-admin" | "error" }) {
   return <ShieldQuestion className="h-5 w-5 mt-0.5 shrink-0" />;
 }
 
-function ProjectCard({ project, index }: { project: Project; index: number }) {
+function ProjectCard({
+  project,
+  index,
+  selectable,
+  selected,
+  onToggle,
+}: {
+  project: Project;
+  index: number;
+  selectable?: boolean;
+  selected?: boolean;
+  onToggle?: () => void;
+}) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const score = overallScore(project.scores);
@@ -357,7 +519,14 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -8 }}
       transition={{ duration: 0.45, delay: 0.04 * index, ease: [0.22, 1, 0.36, 1] }}
-      className="group relative rounded-3xl border border-border bg-card/80 p-6 shadow-elegant hover:border-ember/40 transition"
+      onClick={selectable ? onToggle : undefined}
+      className={`group relative rounded-3xl border bg-card/80 p-6 shadow-elegant transition ${
+        selectable ? "cursor-pointer" : ""
+      } ${
+        selected
+          ? "border-ember ring-2 ring-ember/40"
+          : "border-border hover:border-ember/40"
+      }`}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
@@ -509,6 +678,142 @@ function IterationSparkline({ iterations }: { iterations?: Iteration[] }) {
           {delta > 0 ? "▲" : delta < 0 ? "▼" : "—"} {Math.abs(delta)} {t("dashboard.pts")}
         </span>
       )}
+    </div>
+  );
+}
+
+function StatsStrip({
+  stats,
+}: {
+  stats: { total: number; ready: number; vetting: number; avg: number | null; thisMonth: number };
+}) {
+  const items: { label: string; value: number | string; suffix?: string }[] = [
+    { label: "Total ideas", value: stats.total },
+    { label: "Avg ForgeScore", value: stats.avg ?? "—", suffix: stats.avg !== null ? "/100" : "" },
+    { label: "Ready", value: stats.ready },
+    { label: "Vetting", value: stats.vetting },
+    { label: "This month", value: stats.thisMonth },
+  ];
+  return (
+    <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
+      {items.map((it) => (
+        <div key={it.label} className="rounded-2xl border border-border bg-card/60 px-4 py-3 shadow-elegant">
+          <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">{it.label}</p>
+          <p className="mt-1 font-display text-2xl font-semibold">
+            {it.value}
+            {it.suffix ? <span className="text-xs text-muted-foreground ml-1">{it.suffix}</span> : null}
+          </p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function FilterChip({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`rounded-full border px-3 py-1.5 text-xs transition ${
+        active
+          ? "border-ember/50 bg-ember/10 text-foreground"
+          : "border-border bg-background/60 text-muted-foreground hover:text-foreground"
+      }`}
+    >
+      {label}
+    </button>
+  );
+}
+
+function HighlightCard({
+  icon: Icon,
+  eyebrow,
+  project,
+  onOpen,
+  accent,
+}: {
+  icon: typeof Clock;
+  eyebrow: string;
+  project: Project;
+  onOpen: () => void;
+  accent?: boolean;
+}) {
+  const score = overallScore(project.scores);
+  return (
+    <div
+      className={`rounded-3xl border p-6 shadow-elegant transition ${
+        accent
+          ? "border-ember/40 bg-gradient-to-br from-ember/10 via-card/80 to-card/80"
+          : "border-border bg-card/80"
+      }`}
+    >
+      <p className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.18em] text-ember">
+        <Icon className="h-3.5 w-3.5" /> {eyebrow}
+      </p>
+      <h3 className="mt-3 font-display text-xl font-semibold truncate">{project.title}</h3>
+      <p className="mt-2 text-sm text-muted-foreground line-clamp-2">{project.idea}</p>
+      <div className="mt-4 flex items-center justify-between">
+        <span className="text-xs text-muted-foreground">{timeAgo(project.updatedAt)}</span>
+        {score !== null && (
+          <span className="font-display text-2xl font-semibold">
+            {score}
+            <span className="ml-1 text-xs text-muted-foreground">/100</span>
+          </span>
+        )}
+      </div>
+      <button
+        onClick={onOpen}
+        className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-gradient-ember px-4 py-2 text-sm font-medium text-ember-foreground shadow-ember hover:brightness-110 transition"
+      >
+        Reopen <ArrowRight className="h-3.5 w-3.5" />
+      </button>
+    </div>
+  );
+}
+
+function CompareTable({ projects, onRemove }: { projects: Project[]; onRemove: (id: string) => void }) {
+  const rows: { label: string; get: (p: Project) => number | string | null }[] = [
+    { label: "Overall", get: (p) => overallScore(p.scores) },
+    { label: "Compliance", get: (p) => p.scores?.compliance ?? null },
+    { label: "Market", get: (p) => p.scores?.market ?? null },
+    { label: "Demand", get: (p) => p.scores?.demand ?? null },
+    { label: "Iterations", get: (p) => p.iterations?.length ?? 0 },
+    { label: "Status", get: (p) => (p.scores ? "Ready" : "Vetting") },
+  ];
+  return (
+    <div className="overflow-x-auto rounded-2xl border border-border bg-card/60">
+      <table className="w-full text-sm">
+        <thead className="bg-muted/30 text-xs uppercase tracking-wider text-muted-foreground">
+          <tr>
+            <th className="px-4 py-3 text-left font-medium">Metric</th>
+            {projects.map((p) => (
+              <th key={p.id} className="px-4 py-3 text-left font-medium">
+                <div className="flex items-center gap-2">
+                  <span className="truncate max-w-[180px]">{p.title}</span>
+                  <button
+                    onClick={() => onRemove(p.id)}
+                    className="ml-auto text-muted-foreground hover:text-foreground"
+                    aria-label="Remove from compare"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr key={r.label} className="border-t border-border">
+              <td className="px-4 py-2.5 text-muted-foreground">{r.label}</td>
+              {projects.map((p) => (
+                <td key={p.id} className="px-4 py-2.5 font-medium">
+                  {r.get(p) ?? "—"}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
