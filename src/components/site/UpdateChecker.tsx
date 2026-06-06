@@ -245,7 +245,7 @@ export function UpdateChecker() {
         )}
 
         <DialogFooter className="gap-2 sm:gap-2">
-          <Button variant="outline" onClick={() => setOpen(false)}>
+          <Button variant="outline" onClick={() => handleOpenChange(false)}>
             Later
           </Button>
           <Button onClick={handleRefresh}>Refresh now</Button>
