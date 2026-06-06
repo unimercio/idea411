@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import { getProject, overallScore } from "@/lib/projects";
 import { refineIdea } from "@/lib/api/vetting.functions";
 import { HeaderBrand } from "@/components/site/HeaderBrand";
+import { getIntakeCharRange } from "@/lib/intakeCharRange";
 
 const searchSchema = z.object({
   refine: z.string().trim().min(1).max(64).optional().catch(undefined),
