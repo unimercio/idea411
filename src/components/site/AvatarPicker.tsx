@@ -49,7 +49,7 @@ export function AvatarPicker({ onUploaded, currentPath, disabled }: Props) {
   useEffect(() => {
     if (!cameraOpen) return;
     let active = true;
-    setSnapshot(null);
+    setSnapshot(null); setEdited(null);
     (async () => {
       try {
         if (!navigator.mediaDevices?.getUserMedia) {
@@ -83,7 +83,7 @@ export function AvatarPicker({ onUploaded, currentPath, disabled }: Props) {
     if (cameraOpen) return;
     stream?.getTracks().forEach((t) => t.stop());
     setStream(null);
-    setSnapshot(null);
+    setSnapshot(null); setEdited(null);
   }, [cameraOpen, stream]);
 
   const capture = () => {
