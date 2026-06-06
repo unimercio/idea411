@@ -323,6 +323,16 @@ function FeedbackPage() {
                     <span className="text-xs text-muted-foreground">
                       {new Date(item.created_at).toLocaleDateString()}
                     </span>
+                    {item.github_issue_url && (
+                      <a
+                        href={item.github_issue_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                      >
+                        <Github className="size-3" />#{item.github_issue_number}
+                      </a>
+                    )}
                   </div>
                   <h3 className="mt-2 font-medium">{item.title}</h3>
                   {item.description && (
