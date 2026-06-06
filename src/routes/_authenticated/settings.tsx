@@ -13,6 +13,13 @@ import { getMySettings, updateMySettings } from "@/lib/api/settings.functions";
 import { SUPPORTED_LANGUAGES, applyLanguage } from "@/i18n";
 import { HeaderBrand } from "@/components/site/HeaderBrand";
 import { AvatarPicker } from "@/components/site/AvatarPicker";
+import { Slider } from "@/components/ui/slider";
+import {
+  INTAKE_CHAR_BOUND_MIN,
+  INTAKE_CHAR_BOUND_MAX,
+  getIntakeCharRange,
+  setIntakeCharRange,
+} from "@/lib/intakeCharRange";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({
@@ -48,6 +55,14 @@ function SettingsPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const baselineRef = useRef<string>("");
   const [autoSaveState, setAutoSaveState] = useState<"idle" | "dirty" | "saving" | "saved" | "error">("idle");
+  const [charRange, setCharRange] = useState<[number, number]>(() => {
+    const r = getIntakeCharRange();
+    return [r.min, r.max];
+  });
+
+  useEffect(() => {
+    setIntakeCharRange({ min: charRange[0], max: charRange[1] });
+  }, [charRange]);
 
   useEffect(() => {
     if (data) {
@@ -408,6 +423,37 @@ function SettingsPage() {
             </div>
 
           </form>
+        </div>
+
+        <div className="mt-6 rounded-2xl border border-border bg-card p-6 shadow-elegant">
+          <h2 className="font-display text-lg font-semibold">Idea intake</h2>
+          <p className="text-sm text-muted-foreground mb-6">
+            Set the character range you want for your idea intake textarea. The
+            lower bound triggers the "add more detail" hint; the upper bound
+            caps the input length.
+          </p>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Character range</span>
+              <span className="font-medium tabular-nums">
+                {charRange[0]} – {charRange[1]}
+              </span>
+            </div>
+            <Slider
+              min={INTAKE_CHAR_BOUND_MIN}
+              max={INTAKE_CHAR_BOUND_MAX}
+              step={10}
+              minStepsBetweenThumbs={1}
+              value={charRange}
+              onValueChange={(v) => {
+                if (v.length >= 2) setCharRange([v[0], v[1]] as [number, number]);
+              }}
+            />
+            <div className="flex justify-between text-xs text-muted-foreground tabular-nums">
+              <span>{INTAKE_CHAR_BOUND_MIN}</span>
+              <span>{INTAKE_CHAR_BOUND_MAX}</span>
+            </div>
+          </div>
         </div>
       </section>
     </main>
