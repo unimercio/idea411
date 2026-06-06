@@ -2,11 +2,12 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "motion/react";
-import { ArrowRight, Flame, ImagePlus, Sparkles, X, History, Mail, Wand2 } from "lucide-react";
+import { ArrowRight, ImagePlus, Sparkles, X, History, Mail, Wand2 } from "lucide-react";
 import { z } from "zod";
 import { useTranslation } from "react-i18next";
 import { getProject, overallScore } from "@/lib/projects";
 import { refineIdea } from "@/lib/api/vetting.functions";
+import { HeaderBrand } from "@/components/site/HeaderBrand";
 
 const searchSchema = z.object({
   refine: z.string().trim().min(1).max(64).optional().catch(undefined),
@@ -165,12 +166,7 @@ function IntakePage() {
     <main className="min-h-screen bg-background text-foreground">
       <header className="border-b border-border">
         <div className="mx-auto max-w-7xl px-6 py-5 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 font-display font-semibold">
-            <span className="grid h-7 w-7 place-items-center rounded-md bg-gradient-ember text-ember-foreground shadow-ember">
-              <Flame className="h-4 w-4" />
-            </span>
-            IdeaForge
-          </Link>
+          <HeaderBrand />
           <Link to="/dashboard" className="text-sm text-muted-foreground hover:text-foreground transition">
             {t("intake.skipDashboard")}
           </Link>

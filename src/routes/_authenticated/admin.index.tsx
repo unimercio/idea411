@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, Flame, Settings, Sparkles, Users, Activity, LayoutDashboard } from "lucide-react";
+import { Loader2, Settings, Sparkles, Users, Activity, LayoutDashboard } from "lucide-react";
 import { checkAdmin } from "@/lib/api/prompt-templates.functions";
 import { NotAuthorized } from "@/components/site/NotAuthorized";
+import { HeaderBrand } from "@/components/site/HeaderBrand";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
   head: () => ({
@@ -40,12 +41,7 @@ function AdminDashboardPage() {
     <main className="min-h-screen bg-background text-foreground">
       <header className="border-b border-border">
         <div className="mx-auto max-w-7xl px-6 py-5 flex items-center justify-between">
-          <Link to="/admin" className="flex items-center gap-2 font-display font-semibold">
-            <span className="grid h-7 w-7 place-items-center rounded-md bg-gradient-ember text-ember-foreground shadow-ember">
-              <Flame className="h-4 w-4" />
-            </span>
-            IdeaForge
-          </Link>
+          <HeaderBrand to="/admin" />
           <span className="text-xs uppercase tracking-[0.2em] text-ember">Admin</span>
         </div>
       </header>
