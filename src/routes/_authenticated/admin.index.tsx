@@ -224,7 +224,7 @@ function Panel({
   icon: any;
   href?: string;
   hrefLabel?: string;
-  children: React.ReactNode;
+  children: import("react").ReactNode;
 }) {
   return (
     <section className="rounded-3xl border border-border bg-card/60 p-5">
