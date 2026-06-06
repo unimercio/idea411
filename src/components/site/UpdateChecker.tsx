@@ -67,6 +67,7 @@ async function fetchVersionToken(): Promise<string | null> {
     });
     if (!res.ok) return null;
     return (
+      res.headers.get("x-deployment-id") ||
       res.headers.get("etag") ||
       res.headers.get("last-modified") ||
       res.headers.get("x-build-id") ||
