@@ -21,6 +21,8 @@ import {
   Clock,
   GitCompare,
   X,
+  MessageSquare,
+  Coins,
 } from "lucide-react";
 import {
   deleteProject,
