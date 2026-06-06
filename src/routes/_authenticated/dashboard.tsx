@@ -235,6 +235,24 @@ function DashboardPage() {
             )}
             {isAuthed === true && (
               <Link
+                to="/feedback"
+                className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground px-3 py-2"
+                title="Feedback"
+              >
+                <MessageSquare className="h-4 w-4" /> Feedback
+              </Link>
+            )}
+            {isAuthed === true && (
+              <Link
+                to="/bounties"
+                className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground px-3 py-2"
+                title="Bounties"
+              >
+                <Coins className="h-4 w-4" /> Bounties
+              </Link>
+            )}
+            {isAuthed === true && (
+              <Link
                 to="/settings"
                 className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground px-3 py-2"
                 title={t("dashboard.accountSettings")}
