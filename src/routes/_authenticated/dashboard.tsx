@@ -486,7 +486,6 @@ function DashboardBody({ projects }: { projects: Project[] }) {
         </>
       )}
     </section>
-    </main>
   );
 }
 
