@@ -126,17 +126,8 @@ function DashboardPage() {
         return;
       }
       toast.success("Your idea was saved to your account");
-      // Trigger projects cache refresh
-      window.dispatchEvent(new CustomEvent("ideaforge:projects-changed"));
-      // Hard refresh of the in-memory cache so the new row appears.
-      const { data: rows } = await supabase
-        .from("projects")
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .select("*" as any)
-        .order("updated_at", { ascending: false });
-      if (!cancelled && rows) {
-        window.dispatchEvent(new CustomEvent("ideaforge:projects-changed"));
-      }
+      await refreshProjects();
+
     })();
     return () => {
       cancelled = true;
