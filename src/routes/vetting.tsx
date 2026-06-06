@@ -361,18 +361,28 @@ function ResultsView({
   idea,
   analysis,
   projectId,
+  canSave,
+  onSave,
   onRefine,
   onRerun,
 }: {
   idea: string;
   analysis: Analysis;
   projectId: string;
+  canSave: boolean;
+  onSave: () => void;
   onRefine: () => void;
   onRerun: () => void;
 }) {
   return (
     <div className="mt-12 space-y-8">
-      <OverallCard analysis={analysis} onRefine={onRefine} onRerun={onRerun} />
+      <OverallCard
+        analysis={analysis}
+        canSave={canSave}
+        onSave={onSave}
+        onRefine={onRefine}
+        onRerun={onRerun}
+      />
 
       <div className="grid gap-5 lg:grid-cols-3">
         <CompliancePillar data={analysis.compliance} />
@@ -390,10 +400,14 @@ function ResultsView({
 
 function OverallCard({
   analysis,
+  canSave,
+  onSave,
   onRefine,
   onRerun,
 }: {
   analysis: Analysis;
+  canSave: boolean;
+  onSave: () => void;
   onRefine: () => void;
   onRerun: () => void;
 }) {
