@@ -13,6 +13,13 @@ import { getMySettings, updateMySettings } from "@/lib/api/settings.functions";
 import { SUPPORTED_LANGUAGES, applyLanguage } from "@/i18n";
 import { HeaderBrand } from "@/components/site/HeaderBrand";
 import { AvatarPicker } from "@/components/site/AvatarPicker";
+import { Slider } from "@/components/ui/slider";
+import {
+  INTAKE_CHAR_BOUND_MIN,
+  INTAKE_CHAR_BOUND_MAX,
+  getIntakeCharRange,
+  setIntakeCharRange,
+} from "@/lib/intakeCharRange";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({
