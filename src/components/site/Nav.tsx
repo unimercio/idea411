@@ -71,20 +71,6 @@ export function Nav() {
             )}
           </nav>
           <div className="flex items-center gap-2">
-            {isAuthed === true ? (
-              <button
-                onClick={handleSignOut}
-                className="hidden sm:inline-flex items-center text-sm text-muted-foreground hover:text-foreground px-3 py-1.5"
-              >
-                {t("common.signOut")}
-              </button>
-            ) : isAuthed === false ? (
-              <Link to="/auth" className="hidden sm:inline-flex items-center text-sm text-muted-foreground hover:text-foreground px-3 py-1.5">
-                {t("common.signIn")}
-              </Link>
-            ) : (
-              <span className="hidden sm:inline-flex w-16" aria-hidden />
-            )}
             <Link
               to="/intake"
               className="inline-flex items-center rounded-full bg-gradient-ember px-4 py-2 text-sm font-medium text-ember-foreground shadow-ember hover:brightness-110 transition"
