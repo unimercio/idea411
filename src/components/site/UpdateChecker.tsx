@@ -1,12 +1,23 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 /**
  * Lightweight "new version available" checker.
  *
  * Polls the served HTML document with a HEAD request and watches `ETag` /
  * `Last-Modified`. When the value changes vs. what was seen at first load,
- * the user is shown a persistent toast with a "Refresh" action.
+ * the user is shown a dialog with release notes (fetched from
+ * `/release-notes.json`) and a "Refresh" action.
  *
  * - Client-only (guards on `window`).
  * - Disabled in dev, inside iframes, and on Lovable preview hostnames so the
@@ -15,6 +26,12 @@ import { toast } from "sonner";
  */
 const POLL_MS = 60_000;
 const TOAST_ID = "app-update-available";
+
+type Release = {
+  version: string;
+  date?: string;
+  notes: string[];
+};
 
 function isPreviewLikeHost(host: string) {
   return (
@@ -60,9 +77,25 @@ async function fetchVersionToken(): Promise<string | null> {
   }
 }
 
+async function fetchReleaseNotes(): Promise<Release[]> {
+  try {
+    const res = await fetch(`/release-notes.json?_v=${Date.now()}`, {
+      cache: "no-store",
+      credentials: "same-origin",
+    });
+    if (!res.ok) return [];
+    const data = (await res.json()) as { releases?: Release[] };
+    return Array.isArray(data.releases) ? data.releases : [];
+  } catch {
+    return [];
+  }
+}
+
 export function UpdateChecker() {
   const initialRef = useRef<string | null>(null);
   const notifiedRef = useRef(false);
+  const [open, setOpen] = useState(false);
+  const [releases, setReleases] = useState<Release[]>([]);
 
   useEffect(() => {
     if (!shouldRun()) return;
@@ -70,16 +103,20 @@ export function UpdateChecker() {
     let cancelled = false;
     let timer: ReturnType<typeof setInterval> | null = null;
 
-    const notify = () => {
+    const showUpdate = async () => {
       if (notifiedRef.current) return;
       notifiedRef.current = true;
-      toast("A new version of IdeaForge is available", {
+      const notes = await fetchReleaseNotes();
+      if (cancelled) return;
+      setReleases(notes);
+      setOpen(true);
+      toast("A new version is available", {
         id: TOAST_ID,
-        description: "Refresh to load the latest build.",
+        description: "See what's new and refresh when ready.",
         duration: Infinity,
         action: {
-          label: "Refresh",
-          onClick: () => window.location.reload(),
+          label: "What's new",
+          onClick: () => setOpen(true),
         },
       });
     };
@@ -91,7 +128,7 @@ export function UpdateChecker() {
         initialRef.current = token;
         return;
       }
-      if (token !== initialRef.current) notify();
+      if (token !== initialRef.current) void showUpdate();
     };
 
     void check();
@@ -111,5 +148,61 @@ export function UpdateChecker() {
     };
   }, []);
 
-  return null;
+  const latest = releases[0];
+  const previous = releases.slice(1, 4);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>A new version is available</DialogTitle>
+          <DialogDescription>
+            {latest
+              ? `What's new in ${latest.version}${latest.date ? ` · ${latest.date}` : ""}`
+              : "Refresh to load the latest build."}
+          </DialogDescription>
+        </DialogHeader>
+
+        {releases.length > 0 ? (
+          <ScrollArea className="max-h-72 pr-3">
+            {latest && (
+              <ul className="list-disc space-y-1 pl-5 text-sm text-foreground">
+                {latest.notes.map((n, i) => (
+                  <li key={i}>{n}</li>
+                ))}
+              </ul>
+            )}
+            {previous.length > 0 && (
+              <div className="mt-4 space-y-3">
+                {previous.map((r) => (
+                  <div key={r.version}>
+                    <p className="text-xs font-medium text-muted-foreground">
+                      {r.version}
+                      {r.date ? ` · ${r.date}` : ""}
+                    </p>
+                    <ul className="mt-1 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+                      {r.notes.map((n, i) => (
+                        <li key={i}>{n}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            )}
+          </ScrollArea>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            Release notes aren't available right now, but a newer build is ready.
+          </p>
+        )}
+
+        <DialogFooter className="gap-2 sm:gap-2">
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            Later
+          </Button>
+          <Button onClick={() => window.location.reload()}>Refresh now</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
 }

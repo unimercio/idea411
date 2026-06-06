@@ -1,0 +1,13 @@
+{
+  "releases": [
+    {
+      "version": "2026.06.06",
+      "date": "2026-06-06",
+      "notes": [
+        "New: in-app update prompt now shows a changelog before refreshing.",
+        "Improved: phased vetting pipeline self-corrects across pillars.",
+        "Improved: live terminal stream during vetting analysis."
+      ]
+    }
+  ]
+}
