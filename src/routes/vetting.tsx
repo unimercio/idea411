@@ -100,6 +100,40 @@ function VettingPage() {
   const [analysis, setAnalysis] = useState<Analysis | undefined>(cachedAnalysis);
   const [loading, setLoading] = useState(!cachedAnalysis);
   const [error, setError] = useState<string | null>(null);
+  const [isAuthed, setIsAuthed] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (mounted) setIsAuthed(!!data.session);
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      if (mounted) setIsAuthed(!!session);
+    });
+    return () => {
+      mounted = false;
+      sub.subscription.unsubscribe();
+    };
+  }, []);
+
+  const handleSaveAsGuest = () => {
+    if (!idea) return;
+    try {
+      localStorage.setItem(
+        "ideaforge:pending-project",
+        JSON.stringify({
+          idea,
+          sketchName,
+          analysis,
+          savedAt: Date.now(),
+        }),
+      );
+    } catch (err) {
+      console.error("[vetting] failed to stash pending project", err);
+    }
+    toast.success("Create an account to save your idea");
+    navigate({ to: "/auth", search: { redirect: "/dashboard" } });
+  };
 
   const startedRef = useRef(false);
   useEffect(() => {
