@@ -71,7 +71,6 @@ export function Nav() {
             )}
           </nav>
           <div className="flex items-center gap-2">
-            <LanguageSwitcher />
             {isAuthed === true ? (
               <button
                 onClick={handleSignOut}
