@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import {
   Bug,
+  Github,
   Sparkles,
   AlertTriangle,
   ArrowUp,
@@ -25,6 +26,7 @@ import {
   Trophy,
 } from "lucide-react";
 import { checkAdmin } from "@/lib/api/prompt-templates.functions";
+import { createFeedbackWithGithub } from "@/lib/api/feedback-github.functions";
 
 export const Route = createFileRoute("/_authenticated/feedback")({
   head: () => ({
@@ -48,6 +50,8 @@ type FeedbackItem = {
   status: FeedbackStatus;
   votes: number;
   created_at: string;
+  github_issue_number: number | null;
+  github_issue_url: string | null;
 };
 
 const TYPE_META: Record<FeedbackType, { label: string; icon: typeof Bug; tone: string }> = {
@@ -112,6 +116,8 @@ function FeedbackPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
+  const createFeedbackFn = useServerFn(createFeedbackWithGithub);
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!userId) return;
@@ -120,21 +126,23 @@ function FeedbackPage() {
       return;
     }
     setSubmitting(true);
-    const { error } = await supabase.from("feedback_items").insert({
-      user_id: userId,
-      type,
-      title: title.trim(),
-      description: description.trim(),
-    });
-    setSubmitting(false);
-    if (error) {
-      toast.error(error.message);
-      return;
+    try {
+      const res = await createFeedbackFn({
+        data: { type, title: title.trim(), description: description.trim() },
+      });
+      setTitle("");
+      setDescription("");
+      if (res.github) {
+        toast.success(`Posted • GitHub issue #${res.github.number}`);
+      } else {
+        toast.success("Feedback posted");
+      }
+      void load();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to post");
+    } finally {
+      setSubmitting(false);
     }
-    setTitle("");
-    setDescription("");
-    toast.success("Feedback posted");
-    void load();
   };
 
   const toggleVote = async (itemId: string) => {
@@ -315,6 +323,16 @@ function FeedbackPage() {
                     <span className="text-xs text-muted-foreground">
                       {new Date(item.created_at).toLocaleDateString()}
                     </span>
+                    {item.github_issue_url && (
+                      <a
+                        href={item.github_issue_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                      >
+                        <Github className="size-3" />#{item.github_issue_number}
+                      </a>
+                    )}
                   </div>
                   <h3 className="mt-2 font-medium">{item.title}</h3>
                   {item.description && (
