@@ -11,6 +11,8 @@ import {
 import appCss from "../styles.css?url";
 import "../i18n";
 import { LanguageProvider } from "../i18n/LanguageProvider";
+import { Toaster } from "@/components/ui/sonner";
+import { UpdateChecker } from "@/components/site/UpdateChecker";
 
 function NotFoundComponent() {
   return (
@@ -132,6 +134,8 @@ function RootComponent() {
       <LanguageProvider>
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
+        <Toaster />
+        <UpdateChecker />
       </LanguageProvider>
     </QueryClientProvider>
   );
