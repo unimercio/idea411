@@ -124,7 +124,7 @@ export function FocusGroupAudio({
     if (v) u.voice = v;
     const { pitch, rate } = pickProsody(turn.speaker);
     u.pitch = pitch;
-    u.rate = rate;
+    u.rate = Math.min(10, Math.max(0.1, rate * speedRef.current));
     u.onend = () => onEnd?.();
     u.onerror = () => onEnd?.();
     window.speechSynthesis.speak(u);
