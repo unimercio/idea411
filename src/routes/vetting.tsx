@@ -275,6 +275,10 @@ Pricing: low ${s.pricing.low} · mid ${s.pricing.mid} · premium ${s.pricing.pre
 Revenue: cons ${s.revenue.conservative} · mod ${s.revenue.moderate} · opt ${s.revenue.optimistic}
 GTM: ${s.gtm.slice(0, 5).join("; ") || "(none)"}`;
   }
+  // Server caps `context` at 8000 chars; clamp defensively before sending.
+  function clampContext(s: string, max = 7800) {
+    return s.length <= max ? s : s.slice(0, max - 20) + "\n…[truncated]";
+  }
 
   async function runAll() {
     if (!projectId || !idea) return;
@@ -323,7 +327,9 @@ GTM: ${s.gtm.slice(0, 5).join("; ") || "(none)"}`;
     if (!complianceData || !marketV1) return;
 
     // PHASE 2 — sales depends on market + compliance.
-    const salesCtx = [summarizeCompliance(complianceData), summarizeMarket(marketV1)].join("\n\n");
+    const salesCtx = clampContext(
+      [summarizeCompliance(complianceData), summarizeMarket(marketV1)].join("\n\n"),
+    );
     const salesData = await runPillar("sales", setSales, () =>
       runSales({ data: { idea, sketchName, context: salesCtx } }),
     );
@@ -332,7 +338,9 @@ GTM: ${s.gtm.slice(0, 5).join("; ") || "(none)"}`;
     // PHASE 3 — self-correct market against sales findings (sales & market are
     // mutually dependent: if pricing/demand shift, sizing/competitive read
     // should reconcile too).
-    const marketCtx = [summarizeCompliance(complianceData), summarizeSales(salesData)].join("\n\n");
+    const marketCtx = clampContext(
+      [summarizeCompliance(complianceData), summarizeSales(salesData)].join("\n\n"),
+    );
     setMarket({ status: "running" });
     let marketFinal = marketV1;
     try {
@@ -352,11 +360,13 @@ GTM: ${s.gtm.slice(0, 5).join("; ") || "(none)"}`;
     }
 
     // PHASE 4 — strategic / overall, with full context from all three pillars.
-    const stratCtx = [
-      summarizeCompliance(complianceData),
-      summarizeMarket(marketFinal),
-      summarizeSales(salesData),
-    ].join("\n\n");
+    const stratCtx = clampContext(
+      [
+        summarizeCompliance(complianceData),
+        summarizeMarket(marketFinal),
+        summarizeSales(salesData),
+      ].join("\n\n"),
+    );
     await runPillar("strategic", setStrategic, () =>
       runStrategic({ data: { idea, sketchName, context: stratCtx } }),
     );
@@ -422,7 +432,7 @@ GTM: ${s.gtm.slice(0, 5).join("; ") || "(none)"}`;
             if (compliance.data) parts.push(summarizeCompliance(compliance.data));
             if (market.data) parts.push(summarizeMarket(market.data));
             if (sales.data) parts.push(summarizeSales(sales.data));
-            const context = parts.join("\n\n") || undefined;
+            const context = parts.length ? clampContext(parts.join("\n\n")) : undefined;
             void runPillar("strategic", setStrategic, () =>
               runStrategic({ data: { idea, sketchName, context } }),
             );
@@ -436,7 +446,7 @@ GTM: ${s.gtm.slice(0, 5).join("; ") || "(none)"}`;
             const parts: string[] = [];
             if (compliance.data) parts.push(summarizeCompliance(compliance.data));
             if (sales.data) parts.push(summarizeSales(sales.data));
-            const context = parts.join("\n\n") || undefined;
+            const context = parts.length ? clampContext(parts.join("\n\n")) : undefined;
             void runPillar("market", setMarket, () =>
               runMarket({ data: { idea, sketchName, context } }),
             );
@@ -445,7 +455,7 @@ GTM: ${s.gtm.slice(0, 5).join("; ") || "(none)"}`;
             const parts: string[] = [];
             if (compliance.data) parts.push(summarizeCompliance(compliance.data));
             if (market.data) parts.push(summarizeMarket(market.data));
-            const context = parts.join("\n\n") || undefined;
+            const context = parts.length ? clampContext(parts.join("\n\n")) : undefined;
             void runPillar("sales", setSales, () =>
               runSales({ data: { idea, sketchName, context } }),
             );
