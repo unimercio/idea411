@@ -500,12 +500,13 @@ type PState<T> = { status: PillarStatus; data?: T; error?: string };
 
 const TERMINAL_LINES: Record<string, string[]> = {
   strategic: [
-    "$ forge --pillar strategic --idea \"$IDEA\"",
-    "loading strategic skill preset…",
+    "$ forge --pillar strategic --depends-on compliance,market,sales",
+    "waiting for sibling pillars to finish…",
+    "ingesting compliance, market and sales findings…",
+    "reconciling cross-pillar signals…",
     "weighing thesis, novelty, defensibility…",
     "scoring overall idea health (0–100)…",
-    "calibrating verdict against base rates…",
-    "drafting one-line investment thesis…",
+    "drafting one-line verdict + thesis…",
   ],
   compliance: [
     "$ forge --pillar compliance --jurisdictions US,EU",
