@@ -24,11 +24,11 @@
     "copyright": "© {{year}} IdeaForge Labs."
   },
   "hero": {
-    "badge": "Concept to market — in one flow",
-    "title1": "Forge ideas into",
-    "titleAccent": "market-ready",
-    "title2": "products.",
-    "subtitle": "Try it free — drop in your concept and get an instant vetting report. Create an account to save and refine your ideas.",
+    "badge": "Idea to opportunity — in minutes",
+    "title1": "Where raw ideas",
+    "titleAccent": "become",
+    "title2": "real products.",
+    "subtitle": "Drop a concept. Get an instant, investor-grade read on its market, risks, and next move.",
     "ideaPlaceholder": "A modular ceramic cookware system that retains heat 3× longer than cast iron…",
     "emailPlaceholder": "you@company.com — we'll email you the report link (optional)",
     "sketchesNote": "Sketches supported in the next step",
