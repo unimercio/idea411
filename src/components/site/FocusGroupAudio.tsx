@@ -417,6 +417,53 @@ export function FocusGroupAudio({
         }}
       />
     )}
+
+    {!live && turns.length > 0 && canExport && (
+      <div className="rounded-lg border border-border bg-background/40 p-3 text-xs">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="font-medium text-foreground">Export audio:</span>
+          <button
+            type="button"
+            disabled={exportingFor !== null}
+            onClick={() => exportAudio(null)}
+            className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/60 px-3 py-1 font-medium text-muted-foreground hover:text-foreground transition disabled:opacity-60"
+            title="Record the full session as a single audio file"
+          >
+            {exportingFor === "__all__" ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Download className="h-3.5 w-3.5" />
+            )}
+            Full session
+          </button>
+          {speakers.map((s) => (
+            <button
+              key={s}
+              type="button"
+              disabled={exportingFor !== null}
+              onClick={() => exportAudio(s)}
+              className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/60 px-3 py-1 text-muted-foreground hover:text-foreground transition disabled:opacity-60"
+              title={`Export only ${s}'s turns`}
+            >
+              {exportingFor === s ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Download className="h-3.5 w-3.5" />
+              )}
+              {s}
+            </button>
+          ))}
+        </div>
+        <p className="mt-2 text-muted-foreground">
+          When the browser prompts, choose <em>this tab</em> and enable{" "}
+          <em>Share tab audio</em>. The recording plays through silently and downloads when
+          finished.
+        </p>
+        {exportError && (
+          <p className="mt-1 text-destructive">{exportError}</p>
+        )}
+      </div>
+    )}
     </div>
   );
 }
