@@ -731,7 +731,7 @@ function HighlightCard({
   onOpen,
   accent,
 }: {
-  icon: React.ComponentType<{ className?: string }>;
+  icon: (props: { className?: string }) => JSX.Element;
   eyebrow: string;
   project: Project;
   onOpen: () => void;
