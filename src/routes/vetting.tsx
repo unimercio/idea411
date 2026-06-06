@@ -441,9 +441,22 @@ function OverallCard({
           </div>
         </div>
         <div className="flex lg:flex-col gap-2 lg:items-stretch">
+          {canSave && (
+            <button
+              onClick={onSave}
+              className="group inline-flex items-center justify-center gap-2 rounded-full bg-gradient-ember px-5 py-2.5 text-sm font-medium text-ember-foreground shadow-ember hover:brightness-110 transition whitespace-nowrap"
+            >
+              <Save className="h-4 w-4" /> Save idea
+            </button>
+          )}
           <button
             onClick={onRefine}
-            className="group inline-flex items-center justify-center gap-2 rounded-full bg-gradient-ember px-5 py-2.5 text-sm font-medium text-ember-foreground shadow-ember hover:brightness-110 transition whitespace-nowrap"
+            className={
+              "group inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition whitespace-nowrap " +
+              (canSave
+                ? "border border-border bg-background/60 text-foreground hover:bg-accent"
+                : "bg-gradient-ember text-ember-foreground shadow-ember hover:brightness-110")
+            }
           >
             Refine my idea
             <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
