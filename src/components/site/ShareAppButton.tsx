@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Share2 } from "lucide-react";
+import { MessageCircle, Share2 } from "lucide-react";
 import { z } from "zod";
 import { useTranslation } from "react-i18next";
 import {
@@ -95,6 +95,34 @@ export function ShareAppButton({ className }: ShareAppButtonProps) {
             })}
           </DialogDescription>
         </DialogHeader>
+        <div className="grid grid-cols-2 gap-2 pt-1">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              window.open(
+                `https://wa.me/?text=${encodeURIComponent(body)}`,
+                "_blank",
+                "noopener,noreferrer",
+              );
+            }}
+            className="justify-center"
+          >
+            <MessageCircle className="h-4 w-4" aria-hidden />
+            {t("share.whatsapp", { defaultValue: "WhatsApp" })}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              window.location.href = `sms:?&body=${encodeURIComponent(body)}`;
+            }}
+            className="justify-center"
+          >
+            <Share2 className="h-4 w-4" aria-hidden />
+            {t("share.quickSms", { defaultValue: "SMS" })}
+          </Button>
+        </div>
         <Tabs defaultValue="email" className="mt-2">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="email">{t("share.email", { defaultValue: "Email" })}</TabsTrigger>
