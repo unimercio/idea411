@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Save, Upload, Trash2, User } from "lucide-react";
+import { ArrowLeft, Save, Upload, Trash2, User, Check, Loader2, CircleAlert } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
@@ -46,6 +46,8 @@ function SettingsPage() {
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const baselineRef = useRef<string>("");
+  const [autoSaveState, setAutoSaveState] = useState<"idle" | "dirty" | "saving" | "saved" | "error">("idle");
 
   useEffect(() => {
     if (data) {
@@ -55,8 +57,18 @@ function SettingsPage() {
       setWebsite(data.website ?? "");
       setAvatarPath(data.avatar_url ?? "");
       setLanguage(data.language ?? "en");
+      baselineRef.current = JSON.stringify({
+        first_name: data.first_name ?? "",
+        title: data.title ?? "",
+        company: data.company ?? "",
+        website: data.website ?? "",
+        avatar_url: data.avatar_url ?? "",
+        language: data.language ?? "en",
+      });
+      setAutoSaveState("idle");
     }
   }, [data]);
+
 
   // Generate signed URL for private avatar bucket
   useEffect(() => {
@@ -84,14 +96,70 @@ function SettingsPage() {
       website: string;
       avatar_url: string;
       language: string;
-    }) => updateFn({ data: vars }),
-    onSuccess: (_d, vars) => {
-      toast.success(t("settings.saved"));
+      _silent?: boolean;
+    }) => {
+      const { _silent, ...payload } = vars;
+      return updateFn({ data: payload }).then((r) => ({ r, _silent, vars: payload }));
+    },
+    onSuccess: ({ _silent, vars }) => {
       applyLanguage(vars.language);
+      baselineRef.current = JSON.stringify(vars);
+      setAutoSaveState("saved");
+      if (!_silent) toast.success(t("settings.saved"));
       qc.invalidateQueries({ queryKey: ["my-settings"] });
     },
-    onError: (e) => toast.error(e instanceof Error ? e.message : "Failed to save"),
+    onError: (e) => {
+      setAutoSaveState("error");
+      toast.error(e instanceof Error ? e.message : "Failed to save");
+    },
   });
+
+  // Auto-save: debounce changes and save silently
+  useEffect(() => {
+    if (!data) return;
+    const current = JSON.stringify({
+      first_name: firstName.trim(),
+      title: title.trim(),
+      company: company.trim(),
+      website: website.trim(),
+      avatar_url: avatarPath,
+      language,
+    });
+    if (current === baselineRef.current) return;
+    // Validate website URL — skip auto-save if invalid (user will see on manual save)
+    if (website && website.trim().length > 0) {
+      try { new URL(website.trim()); } catch { setAutoSaveState("dirty"); return; }
+    }
+    setAutoSaveState("dirty");
+    const handle = window.setTimeout(() => {
+      if (uploading || mutation.isPending) return;
+      setAutoSaveState("saving");
+      mutation.mutate({
+        first_name: firstName.trim(),
+        title: title.trim(),
+        company: company.trim(),
+        website: website.trim(),
+        avatar_url: avatarPath,
+        language,
+        _silent: true,
+      });
+    }, 1200);
+    return () => window.clearTimeout(handle);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [firstName, title, company, website, avatarPath, language, data, uploading]);
+
+  // Warn on unload if unsaved changes
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (autoSaveState === "dirty" || autoSaveState === "saving") {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [autoSaveState]);
+
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -322,7 +390,13 @@ function SettingsPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-3 pt-2">
+            <div className="flex items-center justify-between gap-3 pt-2">
+              <div className="text-xs text-muted-foreground inline-flex items-center gap-1.5" aria-live="polite">
+                {autoSaveState === "saving" && (<><Loader2 className="h-3.5 w-3.5 animate-spin" /> Auto-saving…</>)}
+                {autoSaveState === "saved" && (<><Check className="h-3.5 w-3.5 text-green-500" /> All changes saved</>)}
+                {autoSaveState === "dirty" && (<><CircleAlert className="h-3.5 w-3.5 text-amber-500" /> Unsaved changes — auto-saving shortly</>)}
+                {autoSaveState === "error" && (<><CircleAlert className="h-3.5 w-3.5 text-destructive" /> Couldn't auto-save — try Save</>)}
+              </div>
               <Button
                 type="submit"
                 disabled={isLoading || mutation.isPending || uploading}
@@ -332,6 +406,7 @@ function SettingsPage() {
                 {mutation.isPending ? t("common.saving") : t("common.save")}
               </Button>
             </div>
+
           </form>
         </div>
       </section>
