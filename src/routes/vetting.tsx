@@ -106,9 +106,40 @@ function VettingPage() {
     return getProject(projectId)?.analysis;
   }, [projectId]);
 
-  const [analysis, setAnalysis] = useState<Analysis | undefined>(cachedAnalysis);
-  const [loading, setLoading] = useState(!cachedAnalysis);
-  const [error, setError] = useState<string | null>(null);
+  type PillarKey = "strategic" | "compliance" | "market" | "sales";
+  type Strategic = Pick<Analysis, "overallScore" | "healthVerdict" | "oneLineThesis">;
+  type PillarState<T> = {
+    status: "pending" | "running" | "done" | "error";
+    data?: T;
+    error?: string;
+  };
+
+  const initial = <T,>(data?: T): PillarState<T> =>
+    data
+      ? { status: "done", data }
+      : { status: "pending" };
+
+  const [strategic, setStrategic] = useState<PillarState<Strategic>>(() =>
+    initial(
+      cachedAnalysis
+        ? {
+            overallScore: cachedAnalysis.overallScore,
+            healthVerdict: cachedAnalysis.healthVerdict,
+            oneLineThesis: cachedAnalysis.oneLineThesis,
+          }
+        : undefined,
+    ),
+  );
+  const [compliance, setCompliance] = useState<PillarState<Analysis["compliance"]>>(() =>
+    initial(cachedAnalysis?.compliance),
+  );
+  const [market, setMarket] = useState<PillarState<Analysis["market"]>>(() =>
+    initial(cachedAnalysis?.market),
+  );
+  const [sales, setSales] = useState<PillarState<Analysis["sales"]>>(() =>
+    initial(cachedAnalysis?.sales),
+  );
+
   const [isAuthed, setIsAuthed] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -124,6 +155,21 @@ function VettingPage() {
       sub.subscription.unsubscribe();
     };
   }, []);
+
+  const allDone =
+    strategic.status === "done" &&
+    compliance.status === "done" &&
+    market.status === "done" &&
+    sales.status === "done";
+
+  const analysis: Analysis | undefined = allDone
+    ? {
+        ...strategic.data!,
+        compliance: compliance.data!,
+        market: market.data!,
+        sales: sales.data!,
+      }
+    : undefined;
 
   const handleSaveAsGuest = () => {
     if (!idea) return;
@@ -150,63 +196,106 @@ function VettingPage() {
     navigate({ to: "/auth", search: { redirect: "/dashboard" } });
   };
 
+  // Persist when all pillars complete (only for fresh runs).
+  const savedRef = useRef(!!cachedAnalysis);
+  useEffect(() => {
+    if (!projectId || !analysis || savedRef.current) return;
+    savedRef.current = true;
+    const scores = {
+      compliance: Math.round(analysis.compliance.score * 10),
+      market: Math.round(analysis.market.score * 10),
+      demand: Math.round(analysis.sales.score * 10),
+    };
+    const existing = getProject(projectId);
+    const iterations = existing?.iterations ?? [];
+    iterations.push({
+      at: Date.now(),
+      idea,
+      scores,
+      overall: Math.round(analysis.overallScore),
+      thesis: analysis.oneLineThesis,
+    });
+    updateProject(projectId, {
+      analysis,
+      scores,
+      iterations,
+      status: "ready",
+    });
+  }, [analysis, projectId, idea]);
+
+  async function runPillar<T>(
+    key: PillarKey,
+    setter: React.Dispatch<React.SetStateAction<PillarState<T>>>,
+    call: () => Promise<T>,
+  ) {
+    setter({ status: "running" });
+    try {
+      const data = await call();
+      setter({ status: "done", data });
+    } catch (err) {
+      console.error(`[vetting] ${key} failed`, err);
+      setter({
+        status: "error",
+        error: err instanceof Error ? err.message : "Pillar failed.",
+      });
+    }
+  }
+
+  function runAll() {
+    if (!projectId || !idea) return;
+    savedRef.current = false;
+    runPillar("strategic", setStrategic, () =>
+      runStrategic({ data: { idea, sketchName } }),
+    );
+    runPillar("compliance", setCompliance, () =>
+      runCompliance({ data: { idea, sketchName } }),
+    );
+    // Market pillar + sourced sizing run together; sizing merges into market.
+    (async () => {
+      setMarket({ status: "running" });
+      try {
+        const [m, sizing] = await Promise.all([
+          runMarket({ data: { idea, sketchName } }),
+          runSizing({ data: { idea } }).catch((err) => {
+            console.warn("Sourced market sizing failed:", err);
+            return null;
+          }),
+        ]);
+        if (sizing) {
+          m.sourcedSizing = sizing;
+          m.tam = sizing.tam.value;
+          m.sam = sizing.sam.value;
+          m.som = sizing.som.value;
+        }
+        setMarket({ status: "done", data: m });
+      } catch (err) {
+        console.error("[vetting] market failed", err);
+        setMarket({
+          status: "error",
+          error: err instanceof Error ? err.message : "Market pillar failed.",
+        });
+      }
+    })();
+    runPillar("sales", setSales, () => runSales({ data: { idea, sketchName } }));
+  }
+
   const startedRef = useRef(false);
   useEffect(() => {
     if (startedRef.current) return;
     if (!projectId || !idea) return;
     if (cachedAnalysis) return;
     startedRef.current = true;
-    run();
+    runAll();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId, idea, cachedAnalysis]);
 
-  async function run() {
-    if (!projectId || !idea) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const [result, sizingResult] = await Promise.all([
-        runAnalysis({ data: { idea, sketchName } }),
-        runSizing({ data: { idea } }).catch((err) => {
-          console.warn("Sourced market sizing failed:", err);
-          return null;
-        }),
-      ]);
-      if (sizingResult) {
-        result.market.sourcedSizing = sizingResult;
-        result.market.tam = sizingResult.tam.value;
-        result.market.sam = sizingResult.sam.value;
-        result.market.som = sizingResult.som.value;
-      }
-      setAnalysis(result);
-      const scores = {
-        compliance: Math.round(result.compliance.score * 10),
-        market: Math.round(result.market.score * 10),
-        demand: Math.round(result.sales.score * 10),
-      };
-      const existing = getProject(projectId);
-      const iterations = existing?.iterations ?? [];
-      iterations.push({
-        at: Date.now(),
-        idea,
-        scores,
-        overall: Math.round(result.overallScore),
-        thesis: result.oneLineThesis,
-      });
-      updateProject(projectId, {
-        analysis: result,
-        scores,
-        iterations,
-        status: "ready",
-      });
-    } catch (err) {
-      console.error(err);
-      setError(err instanceof Error ? err.message : "Vetting failed. Please try again.");
-      updateProject(projectId, { status: "error" });
-    } finally {
-      setLoading(false);
-    }
-  }
+  const handleRerun = () => {
+    setStrategic({ status: "pending" });
+    setCompliance({ status: "pending" });
+    setMarket({ status: "pending" });
+    setSales({ status: "pending" });
+    runAll();
+  };
 
   if (!projectId || !idea) {
     return (
@@ -232,23 +321,40 @@ function VettingPage() {
       <section className="mx-auto max-w-6xl px-6 pt-14 pb-24">
         <Header idea={idea} />
 
-        {loading && <AnalyzingState />}
-        {!loading && error && <ErrorState message={error} onRetry={run} />}
-        {!loading && !error && analysis && (
-          <ResultsView
-            idea={idea}
-            analysis={analysis}
-            projectId={projectId}
-            canSave={isAuthed === false}
-            onSave={handleSaveAsGuest}
-            onRefine={() => navigate({ to: "/intake", search: { refine: projectId } })}
-            onRerun={() => {
-              startedRef.current = false;
-              setAnalysis(undefined);
-              run();
-            }}
-          />
-        )}
+        <ProgressiveResults
+          idea={idea}
+          projectId={projectId}
+          strategic={strategic}
+          compliance={compliance}
+          market={market}
+          sales={sales}
+          allDone={allDone}
+          analysis={analysis}
+          canSave={isAuthed === false}
+          onSave={handleSaveAsGuest}
+          onRefine={() => navigate({ to: "/intake", search: { refine: projectId } })}
+          onRerun={handleRerun}
+          onRetryStrategic={() =>
+            runPillar("strategic", setStrategic, () =>
+              runStrategic({ data: { idea, sketchName } }),
+            )
+          }
+          onRetryCompliance={() =>
+            runPillar("compliance", setCompliance, () =>
+              runCompliance({ data: { idea, sketchName } }),
+            )
+          }
+          onRetryMarket={() =>
+            runPillar("market", setMarket, () =>
+              runMarket({ data: { idea, sketchName } }),
+            )
+          }
+          onRetrySales={() =>
+            runPillar("sales", setSales, () =>
+              runSales({ data: { idea, sketchName } }),
+            )
+          }
+        />
       </section>
     </Shell>
   );
