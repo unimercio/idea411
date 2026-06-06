@@ -18,6 +18,7 @@ export function Footer() {
         </Link>
         <div className="flex items-center gap-4">
           <WhatsNewButton className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground" />
+          <MobileInstallQR className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground" />
           <LanguageSwitcher />
           <p className="text-xs text-muted-foreground">
             {t("footer.copyright", { year: new Date().getFullYear() })}
