@@ -681,3 +681,139 @@ function IterationSparkline({ iterations }: { iterations?: Iteration[] }) {
     </div>
   );
 }
+
+function StatsStrip({
+  stats,
+}: {
+  stats: { total: number; ready: number; vetting: number; avg: number | null; thisMonth: number };
+}) {
+  const items: { label: string; value: number | string; suffix?: string }[] = [
+    { label: "Total ideas", value: stats.total },
+    { label: "Avg ForgeScore", value: stats.avg ?? "—", suffix: stats.avg !== null ? "/100" : "" },
+    { label: "Ready", value: stats.ready },
+    { label: "Vetting", value: stats.vetting },
+    { label: "This month", value: stats.thisMonth },
+  ];
+  return (
+    <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
+      {items.map((it) => (
+        <div key={it.label} className="rounded-2xl border border-border bg-card/60 px-4 py-3 shadow-elegant">
+          <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">{it.label}</p>
+          <p className="mt-1 font-display text-2xl font-semibold">
+            {it.value}
+            {it.suffix ? <span className="text-xs text-muted-foreground ml-1">{it.suffix}</span> : null}
+          </p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function FilterChip({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`rounded-full border px-3 py-1.5 text-xs transition ${
+        active
+          ? "border-ember/50 bg-ember/10 text-foreground"
+          : "border-border bg-background/60 text-muted-foreground hover:text-foreground"
+      }`}
+    >
+      {label}
+    </button>
+  );
+}
+
+function HighlightCard({
+  icon: Icon,
+  eyebrow,
+  project,
+  onOpen,
+  accent,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  eyebrow: string;
+  project: Project;
+  onOpen: () => void;
+  accent?: boolean;
+}) {
+  const score = overallScore(project.scores);
+  return (
+    <div
+      className={`rounded-3xl border p-6 shadow-elegant transition ${
+        accent
+          ? "border-ember/40 bg-gradient-to-br from-ember/10 via-card/80 to-card/80"
+          : "border-border bg-card/80"
+      }`}
+    >
+      <p className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.18em] text-ember">
+        <Icon className="h-3.5 w-3.5" /> {eyebrow}
+      </p>
+      <h3 className="mt-3 font-display text-xl font-semibold truncate">{project.title}</h3>
+      <p className="mt-2 text-sm text-muted-foreground line-clamp-2">{project.idea}</p>
+      <div className="mt-4 flex items-center justify-between">
+        <span className="text-xs text-muted-foreground">{timeAgo(project.updatedAt)}</span>
+        {score !== null && (
+          <span className="font-display text-2xl font-semibold">
+            {score}
+            <span className="ml-1 text-xs text-muted-foreground">/100</span>
+          </span>
+        )}
+      </div>
+      <button
+        onClick={onOpen}
+        className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-gradient-ember px-4 py-2 text-sm font-medium text-ember-foreground shadow-ember hover:brightness-110 transition"
+      >
+        Reopen <ArrowRight className="h-3.5 w-3.5" />
+      </button>
+    </div>
+  );
+}
+
+function CompareTable({ projects, onRemove }: { projects: Project[]; onRemove: (id: string) => void }) {
+  const rows: { label: string; get: (p: Project) => number | string | null }[] = [
+    { label: "Overall", get: (p) => overallScore(p.scores) },
+    { label: "Compliance", get: (p) => p.scores?.compliance ?? null },
+    { label: "Market", get: (p) => p.scores?.market ?? null },
+    { label: "Demand", get: (p) => p.scores?.demand ?? null },
+    { label: "Iterations", get: (p) => p.iterations?.length ?? 0 },
+    { label: "Status", get: (p) => (p.scores ? "Ready" : "Vetting") },
+  ];
+  return (
+    <div className="overflow-x-auto rounded-2xl border border-border bg-card/60">
+      <table className="w-full text-sm">
+        <thead className="bg-muted/30 text-xs uppercase tracking-wider text-muted-foreground">
+          <tr>
+            <th className="px-4 py-3 text-left font-medium">Metric</th>
+            {projects.map((p) => (
+              <th key={p.id} className="px-4 py-3 text-left font-medium">
+                <div className="flex items-center gap-2">
+                  <span className="truncate max-w-[180px]">{p.title}</span>
+                  <button
+                    onClick={() => onRemove(p.id)}
+                    className="ml-auto text-muted-foreground hover:text-foreground"
+                    aria-label="Remove from compare"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr key={r.label} className="border-t border-border">
+              <td className="px-4 py-2.5 text-muted-foreground">{r.label}</td>
+              {projects.map((p) => (
+                <td key={p.id} className="px-4 py-2.5 font-medium">
+                  {r.get(p) ?? "—"}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
