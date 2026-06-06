@@ -147,7 +147,7 @@ function AuthPage() {
   return (
     <main className="min-h-screen bg-background text-foreground grid place-items-center px-6 py-20">
       <div className="w-full max-w-md">
-        <HeaderBrand className="justify-center" logoClassName="flex shrink-0 items-center gap-2 font-display text-lg font-semibold" />
+        <HeaderBrand className="justify-center" logoClassName="flex shrink-0 items-center gap-2 font-display text-lg font-semibold" showAuth={false} />
         <div className="mt-10 rounded-3xl border border-border bg-card/80 p-8 shadow-elegant">
           {sentTo ? (
             <div className="text-center">

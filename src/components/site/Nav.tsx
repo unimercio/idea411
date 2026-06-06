@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -7,12 +7,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { checkAdmin } from "@/lib/api/prompt-templates.functions";
 
 import { HeaderBrand } from "./HeaderBrand";
-import { toast } from "sonner";
 import { getHomePath } from "@/lib/home-path";
 
 export function Nav() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const [isAuthed, setIsAuthed] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -40,16 +38,6 @@ export function Nav() {
   const homePath = getHomePath({ isAuthed, isAdmin, isSysadmin });
 
 
-  const handleSignOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    toast.success("Signed out.");
-    navigate({ to: "/", replace: true });
-  };
-
   return (
     <header className="fixed top-0 inset-x-0 z-50">
       <div className="mx-auto max-w-7xl px-6 pt-5">
@@ -71,20 +59,6 @@ export function Nav() {
             )}
           </nav>
           <div className="flex items-center gap-2">
-            {isAuthed === true ? (
-              <button
-                onClick={handleSignOut}
-                className="hidden sm:inline-flex items-center text-sm text-muted-foreground hover:text-foreground px-3 py-1.5"
-              >
-                {t("common.signOut")}
-              </button>
-            ) : isAuthed === false ? (
-              <Link to="/auth" className="hidden sm:inline-flex items-center text-sm text-muted-foreground hover:text-foreground px-3 py-1.5">
-                {t("common.signIn")}
-              </Link>
-            ) : (
-              <span className="hidden sm:inline-flex w-16" aria-hidden />
-            )}
             <Link
               to="/intake"
               className="inline-flex items-center rounded-full bg-gradient-ember px-4 py-2 text-sm font-medium text-ember-foreground shadow-ember hover:brightness-110 transition"
