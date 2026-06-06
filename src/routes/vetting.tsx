@@ -118,20 +118,26 @@ function VettingPage() {
 
   const handleSaveAsGuest = () => {
     if (!idea) return;
+    const payload = JSON.stringify({
+      idea,
+      sketchName,
+      analysis,
+      savedAt: Date.now(),
+    });
     try {
-      localStorage.setItem(
-        "ideaforge:pending-project",
-        JSON.stringify({
-          idea,
-          sketchName,
-          analysis,
-          savedAt: Date.now(),
-        }),
-      );
+      localStorage.setItem("ideaforge:pending-project", payload);
+      try {
+        sessionStorage.setItem("ideaforge:pending-project", payload);
+      } catch {
+        /* sessionStorage optional */
+      }
     } catch (err) {
       console.error("[vetting] failed to stash pending project", err);
     }
-    toast.success("Create an account to save your idea");
+    toast.success("Create an account to save your idea", {
+      description:
+        "Open the confirmation email on this device so we can attach the idea to your account.",
+    });
     navigate({ to: "/auth", search: { redirect: "/dashboard" } });
   };
 
