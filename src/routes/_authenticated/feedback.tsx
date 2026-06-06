@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import {
   Bug,
+  Github,
   Sparkles,
   AlertTriangle,
   ArrowUp,
@@ -25,6 +26,7 @@ import {
   Trophy,
 } from "lucide-react";
 import { checkAdmin } from "@/lib/api/prompt-templates.functions";
+import { createFeedbackWithGithub } from "@/lib/api/feedback-github.functions";
 
 export const Route = createFileRoute("/_authenticated/feedback")({
   head: () => ({
