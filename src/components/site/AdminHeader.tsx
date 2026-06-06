@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Flame } from "lucide-react";
 import { checkAdmin } from "@/lib/api/prompt-templates.functions";
 import { getHomePath } from "@/lib/home-path";
+import { WhatsNewButton } from "./WhatsNewButton";
 
 export function AdminHeader({ label = "Admin" }: { label?: string }) {
   const checkAdminFn = useServerFn(checkAdmin);
@@ -21,7 +22,10 @@ export function AdminHeader({ label = "Admin" }: { label?: string }) {
           </span>
           IdeaForge
         </Link>
-        <span className="text-xs uppercase tracking-[0.2em] text-ember">{label}</span>
+        <div className="flex items-center gap-3">
+          <WhatsNewButton />
+          <span className="text-xs uppercase tracking-[0.2em] text-ember">{label}</span>
+        </div>
       </div>
     </header>
   );

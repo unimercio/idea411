@@ -51,7 +51,7 @@ export function WhatsNewButton({ className }: { className?: string }) {
           type="button"
           className={
             className ??
-            "hidden sm:inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground px-3 py-1.5"
+            "inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground px-3 py-1.5"
           }
           aria-label="What's new"
         >

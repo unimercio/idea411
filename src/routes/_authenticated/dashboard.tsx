@@ -230,6 +230,7 @@ function DashboardPage() {
                 <Sparkles className="h-4 w-4" /> {claiming ? t("dashboard.claiming") : (adminExists ? "Claim sysadmin" : t("dashboard.claimAdmin"))}
               </button>
             )}
+            <WhatsNewButton />
             {isAuthed === true && (
               <Link
                 to="/settings"
