@@ -37,6 +37,9 @@ import {
   updateProject,
   type ChatMessage,
 } from "@/lib/projects";
+import { supabase } from "@/integrations/supabase/client";
+import { Save } from "lucide-react";
+import { toast } from "sonner";
 
 const search = z.object({
   idea: z.string().trim().min(1).max(4000).optional().catch(undefined),
@@ -97,6 +100,40 @@ function VettingPage() {
   const [analysis, setAnalysis] = useState<Analysis | undefined>(cachedAnalysis);
   const [loading, setLoading] = useState(!cachedAnalysis);
   const [error, setError] = useState<string | null>(null);
+  const [isAuthed, setIsAuthed] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (mounted) setIsAuthed(!!data.session);
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      if (mounted) setIsAuthed(!!session);
+    });
+    return () => {
+      mounted = false;
+      sub.subscription.unsubscribe();
+    };
+  }, []);
+
+  const handleSaveAsGuest = () => {
+    if (!idea) return;
+    try {
+      localStorage.setItem(
+        "ideaforge:pending-project",
+        JSON.stringify({
+          idea,
+          sketchName,
+          analysis,
+          savedAt: Date.now(),
+        }),
+      );
+    } catch (err) {
+      console.error("[vetting] failed to stash pending project", err);
+    }
+    toast.success("Create an account to save your idea");
+    navigate({ to: "/auth", search: { redirect: "/dashboard" } });
+  };
 
   const startedRef = useRef(false);
   useEffect(() => {
@@ -187,6 +224,8 @@ function VettingPage() {
             idea={idea}
             analysis={analysis}
             projectId={projectId}
+            canSave={isAuthed === false}
+            onSave={handleSaveAsGuest}
             onRefine={() => navigate({ to: "/intake", search: { refine: projectId } })}
             onRerun={() => {
               startedRef.current = false;
@@ -322,18 +361,28 @@ function ResultsView({
   idea,
   analysis,
   projectId,
+  canSave,
+  onSave,
   onRefine,
   onRerun,
 }: {
   idea: string;
   analysis: Analysis;
   projectId: string;
+  canSave: boolean;
+  onSave: () => void;
   onRefine: () => void;
   onRerun: () => void;
 }) {
   return (
     <div className="mt-12 space-y-8">
-      <OverallCard analysis={analysis} onRefine={onRefine} onRerun={onRerun} />
+      <OverallCard
+        analysis={analysis}
+        canSave={canSave}
+        onSave={onSave}
+        onRefine={onRefine}
+        onRerun={onRerun}
+      />
 
       <div className="grid gap-5 lg:grid-cols-3">
         <CompliancePillar data={analysis.compliance} />
@@ -351,10 +400,14 @@ function ResultsView({
 
 function OverallCard({
   analysis,
+  canSave,
+  onSave,
   onRefine,
   onRerun,
 }: {
   analysis: Analysis;
+  canSave: boolean;
+  onSave: () => void;
   onRefine: () => void;
   onRerun: () => void;
 }) {
@@ -388,9 +441,22 @@ function OverallCard({
           </div>
         </div>
         <div className="flex lg:flex-col gap-2 lg:items-stretch">
+          {canSave && (
+            <button
+              onClick={onSave}
+              className="group inline-flex items-center justify-center gap-2 rounded-full bg-gradient-ember px-5 py-2.5 text-sm font-medium text-ember-foreground shadow-ember hover:brightness-110 transition whitespace-nowrap"
+            >
+              <Save className="h-4 w-4" /> Save idea
+            </button>
+          )}
           <button
             onClick={onRefine}
-            className="group inline-flex items-center justify-center gap-2 rounded-full bg-gradient-ember px-5 py-2.5 text-sm font-medium text-ember-foreground shadow-ember hover:brightness-110 transition whitespace-nowrap"
+            className={
+              "group inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition whitespace-nowrap " +
+              (canSave
+                ? "border border-border bg-background/60 text-foreground hover:bg-accent"
+                : "bg-gradient-ember text-ember-foreground shadow-ember hover:brightness-110")
+            }
           >
             Refine my idea
             <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />

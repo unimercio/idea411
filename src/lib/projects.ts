@@ -136,6 +136,12 @@ function ensureAuthWired() {
   });
 }
 
+export async function refreshProjects() {
+  ensureAuthWired();
+  const { data } = await supabase.auth.getUser();
+  await hydrateForUser(data.user?.id ?? null);
+}
+
 function read(): Project[] {
   ensureAuthWired();
   return cache;
