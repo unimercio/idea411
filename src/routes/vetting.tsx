@@ -46,6 +46,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Save } from "lucide-react";
 import { toast } from "sonner";
 import { HeaderBrand } from "@/components/site/HeaderBrand";
+import { FocusGroupAudio } from "@/components/site/FocusGroupAudio";
 
 const search = z.object({
   idea: z.string().trim().min(1).max(4000).optional().catch(undefined),
@@ -1436,18 +1437,21 @@ function FocusGroupPanel({
 
       {streaming && (
         <div className="px-6 py-5">
-          <button
-            onClick={() => setOpen((v) => !v)}
-            className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition"
-          >
-            <ChevronDown
-              className={`h-3.5 w-3.5 transition ${open ? "" : "-rotate-90"}`}
-            />
-            {open ? "Hide live transcript" : "Show live transcript"}
-            {!ended && (
-              <Loader2 className="h-3 w-3 animate-spin text-ember ml-1" />
-            )}
-          </button>
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <button
+              onClick={() => setOpen((v) => !v)}
+              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition"
+            >
+              <ChevronDown
+                className={`h-3.5 w-3.5 transition ${open ? "" : "-rotate-90"}`}
+              />
+              {open ? "Hide live transcript" : "Show live transcript"}
+              {!ended && (
+                <Loader2 className="h-3 w-3 animate-spin text-ember ml-1" />
+              )}
+            </button>
+            <FocusGroupAudio transcript={streaming} live={!ended} ended={ended} />
+          </div>
           <AnimatePresence initial={false}>
             {open && (
               <motion.div
@@ -1482,7 +1486,12 @@ function FocusGroupPanel({
       )}
 
       {transcript && !streaming && (
-        <FocusGroupReport transcript={transcript} />
+        <>
+          <div className="px-6 pt-5">
+            <FocusGroupAudio transcript={transcript} live={false} ended={true} />
+          </div>
+          <FocusGroupReport transcript={transcript} />
+        </>
       )}
     </motion.section>
   );
