@@ -121,14 +121,22 @@ function DashboardPage() {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         data: data as any,
       } as any);
-      localStorage.removeItem("ideaforge:pending-project");
+      try {
+        localStorage.removeItem("ideaforge:pending-project");
+        sessionStorage.removeItem("ideaforge:pending-project");
+      } catch {
+        /* ignore */
+      }
       if (error) {
         console.error("[dashboard] failed to save pending idea", error);
-        toast.error("Couldn't save your idea. Please try again.");
+        toast.error("Couldn't save your idea", {
+          description: error.message,
+        });
         return;
       }
       toast.success("Your idea was saved to your account");
       await refreshProjects();
+
 
     })();
     return () => {
