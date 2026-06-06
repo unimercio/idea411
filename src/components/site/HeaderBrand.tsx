@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Flame } from "lucide-react";
 import { WhatsNewButton } from "./WhatsNewButton";
+import { MobileInstallQR } from "./MobileInstallQR";
 
 type LinkTo = React.ComponentProps<typeof Link>["to"];
 
