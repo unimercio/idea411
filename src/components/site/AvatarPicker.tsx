@@ -180,19 +180,18 @@ export function AvatarPicker({ onUploaded, currentPath, disabled }: Props) {
               Use your device's camera to snap a profile photo.
             </DialogDescription>
           </DialogHeader>
-          <div className="relative aspect-square w-full overflow-hidden rounded-xl border border-border bg-black">
-            {snapshot ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={snapshot} alt="Snapshot" className="h-full w-full object-cover" />
-            ) : (
+          {snapshot ? (
+            <AvatarEditor src={snapshot} onChange={setEdited} />
+          ) : (
+            <div className="relative aspect-square w-full overflow-hidden rounded-xl border border-border bg-black">
               <video
                 ref={videoRef}
                 playsInline
                 muted
                 className={`h-full w-full object-cover ${facing === "user" ? "scale-x-[-1]" : ""}`}
               />
-            )}
-          </div>
+            </div>
+          )}
           <DialogFooter className="flex-row justify-between sm:justify-between gap-2">
             <Button
               type="button"
