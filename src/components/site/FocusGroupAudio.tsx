@@ -202,6 +202,102 @@ export function FocusGroupAudio({
     }
   }
 
+  // -------- Export (tab-audio capture + MediaRecorder) --------
+  const [exportingFor, setExportingFor] = useState<string | null>(null); // "__all__" | speaker | null
+  const [exportError, setExportError] = useState<string | null>(null);
+  const speakers = useMemo(
+    () => Array.from(new Set(turns.map((t) => t.speaker))),
+    [turns],
+  );
+  const canExport =
+    supported &&
+    typeof navigator !== "undefined" &&
+    !!navigator.mediaDevices?.getDisplayMedia &&
+    typeof MediaRecorder !== "undefined";
+
+  function speakTurnPromise(turn: Turn): Promise<void> {
+    return new Promise((resolve) => {
+      const u = new SpeechSynthesisUtterance(stripMd(turn.text));
+      const v = pickVoice(turn.speaker, voices);
+      if (v) u.voice = v;
+      const { pitch, rate } = pickProsody(turn.speaker);
+      u.pitch = pitch;
+      u.rate = Math.min(10, Math.max(0.1, rate)); // export at 1× base
+      u.onend = () => resolve();
+      u.onerror = () => resolve();
+      window.speechSynthesis.speak(u);
+    });
+  }
+
+  async function exportAudio(filterSpeaker: string | null) {
+    if (!canExport) return;
+    const key = filterSpeaker ?? "__all__";
+    setExportError(null);
+    setExportingFor(key);
+    let stream: MediaStream | null = null;
+    let recorder: MediaRecorder | null = null;
+    try {
+      stream = await navigator.mediaDevices.getDisplayMedia({
+        video: true,
+        audio: true,
+      });
+      const audioTracks = stream.getAudioTracks();
+      if (!audioTracks.length) {
+        throw new Error(
+          "No tab audio shared. When the share dialog appears, pick the current tab and enable “Share tab audio”.",
+        );
+      }
+      const audioStream = new MediaStream(audioTracks);
+      const mime =
+        MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+          ? "audio/webm;codecs=opus"
+          : "audio/webm";
+      recorder = new MediaRecorder(audioStream, { mimeType: mime });
+      const chunks: BlobPart[] = [];
+      recorder.ondataavailable = (e) => {
+        if (e.data && e.data.size) chunks.push(e.data);
+      };
+      const stopped = new Promise<void>((res) => {
+        recorder!.onstop = () => res();
+      });
+      recorder.start();
+
+      // Stop any current playback before exporting.
+      window.speechSynthesis.cancel();
+      const toSpeak = filterSpeaker
+        ? turns.filter((t) => t.speaker === filterSpeaker)
+        : turns;
+      for (const turn of toSpeak) {
+        await speakTurnPromise(turn);
+      }
+      // Brief tail so the recorder captures the final utterance fully.
+      await new Promise((r) => setTimeout(r, 350));
+      recorder.stop();
+      await stopped;
+
+      const blob = new Blob(chunks, { type: mime });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      const stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+      const label = filterSpeaker
+        ? filterSpeaker.toLowerCase().replace(/\s+/g, "-")
+        : "full-session";
+      a.href = url;
+      a.download = `focus-group-${label}-${stamp}.webm`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Export failed.";
+      setExportError(msg);
+    } finally {
+      stream?.getTracks().forEach((t) => t.stop());
+      setExportingFor(null);
+    }
+  }
+
+
   if (!supported) {
     return (
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
