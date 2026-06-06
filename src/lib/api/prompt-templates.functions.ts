@@ -148,19 +148,17 @@ export const checkAdmin = createServerFn({ method: "GET" })
       supabase.rpc("has_role", { _user_id: userId, _role: "admin" }),
       supabase.rpc("has_role", { _user_id: userId, _role: "sysadmin" as any }),
       supabase.rpc("admin_exists"),
-      supabase
-        .from("user_roles")
-        .select("user_id", { count: "exact", head: true })
-        .eq("role", "sysadmin" as any),
+      supabase.rpc("sysadmin_exists" as any),
     ]);
     if (roleRes.error) throw new Error(roleRes.error.message);
     if (sysRes.error) throw new Error(sysRes.error.message);
     if (existsRes.error) throw new Error(existsRes.error.message);
+    if (sysExistsRes.error) throw new Error(sysExistsRes.error.message);
     return {
       isAdmin: Boolean(roleRes.data),
       isSysadmin: Boolean(sysRes.data),
       adminExists: Boolean(existsRes.data),
-      sysadminExists: (sysExistsRes.count ?? 0) > 0,
+      sysadminExists: Boolean(sysExistsRes.data),
     };
   });
 
