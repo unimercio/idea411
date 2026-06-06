@@ -275,6 +275,10 @@ Pricing: low ${s.pricing.low} · mid ${s.pricing.mid} · premium ${s.pricing.pre
 Revenue: cons ${s.revenue.conservative} · mod ${s.revenue.moderate} · opt ${s.revenue.optimistic}
 GTM: ${s.gtm.slice(0, 5).join("; ") || "(none)"}`;
   }
+  // Server caps `context` at 8000 chars; clamp defensively before sending.
+  function clampContext(s: string, max = 7800) {
+    return s.length <= max ? s : s.slice(0, max - 20) + "\n…[truncated]";
+  }
 
   async function runAll() {
     if (!projectId || !idea) return;
