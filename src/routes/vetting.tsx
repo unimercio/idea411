@@ -72,7 +72,10 @@ export const Route = createFileRoute("/vetting")({
 function VettingPage() {
   const { idea: ideaParam, id: idParam } = Route.useSearch();
   const navigate = useNavigate();
-  const runAnalysis = useServerFn(analyzeIdea);
+  const runStrategic = useServerFn(analyzeStrategic);
+  const runCompliance = useServerFn(analyzeCompliance);
+  const runMarket = useServerFn(analyzeMarket);
+  const runSales = useServerFn(analyzeSales);
   const runSizing = useServerFn(researchMarketSize);
 
   // Resolve / create project once.
