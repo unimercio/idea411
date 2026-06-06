@@ -409,6 +409,90 @@ export const analyzeIdea = createServerFn({ method: "POST" })
   )
   .handler(({ data }): Promise<Analysis> => runAnalyzeIdea(data));
 
+// ───────── Per-pillar server fns (for progressive/streaming UX) ─────────
+const pillarInput = z.object({
+  idea: z.string().trim().min(10).max(4000),
+  sketchName: z.string().max(255).optional(),
+});
+
+function buildUserPrompt(data: { idea: string; sketchName?: string }) {
+  return `Vet the following product idea. Be honest, specific, and useful.
+
+IDEA:
+${data.idea}
+${data.sketchName ? `\n(The founder attached a napkin sketch named "${data.sketchName}".)` : ""}
+
+Return your output by calling the provided tool. Do not return plain text.`;
+}
+
+export const analyzeStrategic = createServerFn({ method: "POST" })
+  .inputValidator(pillarInput)
+  .handler(async ({ data }) => {
+    const apiKey = process.env.LOVABLE_API_KEY;
+    if (!apiKey) throw new Error("LOVABLE_API_KEY is not configured on the server.");
+    const skill = await resolveSkill("vetting_strategic");
+    return callPillar({
+      apiKey,
+      skill,
+      baseSystem: STRATEGIC_SYSTEM,
+      userPrompt: buildUserPrompt(data),
+      tool: STRATEGIC_TOOL,
+      schema: strategicSchema,
+      label: "strategic",
+    });
+  });
+
+export const analyzeCompliance = createServerFn({ method: "POST" })
+  .inputValidator(pillarInput)
+  .handler(async ({ data }) => {
+    const apiKey = process.env.LOVABLE_API_KEY;
+    if (!apiKey) throw new Error("LOVABLE_API_KEY is not configured on the server.");
+    const skill = await resolveSkill("vetting_compliance");
+    return callPillar({
+      apiKey,
+      skill,
+      baseSystem: COMPLIANCE_SYSTEM,
+      userPrompt: buildUserPrompt(data),
+      tool: COMPLIANCE_TOOL,
+      schema: complianceSchema,
+      label: "compliance",
+    });
+  });
+
+export const analyzeMarket = createServerFn({ method: "POST" })
+  .inputValidator(pillarInput)
+  .handler(async ({ data }) => {
+    const apiKey = process.env.LOVABLE_API_KEY;
+    if (!apiKey) throw new Error("LOVABLE_API_KEY is not configured on the server.");
+    const skill = await resolveSkill("vetting_market");
+    return callPillar({
+      apiKey,
+      skill,
+      baseSystem: MARKET_SYSTEM,
+      userPrompt: buildUserPrompt(data),
+      tool: MARKET_TOOL,
+      schema: marketSchema,
+      label: "market",
+    });
+  });
+
+export const analyzeSales = createServerFn({ method: "POST" })
+  .inputValidator(pillarInput)
+  .handler(async ({ data }) => {
+    const apiKey = process.env.LOVABLE_API_KEY;
+    if (!apiKey) throw new Error("LOVABLE_API_KEY is not configured on the server.");
+    const skill = await resolveSkill("vetting_sales");
+    return callPillar({
+      apiKey,
+      skill,
+      baseSystem: SALES_SYSTEM,
+      userPrompt: buildUserPrompt(data),
+      tool: SALES_TOOL,
+      schema: salesSchema,
+      label: "sales",
+    });
+  });
+
 // ───────── Intake refine: tighten/clarify the founder's idea ─────────
 const refineSchema = z.object({
   refined: z.string().min(1).max(2000),
