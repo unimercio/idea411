@@ -270,6 +270,35 @@ export function FocusGroupAudio({
               <Square className="h-3.5 w-3.5" /> Stop
             </button>
           )}
+          <div
+            className="inline-flex items-center gap-0.5 rounded-full border border-border bg-background/60 p-0.5"
+            role="group"
+            aria-label="Playback speed"
+          >
+            {[0.75, 1, 1.25, 1.5].map((s) => (
+              <button
+                key={s}
+                type="button"
+                onClick={() => {
+                  setSpeed(s);
+                  speedRef.current = s;
+                  // If currently playing, restart from current turn at new speed.
+                  if (mode === "playing" && currentIdx != null) {
+                    window.speechSynthesis.cancel();
+                    startReplay(currentIdx);
+                  }
+                }}
+                className={`rounded-full px-2 py-0.5 text-[11px] font-medium transition ${
+                  speed === s
+                    ? "bg-ember/15 text-ember"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+                title={`Playback speed ${s}×`}
+              >
+                {s}×
+              </button>
+            ))}
+          </div>
         </>
       )}
 
