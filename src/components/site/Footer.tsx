@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Flame } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "./LanguageSwitcher";
+import { WhatsNewButton } from "./WhatsNewButton";
 
 export function Footer() {
   const { t } = useTranslation();
