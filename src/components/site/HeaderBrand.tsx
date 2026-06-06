@@ -31,7 +31,6 @@ export function HeaderBrand({
         </span>
         IdeaForge
       </Link>
-      <MobileInstallQR className="inline-flex shrink-0 items-center gap-1.5 px-2 py-1.5 text-sm text-muted-foreground hover:text-foreground" />
       {showAuth && (
         <AuthButton className="ml-auto inline-flex shrink-0 items-center text-sm text-muted-foreground hover:text-foreground px-2 py-1.5" />
       )}
