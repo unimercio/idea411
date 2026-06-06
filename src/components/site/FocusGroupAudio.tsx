@@ -456,8 +456,8 @@ export function FocusGroupAudio({
         </div>
         <p className="mt-2 text-muted-foreground">
           When the browser prompts, choose <em>this tab</em> and enable{" "}
-          <em>Share tab audio</em>. The recording plays through silently and downloads when
-          finished.
+          <em>Share tab audio</em>. The session will play out loud while it records — keep
+          this tab focused until the file downloads. Best support: Chrome / Edge on desktop.
         </p>
         {exportError && (
           <p className="mt-1 text-destructive">{exportError}</p>
