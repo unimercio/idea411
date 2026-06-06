@@ -360,11 +360,13 @@ GTM: ${s.gtm.slice(0, 5).join("; ") || "(none)"}`;
     }
 
     // PHASE 4 — strategic / overall, with full context from all three pillars.
-    const stratCtx = [
-      summarizeCompliance(complianceData),
-      summarizeMarket(marketFinal),
-      summarizeSales(salesData),
-    ].join("\n\n");
+    const stratCtx = clampContext(
+      [
+        summarizeCompliance(complianceData),
+        summarizeMarket(marketFinal),
+        summarizeSales(salesData),
+      ].join("\n\n"),
+    );
     await runPillar("strategic", setStrategic, () =>
       runStrategic({ data: { idea, sketchName, context: stratCtx } }),
     );
