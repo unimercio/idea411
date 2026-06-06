@@ -390,7 +390,13 @@ function SettingsPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-3 pt-2">
+            <div className="flex items-center justify-between gap-3 pt-2">
+              <div className="text-xs text-muted-foreground inline-flex items-center gap-1.5" aria-live="polite">
+                {autoSaveState === "saving" && (<><Loader2 className="h-3.5 w-3.5 animate-spin" /> Auto-saving…</>)}
+                {autoSaveState === "saved" && (<><Check className="h-3.5 w-3.5 text-green-500" /> All changes saved</>)}
+                {autoSaveState === "dirty" && (<><CircleAlert className="h-3.5 w-3.5 text-amber-500" /> Unsaved changes — auto-saving shortly</>)}
+                {autoSaveState === "error" && (<><CircleAlert className="h-3.5 w-3.5 text-destructive" /> Couldn't auto-save — try Save</>)}
+              </div>
               <Button
                 type="submit"
                 disabled={isLoading || mutation.isPending || uploading}
@@ -400,6 +406,7 @@ function SettingsPage() {
                 {mutation.isPending ? t("common.saving") : t("common.save")}
               </Button>
             </div>
+
           </form>
         </div>
       </section>
