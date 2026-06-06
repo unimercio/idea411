@@ -106,10 +106,11 @@ export function WhatsNewButton({ className }: { className?: string }) {
           </ScrollArea>
         )}
 
-        <DialogFooter>
+        <DialogFooter className="gap-2 sm:gap-2">
           <Button variant="outline" onClick={() => setOpen(false)}>
             Close
           </Button>
+          <Button onClick={() => window.location.reload()}>Refresh app</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
