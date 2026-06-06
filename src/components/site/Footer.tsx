@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { WhatsNewButton } from "./WhatsNewButton";
 import { MobileInstallQR } from "./MobileInstallQR";
+import { ShareAppButton } from "./ShareAppButton";
 
 export function Footer() {
   const { t } = useTranslation();
@@ -19,6 +20,7 @@ export function Footer() {
         <div className="flex items-center gap-4">
           <WhatsNewButton className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground" />
           <MobileInstallQR className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground" />
+          <ShareAppButton className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground" />
           <LanguageSwitcher />
           <p className="text-xs text-muted-foreground">
             {t("footer.copyright", { year: new Date().getFullYear() })}
