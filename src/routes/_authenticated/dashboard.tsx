@@ -495,7 +495,19 @@ function ShieldIcon({ status }: { status: "admin" | "not-admin" | "error" }) {
   return <ShieldQuestion className="h-5 w-5 mt-0.5 shrink-0" />;
 }
 
-function ProjectCard({ project, index }: { project: Project; index: number }) {
+function ProjectCard({
+  project,
+  index,
+  selectable,
+  selected,
+  onToggle,
+}: {
+  project: Project;
+  index: number;
+  selectable?: boolean;
+  selected?: boolean;
+  onToggle?: () => void;
+}) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const score = overallScore(project.scores);
@@ -507,7 +519,14 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -8 }}
       transition={{ duration: 0.45, delay: 0.04 * index, ease: [0.22, 1, 0.36, 1] }}
-      className="group relative rounded-3xl border border-border bg-card/80 p-6 shadow-elegant hover:border-ember/40 transition"
+      onClick={selectable ? onToggle : undefined}
+      className={`group relative rounded-3xl border bg-card/80 p-6 shadow-elegant transition ${
+        selectable ? "cursor-pointer" : ""
+      } ${
+        selected
+          ? "border-ember ring-2 ring-ember/40"
+          : "border-border hover:border-ember/40"
+      }`}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
