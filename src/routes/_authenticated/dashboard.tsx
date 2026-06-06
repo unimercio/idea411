@@ -67,7 +67,9 @@ function DashboardPage() {
     (async () => {
       let raw: string | null = null;
       try {
-        raw = localStorage.getItem("ideaforge:pending-project");
+        raw =
+          localStorage.getItem("ideaforge:pending-project") ??
+          sessionStorage.getItem("ideaforge:pending-project");
       } catch {
         return;
       }
