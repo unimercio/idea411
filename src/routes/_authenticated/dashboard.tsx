@@ -1,20 +1,26 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { HeaderBrand } from "@/components/site/HeaderBrand";
+import { Input } from "@/components/ui/input";
 import {
   AlertTriangle,
   ArrowRight,
   Plus,
+  Search,
   Settings,
   ShieldCheck,
   ShieldQuestion,
   Sparkles,
   Trash2,
   Users,
+  Trophy,
+  Clock,
+  GitCompare,
+  X,
 } from "lucide-react";
 import {
   deleteProject,
