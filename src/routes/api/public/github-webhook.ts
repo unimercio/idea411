@@ -66,7 +66,12 @@ export const Route = createFileRoute("/api/public/github-webhook")({
 
         if (!targetId) return new Response("no match");
 
-        const patch: Record<string, unknown> = {
+        const patch: {
+          github_issue_number: number;
+          github_issue_url: string | null;
+          github_state: string | null;
+          status?: "open" | "done";
+        } = {
           github_issue_number: issue.number,
           github_issue_url: issue.html_url ?? null,
           github_state: issue.state ?? null,
