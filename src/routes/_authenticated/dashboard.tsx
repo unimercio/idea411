@@ -220,7 +220,7 @@ function DashboardPage() {
                 </Link>
               </>
             )}
-            {isAuthed === true && !sysadminExists && adminQuery.isFetched && (
+            {isAuthed === true && !sysadminExists && !adminExists && adminQuery.isFetched && (
               <button
                 onClick={handleClaimAdmin}
                 disabled={claiming}
