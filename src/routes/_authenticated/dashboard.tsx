@@ -4,11 +4,10 @@ import { motion, AnimatePresence } from "motion/react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { WhatsNewButton } from "@/components/site/WhatsNewButton";
+import { HeaderBrand } from "@/components/site/HeaderBrand";
 import {
   AlertTriangle,
   ArrowRight,
-  Flame,
   Plus,
   Settings,
   ShieldCheck,
@@ -189,12 +188,7 @@ function DashboardPage() {
     <main className="min-h-screen bg-background text-foreground">
       <header className="border-b border-border">
         <div className="mx-auto max-w-7xl px-6 py-5 flex items-center justify-between">
-          <Link to={isSysadmin ? "/sysadmin" : isAdmin ? "/admin" : "/dashboard"} className="flex items-center gap-2 font-display font-semibold">
-            <span className="grid h-7 w-7 place-items-center rounded-md bg-gradient-ember text-ember-foreground shadow-ember">
-              <Flame className="h-4 w-4" />
-            </span>
-            IdeaForge
-          </Link>
+          <HeaderBrand to={isSysadmin ? "/sysadmin" : isAdmin ? "/admin" : "/dashboard"} />
           <div className="flex items-center gap-2">
             {isAdmin && (
               <>
@@ -231,7 +225,6 @@ function DashboardPage() {
                 <Sparkles className="h-4 w-4" /> {claiming ? t("dashboard.claiming") : (adminExists ? "Claim sysadmin" : t("dashboard.claimAdmin"))}
               </button>
             )}
-            <WhatsNewButton />
             {isAuthed === true && (
               <Link
                 to="/settings"

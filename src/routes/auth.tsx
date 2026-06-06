@@ -1,11 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Flame, Mail } from "lucide-react";
+import { Mail } from "lucide-react";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { toast } from "sonner";
+import { HeaderBrand } from "@/components/site/HeaderBrand";
 
 const searchSchema = z.object({
   redirect: z.string().trim().min(1).max(512).optional().catch(undefined),
@@ -146,12 +147,7 @@ function AuthPage() {
   return (
     <main className="min-h-screen bg-background text-foreground grid place-items-center px-6 py-20">
       <div className="w-full max-w-md">
-        <Link to="/" className="flex items-center justify-center gap-2 font-display text-lg font-semibold">
-          <span className="grid h-7 w-7 place-items-center rounded-md bg-gradient-ember text-ember-foreground shadow-ember">
-            <Flame className="h-4 w-4" />
-          </span>
-          IdeaForge
-        </Link>
+        <HeaderBrand className="justify-center" logoClassName="flex shrink-0 items-center gap-2 font-display text-lg font-semibold" />
         <div className="mt-10 rounded-3xl border border-border bg-card/80 p-8 shadow-elegant">
           {sentTo ? (
             <div className="text-center">

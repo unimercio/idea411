@@ -15,8 +15,13 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 type Release = {
   version: string;
   date?: string;
+  time?: string;
   notes: string[];
 };
+
+function releaseLabel(release: Release) {
+  return [release.version, release.date, release.time].filter(Boolean).join(" · ");
+}
 
 async function fetchReleases(): Promise<Release[]> {
   try {
@@ -64,7 +69,7 @@ export function WhatsNewButton({ className }: { className?: string }) {
           <DialogTitle>What's new</DialogTitle>
           <DialogDescription>
             {latest
-              ? `${latest.version}${latest.date ? ` · ${latest.date}` : ""}`
+              ? releaseLabel(latest)
               : "Recent updates to IdeaForge"}
           </DialogDescription>
         </DialogHeader>
@@ -87,8 +92,7 @@ export function WhatsNewButton({ className }: { className?: string }) {
                 {previous.map((r) => (
                   <div key={r.version}>
                     <p className="text-xs font-medium text-muted-foreground">
-                      {r.version}
-                      {r.date ? ` · ${r.date}` : ""}
+                      {releaseLabel(r)}
                     </p>
                     <ul className="mt-1 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
                       {r.notes.map((n, i) => (
@@ -102,10 +106,11 @@ export function WhatsNewButton({ className }: { className?: string }) {
           </ScrollArea>
         )}
 
-        <DialogFooter>
+        <DialogFooter className="gap-2 sm:gap-2">
           <Button variant="outline" onClick={() => setOpen(false)}>
             Close
           </Button>
+          <Button onClick={() => window.location.reload()}>Refresh app</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

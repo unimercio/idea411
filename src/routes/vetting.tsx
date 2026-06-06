@@ -8,7 +8,6 @@ import remarkGfm from "remark-gfm";
 import {
   ArrowRight,
   ChevronDown,
-  Flame,
   Gauge,
   Loader2,
   RefreshCcw,
@@ -46,6 +45,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { Save } from "lucide-react";
 import { toast } from "sonner";
+import { HeaderBrand } from "@/components/site/HeaderBrand";
 
 const search = z.object({
   idea: z.string().trim().min(1).max(4000).optional().catch(undefined),
@@ -471,12 +471,7 @@ function Shell({ children }: { children: React.ReactNode }) {
     <main className="min-h-screen bg-background text-foreground">
       <header className="border-b border-border">
         <div className="mx-auto max-w-7xl px-6 py-5 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 font-display font-semibold">
-            <span className="grid h-7 w-7 place-items-center rounded-md bg-gradient-ember text-ember-foreground shadow-ember">
-              <Flame className="h-4 w-4" />
-            </span>
-            IdeaForge
-          </Link>
+          <HeaderBrand />
           <Link to="/dashboard" className="text-sm text-muted-foreground hover:text-foreground transition">
             Dashboard →
           </Link>

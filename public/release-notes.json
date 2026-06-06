@@ -1,9 +1,13 @@
 {
   "releases": [
     {
-      "version": "2026.06.06",
+      "version": "R1.01",
       "date": "2026-06-06",
+      "time": "15:50 UTC",
       "notes": [
+        "New: What’s New is now beside the IdeaForge logo across headers for every role.",
+        "New: release notes now show release number, date, and time.",
+        "Fixed: update prompts can now appear when release notes change, even if deploy headers are unavailable.",
         "New: in-app update prompt now shows a changelog before refreshing.",
         "Improved: phased vetting pipeline self-corrects across pillars.",
         "Improved: live terminal stream during vetting analysis."

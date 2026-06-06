@@ -26,12 +26,39 @@ import { ScrollArea } from "@/components/ui/scroll-area";
  */
 const POLL_MS = 60_000;
 const TOAST_ID = "app-update-available";
+const SEEN_RELEASE_KEY = "ideaforge:seen-release";
 
 type Release = {
   version: string;
   date?: string;
+  time?: string;
   notes: string[];
 };
+
+function releaseLabel(release: Release) {
+  return [release.version, release.date, release.time].filter(Boolean).join(" · ");
+}
+
+function releaseFingerprint(release: Release | undefined) {
+  return release ? releaseLabel(release) : null;
+}
+
+function getSeenRelease() {
+  try {
+    return window.localStorage.getItem(SEEN_RELEASE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function setSeenRelease(value: string | null) {
+  if (!value) return;
+  try {
+    window.localStorage.setItem(SEEN_RELEASE_KEY, value);
+  } catch {
+    /* ignore */
+  }
+}
 
 function isPreviewLikeHost(host: string) {
   return (
@@ -97,6 +124,7 @@ export function UpdateChecker() {
   const notifiedRef = useRef(false);
   const [open, setOpen] = useState(false);
   const [releases, setReleases] = useState<Release[]>([]);
+  const [activeRelease, setActiveRelease] = useState<string | null>(null);
 
   useEffect(() => {
     if (!shouldRun()) return;
@@ -104,12 +132,14 @@ export function UpdateChecker() {
     let cancelled = false;
     let timer: ReturnType<typeof setInterval> | null = null;
 
-    const showUpdate = async () => {
+    const showUpdate = async (providedNotes?: Release[]) => {
       if (notifiedRef.current) return;
       notifiedRef.current = true;
-      const notes = await fetchReleaseNotes();
+      const notes = providedNotes ?? (await fetchReleaseNotes());
       if (cancelled) return;
+      const latestRelease = releaseFingerprint(notes[0]);
       setReleases(notes);
+      setActiveRelease(latestRelease);
       setOpen(true);
       toast("A new version is available", {
         id: TOAST_ID,
@@ -132,7 +162,15 @@ export function UpdateChecker() {
       if (token !== initialRef.current) void showUpdate();
     };
 
+    const checkReleaseNotes = async () => {
+      const notes = await fetchReleaseNotes();
+      if (cancelled || notes.length === 0) return;
+      const latestRelease = releaseFingerprint(notes[0]);
+      if (latestRelease && latestRelease !== getSeenRelease()) void showUpdate(notes);
+    };
+
     void check();
+    void checkReleaseNotes();
     timer = setInterval(() => void check(), POLL_MS);
 
     const onVisibility = () => {
@@ -152,14 +190,24 @@ export function UpdateChecker() {
   const latest = releases[0];
   const previous = releases.slice(1, 4);
 
+  const handleOpenChange = (nextOpen: boolean) => {
+    setOpen(nextOpen);
+    if (!nextOpen) setSeenRelease(activeRelease);
+  };
+
+  const handleRefresh = () => {
+    setSeenRelease(activeRelease);
+    window.location.reload();
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>A new version is available</DialogTitle>
           <DialogDescription>
             {latest
-              ? `What's new in ${latest.version}${latest.date ? ` · ${latest.date}` : ""}`
+              ? `What's new in ${releaseLabel(latest)}`
               : "Refresh to load the latest build."}
           </DialogDescription>
         </DialogHeader>
@@ -178,8 +226,7 @@ export function UpdateChecker() {
                 {previous.map((r) => (
                   <div key={r.version}>
                     <p className="text-xs font-medium text-muted-foreground">
-                      {r.version}
-                      {r.date ? ` · ${r.date}` : ""}
+                      {releaseLabel(r)}
                     </p>
                     <ul className="mt-1 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
                       {r.notes.map((n, i) => (
@@ -198,10 +245,10 @@ export function UpdateChecker() {
         )}
 
         <DialogFooter className="gap-2 sm:gap-2">
-          <Button variant="outline" onClick={() => setOpen(false)}>
+          <Button variant="outline" onClick={() => handleOpenChange(false)}>
             Later
           </Button>
-          <Button onClick={() => window.location.reload()}>Refresh now</Button>
+          <Button onClick={handleRefresh}>Refresh now</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

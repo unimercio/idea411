@@ -1,5 +1,4 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Flame } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -7,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { checkAdmin } from "@/lib/api/prompt-templates.functions";
 import { LanguageSwitcher } from "./LanguageSwitcher";
-import { WhatsNewButton } from "./WhatsNewButton";
+import { HeaderBrand } from "./HeaderBrand";
 import { toast } from "sonner";
 import { getHomePath } from "@/lib/home-path";
 
@@ -55,12 +54,10 @@ export function Nav() {
     <header className="fixed top-0 inset-x-0 z-50">
       <div className="mx-auto max-w-7xl px-6 pt-5">
         <div className="glass flex items-center justify-between rounded-full border border-border px-5 py-3 shadow-elegant">
-          <Link to={homePath} className="flex items-center gap-2 font-display text-lg font-semibold tracking-tight">
-            <span className="grid h-7 w-7 place-items-center rounded-md bg-gradient-ember text-ember-foreground shadow-ember">
-              <Flame className="h-4 w-4" />
-            </span>
-            IdeaForge
-          </Link>
+          <HeaderBrand
+            to={homePath}
+            logoClassName="flex shrink-0 items-center gap-2 font-display text-lg font-semibold tracking-tight"
+          />
           <nav className="hidden md:flex items-center gap-7 text-sm text-muted-foreground">
             {isAuthed === true && (
               <Link to="/dashboard" className="hover:text-foreground transition-colors">{t("common.dashboard")}</Link>
@@ -74,7 +71,6 @@ export function Nav() {
             )}
           </nav>
           <div className="flex items-center gap-2">
-            <WhatsNewButton />
             <LanguageSwitcher />
             {isAuthed === true ? (
               <button
