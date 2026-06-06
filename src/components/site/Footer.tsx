@@ -3,6 +3,7 @@ import { Flame } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { WhatsNewButton } from "./WhatsNewButton";
+import { MobileInstallQR } from "./MobileInstallQR";
 
 export function Footer() {
   const { t } = useTranslation();
