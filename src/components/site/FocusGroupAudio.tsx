@@ -215,6 +215,7 @@ export function FocusGroupAudio({
     currentIdx != null && turns[currentIdx] ? turns[currentIdx].speaker : null;
 
   return (
+    <div className="flex flex-col gap-2">
     <div className="flex flex-wrap items-center gap-2">
       {live && (
         <button
@@ -307,6 +308,87 @@ export function FocusGroupAudio({
           <span className="text-ember">●</span> {currentSpeaker}
         </span>
       )}
+    </div>
+
+    {!live && turns.length > 0 && (
+      <Waveform
+        turns={turns}
+        currentIdx={currentIdx}
+        mode={mode}
+        onSeek={(i) => {
+          window.speechSynthesis.cancel();
+          startReplay(i);
+        }}
+      />
+    )}
+    </div>
+  );
+}
+
+function Waveform({
+  turns,
+  currentIdx,
+  mode,
+  onSeek,
+}: {
+  turns: Turn[];
+  currentIdx: number | null;
+  mode: Mode;
+  onSeek: (idx: number) => void;
+}) {
+  // Bar height derived from word count; deterministic color per speaker.
+  const bars = useMemo(() => {
+    const counts = turns.map((t) => Math.max(1, t.text.split(/\s+/).length));
+    const max = Math.max(...counts, 1);
+    return turns.map((t, i) => {
+      const h = 18 + Math.round((Math.sqrt(counts[i] / max)) * 30); // 18..48px
+      const hue = hashStr(t.speaker.toLowerCase()) % 360;
+      return { h, hue, speaker: t.speaker, words: counts[i] };
+    });
+  }, [turns]);
+
+  return (
+    <div className="rounded-lg border border-border bg-background/40 p-2">
+      <div
+        className="flex items-end gap-[2px] h-14 overflow-x-auto"
+        role="slider"
+        aria-label="Scrub session by turn"
+        aria-valuemin={0}
+        aria-valuemax={turns.length - 1}
+        aria-valuenow={currentIdx ?? 0}
+      >
+        {bars.map((b, i) => {
+          const isCurrent = currentIdx === i;
+          const isPast = currentIdx != null && i < currentIdx;
+          const playing = mode !== "idle";
+          return (
+            <button
+              key={i}
+              type="button"
+              onClick={() => onSeek(i)}
+              title={`Turn ${i + 1} · ${b.speaker} · ${b.words} words`}
+              className={`flex-1 min-w-[3px] rounded-sm transition-all ${
+                isCurrent
+                  ? "opacity-100 ring-1 ring-ember/70"
+                  : isPast && playing
+                    ? "opacity-90"
+                    : "opacity-50 hover:opacity-90"
+              }`}
+              style={{
+                height: `${b.h}px`,
+                background: `hsl(${b.hue} 70% ${isCurrent ? 60 : isPast && playing ? 55 : 45}%)`,
+              }}
+            />
+          );
+        })}
+      </div>
+      <div className="mt-1 flex justify-between text-[10px] text-muted-foreground">
+        <span>Turn 1</span>
+        <span>
+          {currentIdx != null ? `${currentIdx + 1} / ${turns.length}` : `${turns.length} turns`}
+        </span>
+        <span>Turn {turns.length}</span>
+      </div>
     </div>
   );
 }
