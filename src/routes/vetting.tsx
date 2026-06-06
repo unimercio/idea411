@@ -338,7 +338,9 @@ GTM: ${s.gtm.slice(0, 5).join("; ") || "(none)"}`;
     // PHASE 3 — self-correct market against sales findings (sales & market are
     // mutually dependent: if pricing/demand shift, sizing/competitive read
     // should reconcile too).
-    const marketCtx = [summarizeCompliance(complianceData), summarizeSales(salesData)].join("\n\n");
+    const marketCtx = clampContext(
+      [summarizeCompliance(complianceData), summarizeSales(salesData)].join("\n\n"),
+    );
     setMarket({ status: "running" });
     let marketFinal = marketV1;
     try {
