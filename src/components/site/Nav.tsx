@@ -50,6 +50,12 @@ export function Nav() {
             {isAuthed === true && (
               <Link to="/dashboard" className="hover:text-foreground transition-colors">{t("common.dashboard")}</Link>
             )}
+            {isAuthed === true && (
+              <>
+                <Link to="/feedback" className="hover:text-foreground transition-colors">Feedback</Link>
+                <Link to="/bounties" className="hover:text-foreground transition-colors">Bounties</Link>
+              </>
+            )}
             {isAdmin && (
               <>
                 <Link to="/admin/prompt-templates" className="hover:text-foreground transition-colors">{t("nav.prompts")}</Link>

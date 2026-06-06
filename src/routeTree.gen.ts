@@ -17,7 +17,9 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiFocusGroupStreamRouteImport } from './routes/api/focus-group-stream'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedFeedbackRouteImport } from './routes/_authenticated/feedback'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedBountiesRouteImport } from './routes/_authenticated/bounties'
 import { Route as AuthenticatedSysadminIndexRouteImport } from './routes/_authenticated/sysadmin.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin.users'
@@ -64,9 +66,19 @@ const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedFeedbackRoute = AuthenticatedFeedbackRouteImport.update({
+  id: '/feedback',
+  path: '/feedback',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedBountiesRoute = AuthenticatedBountiesRouteImport.update({
+  id: '/bounties',
+  path: '/bounties',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedSysadminIndexRoute =
@@ -110,7 +122,9 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/intake': typeof IntakeRoute
   '/vetting': typeof VettingRoute
+  '/bounties': typeof AuthenticatedBountiesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/feedback': typeof AuthenticatedFeedbackRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/api/focus-group-stream': typeof ApiFocusGroupStreamRoute
   '/admin/audit-log': typeof AuthenticatedAdminAuditLogRoute
@@ -126,7 +140,9 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/intake': typeof IntakeRoute
   '/vetting': typeof VettingRoute
+  '/bounties': typeof AuthenticatedBountiesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/feedback': typeof AuthenticatedFeedbackRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/api/focus-group-stream': typeof ApiFocusGroupStreamRoute
   '/admin/audit-log': typeof AuthenticatedAdminAuditLogRoute
@@ -144,7 +160,9 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/intake': typeof IntakeRoute
   '/vetting': typeof VettingRoute
+  '/_authenticated/bounties': typeof AuthenticatedBountiesRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/feedback': typeof AuthenticatedFeedbackRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/api/focus-group-stream': typeof ApiFocusGroupStreamRoute
   '/_authenticated/admin/audit-log': typeof AuthenticatedAdminAuditLogRoute
@@ -162,7 +180,9 @@ export interface FileRouteTypes {
     | '/contact'
     | '/intake'
     | '/vetting'
+    | '/bounties'
     | '/dashboard'
+    | '/feedback'
     | '/settings'
     | '/api/focus-group-stream'
     | '/admin/audit-log'
@@ -178,7 +198,9 @@ export interface FileRouteTypes {
     | '/contact'
     | '/intake'
     | '/vetting'
+    | '/bounties'
     | '/dashboard'
+    | '/feedback'
     | '/settings'
     | '/api/focus-group-stream'
     | '/admin/audit-log'
@@ -195,7 +217,9 @@ export interface FileRouteTypes {
     | '/contact'
     | '/intake'
     | '/vetting'
+    | '/_authenticated/bounties'
     | '/_authenticated/dashboard'
+    | '/_authenticated/feedback'
     | '/_authenticated/settings'
     | '/api/focus-group-stream'
     | '/_authenticated/admin/audit-log'
@@ -274,11 +298,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/feedback': {
+      id: '/_authenticated/feedback'
+      path: '/feedback'
+      fullPath: '/feedback'
+      preLoaderRoute: typeof AuthenticatedFeedbackRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/bounties': {
+      id: '/_authenticated/bounties'
+      path: '/bounties'
+      fullPath: '/bounties'
+      preLoaderRoute: typeof AuthenticatedBountiesRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/sysadmin/': {
@@ -327,7 +365,9 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedBountiesRoute: typeof AuthenticatedBountiesRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedFeedbackRoute: typeof AuthenticatedFeedbackRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedAdminAuditLogRoute: typeof AuthenticatedAdminAuditLogRoute
   AuthenticatedAdminPromptTemplatesRoute: typeof AuthenticatedAdminPromptTemplatesRoute
@@ -338,7 +378,9 @@ interface AuthenticatedRouteChildren {
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedBountiesRoute: AuthenticatedBountiesRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedFeedbackRoute: AuthenticatedFeedbackRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedAdminAuditLogRoute: AuthenticatedAdminAuditLogRoute,
   AuthenticatedAdminPromptTemplatesRoute:

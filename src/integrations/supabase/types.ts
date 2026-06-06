@@ -47,6 +47,127 @@ export type Database = {
         }
         Relationships: []
       }
+      bounties: {
+        Row: {
+          amount: number
+          awarded_at: string | null
+          awarded_to: string | null
+          created_at: string
+          created_by: string
+          currency: string
+          description: string
+          feedback_item_id: string | null
+          id: string
+          notes: string
+          status: Database["public"]["Enums"]["bounty_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          awarded_at?: string | null
+          awarded_to?: string | null
+          created_at?: string
+          created_by: string
+          currency?: string
+          description?: string
+          feedback_item_id?: string | null
+          id?: string
+          notes?: string
+          status?: Database["public"]["Enums"]["bounty_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          awarded_at?: string | null
+          awarded_to?: string | null
+          created_at?: string
+          created_by?: string
+          currency?: string
+          description?: string
+          feedback_item_id?: string | null
+          id?: string
+          notes?: string
+          status?: Database["public"]["Enums"]["bounty_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bounties_feedback_item_id_fkey"
+            columns: ["feedback_item_id"]
+            isOneToOne: false
+            referencedRelation: "feedback_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      feedback_items: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          status: Database["public"]["Enums"]["feedback_status"]
+          title: string
+          type: Database["public"]["Enums"]["feedback_type"]
+          updated_at: string
+          user_id: string
+          votes: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          id?: string
+          status?: Database["public"]["Enums"]["feedback_status"]
+          title: string
+          type: Database["public"]["Enums"]["feedback_type"]
+          updated_at?: string
+          user_id: string
+          votes?: number
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          status?: Database["public"]["Enums"]["feedback_status"]
+          title?: string
+          type?: Database["public"]["Enums"]["feedback_type"]
+          updated_at?: string
+          user_id?: string
+          votes?: number
+        }
+        Relationships: []
+      }
+      feedback_votes: {
+        Row: {
+          created_at: string
+          id: string
+          item_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feedback_votes_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "feedback_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hermes_agents: {
         Row: {
           created_at: string
@@ -454,6 +575,9 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user" | "sysadmin"
+      bounty_status: "open" | "awarded" | "paid" | "cancelled"
+      feedback_status: "open" | "planned" | "in_progress" | "done" | "wontfix"
+      feedback_type: "wish" | "bug" | "issue"
       hermes_agent_role: "planner" | "worker" | "critic" | "custom"
       hermes_agent_status:
         | "idle"
@@ -612,6 +736,9 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user", "sysadmin"],
+      bounty_status: ["open", "awarded", "paid", "cancelled"],
+      feedback_status: ["open", "planned", "in_progress", "done", "wontfix"],
+      feedback_type: ["wish", "bug", "issue"],
       hermes_agent_role: ["planner", "worker", "critic", "custom"],
       hermes_agent_status: [
         "idle",
