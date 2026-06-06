@@ -55,6 +55,14 @@ function SettingsPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const baselineRef = useRef<string>("");
   const [autoSaveState, setAutoSaveState] = useState<"idle" | "dirty" | "saving" | "saved" | "error">("idle");
+  const [charRange, setCharRange] = useState<[number, number]>(() => {
+    const r = getIntakeCharRange();
+    return [r.min, r.max];
+  });
+
+  useEffect(() => {
+    setIntakeCharRange({ min: charRange[0], max: charRange[1] });
+  }, [charRange]);
 
   useEffect(() => {
     if (data) {
