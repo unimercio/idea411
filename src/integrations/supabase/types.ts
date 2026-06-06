@@ -107,6 +107,9 @@ export type Database = {
         Row: {
           created_at: string
           description: string
+          github_issue_number: number | null
+          github_issue_url: string | null
+          github_state: string | null
           id: string
           status: Database["public"]["Enums"]["feedback_status"]
           title: string
@@ -118,6 +121,9 @@ export type Database = {
         Insert: {
           created_at?: string
           description?: string
+          github_issue_number?: number | null
+          github_issue_url?: string | null
+          github_state?: string | null
           id?: string
           status?: Database["public"]["Enums"]["feedback_status"]
           title: string
@@ -129,6 +135,9 @@ export type Database = {
         Update: {
           created_at?: string
           description?: string
+          github_issue_number?: number | null
+          github_issue_url?: string | null
+          github_state?: string | null
           id?: string
           status?: Database["public"]["Enums"]["feedback_status"]
           title?: string
