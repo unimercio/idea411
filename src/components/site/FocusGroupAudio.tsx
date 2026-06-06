@@ -89,6 +89,11 @@ export function FocusGroupAudio({
   const [listenLive, setListenLive] = useState(false);
   const [mode, setMode] = useState<Mode>("idle");
   const [currentIdx, setCurrentIdx] = useState<number | null>(null);
+  const [speed, setSpeed] = useState<number>(1);
+  const speedRef = useRef<number>(1);
+  useEffect(() => {
+    speedRef.current = speed;
+  }, [speed]);
   const spokenIdxRef = useRef<number>(-1); // last index queued/spoken in live mode
   const replayIdxRef = useRef<number>(0);
   const supported =
