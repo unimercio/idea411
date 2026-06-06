@@ -212,7 +212,7 @@ export function AvatarPicker({ onUploaded, currentPath, disabled }: Props) {
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => setSnapshot(null)}
+                    onClick={() => { setSnapshot(null); setEdited(null); }}
                     disabled={busy}
                   >
                     <X className="h-4 w-4 mr-2" /> Retake
