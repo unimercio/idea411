@@ -432,7 +432,7 @@ GTM: ${s.gtm.slice(0, 5).join("; ") || "(none)"}`;
             if (compliance.data) parts.push(summarizeCompliance(compliance.data));
             if (market.data) parts.push(summarizeMarket(market.data));
             if (sales.data) parts.push(summarizeSales(sales.data));
-            const context = parts.join("\n\n") || undefined;
+            const context = parts.length ? clampContext(parts.join("\n\n")) : undefined;
             void runPillar("strategic", setStrategic, () =>
               runStrategic({ data: { idea, sketchName, context } }),
             );
