@@ -40,6 +40,7 @@ export function AvatarPicker({ onUploaded, currentPath, disabled }: Props) {
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [snapshot, setSnapshot] = useState<string | null>(null);
+  const [edited, setEdited] = useState<string | null>(null);
   const [facing, setFacing] = useState<"user" | "environment">("user");
   const [busy, setBusy] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -118,10 +119,11 @@ export function AvatarPicker({ onUploaded, currentPath, disabled }: Props) {
   };
 
   const saveSnapshot = async () => {
-    if (!snapshot) return;
+    const source = edited || snapshot;
+    if (!source) return;
     setBusy(true);
     try {
-      const res = await fetch(snapshot);
+      const res = await fetch(source);
       const blob = await res.blob();
       const path = await uploadBlob(blob, "jpg");
       onUploaded(path);
