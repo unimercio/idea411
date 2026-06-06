@@ -417,26 +417,39 @@ GTM: ${s.gtm.slice(0, 5).join("; ") || "(none)"}`;
           onSave={handleSaveAsGuest}
           onRefine={() => navigate({ to: "/intake", search: { refine: projectId } })}
           onRerun={handleRerun}
-          onRetryStrategic={() =>
-            runPillar("strategic", setStrategic, () =>
-              runStrategic({ data: { idea, sketchName } }),
-            )
-          }
+          onRetryStrategic={() => {
+            const parts: string[] = [];
+            if (compliance.data) parts.push(summarizeCompliance(compliance.data));
+            if (market.data) parts.push(summarizeMarket(market.data));
+            if (sales.data) parts.push(summarizeSales(sales.data));
+            const context = parts.join("\n\n") || undefined;
+            void runPillar("strategic", setStrategic, () =>
+              runStrategic({ data: { idea, sketchName, context } }),
+            );
+          }}
           onRetryCompliance={() =>
-            runPillar("compliance", setCompliance, () =>
+            void runPillar("compliance", setCompliance, () =>
               runCompliance({ data: { idea, sketchName } }),
             )
           }
-          onRetryMarket={() =>
-            runPillar("market", setMarket, () =>
-              runMarket({ data: { idea, sketchName } }),
-            )
-          }
-          onRetrySales={() =>
-            runPillar("sales", setSales, () =>
-              runSales({ data: { idea, sketchName } }),
-            )
-          }
+          onRetryMarket={() => {
+            const parts: string[] = [];
+            if (compliance.data) parts.push(summarizeCompliance(compliance.data));
+            if (sales.data) parts.push(summarizeSales(sales.data));
+            const context = parts.join("\n\n") || undefined;
+            void runPillar("market", setMarket, () =>
+              runMarket({ data: { idea, sketchName, context } }),
+            );
+          }}
+          onRetrySales={() => {
+            const parts: string[] = [];
+            if (compliance.data) parts.push(summarizeCompliance(compliance.data));
+            if (market.data) parts.push(summarizeMarket(market.data));
+            const context = parts.join("\n\n") || undefined;
+            void runPillar("sales", setSales, () =>
+              runSales({ data: { idea, sketchName, context } }),
+            );
+          }}
         />
       </section>
     </Shell>
