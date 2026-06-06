@@ -108,13 +108,14 @@ function BountiesPage() {
     }
     setSubmitting(true);
     const { data: u } = await supabase.auth.getUser();
+    if (!u.user?.id) { setSubmitting(false); toast.error("Not signed in"); return; }
     const { error } = await supabase.from("bounties").insert({
       title: title.trim(),
       description: description.trim(),
       amount: amt,
       currency: currency.trim().toUpperCase().slice(0, 8),
       feedback_item_id: feedbackId === "none" ? null : feedbackId,
-      created_by: u.user?.id,
+      created_by: u.user.id,
     });
     setSubmitting(false);
     if (error) {
