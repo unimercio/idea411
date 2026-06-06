@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import { WhatsNewButton } from "@/components/site/WhatsNewButton";
 import {
   AlertTriangle,
   ArrowRight,
