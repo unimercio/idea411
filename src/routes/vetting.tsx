@@ -26,7 +26,13 @@ import {
   UsersRound,
 } from "lucide-react";
 import { z } from "zod";
-import { analyzeIdea, type Analysis } from "@/lib/api/vetting.functions";
+import {
+  analyzeStrategic,
+  analyzeCompliance,
+  analyzeMarket,
+  analyzeSales,
+  type Analysis,
+} from "@/lib/api/vetting.functions";
 import { chatAboutIdea } from "@/lib/api/vetting-chat.functions";
 import { runFocusGroup } from "@/lib/api/focus-group.functions";
 import { researchMarketSize } from "@/lib/api/market-research.functions";
@@ -66,7 +72,10 @@ export const Route = createFileRoute("/vetting")({
 function VettingPage() {
   const { idea: ideaParam, id: idParam } = Route.useSearch();
   const navigate = useNavigate();
-  const runAnalysis = useServerFn(analyzeIdea);
+  const runStrategic = useServerFn(analyzeStrategic);
+  const runCompliance = useServerFn(analyzeCompliance);
+  const runMarket = useServerFn(analyzeMarket);
+  const runSales = useServerFn(analyzeSales);
   const runSizing = useServerFn(researchMarketSize);
 
   // Resolve / create project once.
@@ -97,9 +106,40 @@ function VettingPage() {
     return getProject(projectId)?.analysis;
   }, [projectId]);
 
-  const [analysis, setAnalysis] = useState<Analysis | undefined>(cachedAnalysis);
-  const [loading, setLoading] = useState(!cachedAnalysis);
-  const [error, setError] = useState<string | null>(null);
+  type PillarKey = "strategic" | "compliance" | "market" | "sales";
+  type Strategic = Pick<Analysis, "overallScore" | "healthVerdict" | "oneLineThesis">;
+  type PillarState<T> = {
+    status: "pending" | "running" | "done" | "error";
+    data?: T;
+    error?: string;
+  };
+
+  const initial = <T,>(data?: T): PillarState<T> =>
+    data
+      ? { status: "done", data }
+      : { status: "pending" };
+
+  const [strategic, setStrategic] = useState<PillarState<Strategic>>(() =>
+    initial(
+      cachedAnalysis
+        ? {
+            overallScore: cachedAnalysis.overallScore,
+            healthVerdict: cachedAnalysis.healthVerdict,
+            oneLineThesis: cachedAnalysis.oneLineThesis,
+          }
+        : undefined,
+    ),
+  );
+  const [compliance, setCompliance] = useState<PillarState<Analysis["compliance"]>>(() =>
+    initial(cachedAnalysis?.compliance),
+  );
+  const [market, setMarket] = useState<PillarState<Analysis["market"]>>(() =>
+    initial(cachedAnalysis?.market),
+  );
+  const [sales, setSales] = useState<PillarState<Analysis["sales"]>>(() =>
+    initial(cachedAnalysis?.sales),
+  );
+
   const [isAuthed, setIsAuthed] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -115,6 +155,21 @@ function VettingPage() {
       sub.subscription.unsubscribe();
     };
   }, []);
+
+  const allDone =
+    strategic.status === "done" &&
+    compliance.status === "done" &&
+    market.status === "done" &&
+    sales.status === "done";
+
+  const analysis: Analysis | undefined = allDone
+    ? {
+        ...strategic.data!,
+        compliance: compliance.data!,
+        market: market.data!,
+        sales: sales.data!,
+      }
+    : undefined;
 
   const handleSaveAsGuest = () => {
     if (!idea) return;
@@ -141,63 +196,106 @@ function VettingPage() {
     navigate({ to: "/auth", search: { redirect: "/dashboard" } });
   };
 
+  // Persist when all pillars complete (only for fresh runs).
+  const savedRef = useRef(!!cachedAnalysis);
+  useEffect(() => {
+    if (!projectId || !analysis || savedRef.current) return;
+    savedRef.current = true;
+    const scores = {
+      compliance: Math.round(analysis.compliance.score * 10),
+      market: Math.round(analysis.market.score * 10),
+      demand: Math.round(analysis.sales.score * 10),
+    };
+    const existing = getProject(projectId);
+    const iterations = existing?.iterations ?? [];
+    iterations.push({
+      at: Date.now(),
+      idea,
+      scores,
+      overall: Math.round(analysis.overallScore),
+      thesis: analysis.oneLineThesis,
+    });
+    updateProject(projectId, {
+      analysis,
+      scores,
+      iterations,
+      status: "ready",
+    });
+  }, [analysis, projectId, idea]);
+
+  async function runPillar<T>(
+    key: PillarKey,
+    setter: React.Dispatch<React.SetStateAction<PillarState<T>>>,
+    call: () => Promise<T>,
+  ) {
+    setter({ status: "running" });
+    try {
+      const data = await call();
+      setter({ status: "done", data });
+    } catch (err) {
+      console.error(`[vetting] ${key} failed`, err);
+      setter({
+        status: "error",
+        error: err instanceof Error ? err.message : "Pillar failed.",
+      });
+    }
+  }
+
+  function runAll() {
+    if (!projectId || !idea) return;
+    savedRef.current = false;
+    runPillar("strategic", setStrategic, () =>
+      runStrategic({ data: { idea, sketchName } }),
+    );
+    runPillar("compliance", setCompliance, () =>
+      runCompliance({ data: { idea, sketchName } }),
+    );
+    // Market pillar + sourced sizing run together; sizing merges into market.
+    (async () => {
+      setMarket({ status: "running" });
+      try {
+        const [m, sizing] = await Promise.all([
+          runMarket({ data: { idea, sketchName } }),
+          runSizing({ data: { idea } }).catch((err) => {
+            console.warn("Sourced market sizing failed:", err);
+            return null;
+          }),
+        ]);
+        if (sizing) {
+          m.sourcedSizing = sizing;
+          m.tam = sizing.tam.value;
+          m.sam = sizing.sam.value;
+          m.som = sizing.som.value;
+        }
+        setMarket({ status: "done", data: m });
+      } catch (err) {
+        console.error("[vetting] market failed", err);
+        setMarket({
+          status: "error",
+          error: err instanceof Error ? err.message : "Market pillar failed.",
+        });
+      }
+    })();
+    runPillar("sales", setSales, () => runSales({ data: { idea, sketchName } }));
+  }
+
   const startedRef = useRef(false);
   useEffect(() => {
     if (startedRef.current) return;
     if (!projectId || !idea) return;
     if (cachedAnalysis) return;
     startedRef.current = true;
-    run();
+    runAll();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId, idea, cachedAnalysis]);
 
-  async function run() {
-    if (!projectId || !idea) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const [result, sizingResult] = await Promise.all([
-        runAnalysis({ data: { idea, sketchName } }),
-        runSizing({ data: { idea } }).catch((err) => {
-          console.warn("Sourced market sizing failed:", err);
-          return null;
-        }),
-      ]);
-      if (sizingResult) {
-        result.market.sourcedSizing = sizingResult;
-        result.market.tam = sizingResult.tam.value;
-        result.market.sam = sizingResult.sam.value;
-        result.market.som = sizingResult.som.value;
-      }
-      setAnalysis(result);
-      const scores = {
-        compliance: Math.round(result.compliance.score * 10),
-        market: Math.round(result.market.score * 10),
-        demand: Math.round(result.sales.score * 10),
-      };
-      const existing = getProject(projectId);
-      const iterations = existing?.iterations ?? [];
-      iterations.push({
-        at: Date.now(),
-        idea,
-        scores,
-        overall: Math.round(result.overallScore),
-        thesis: result.oneLineThesis,
-      });
-      updateProject(projectId, {
-        analysis: result,
-        scores,
-        iterations,
-        status: "ready",
-      });
-    } catch (err) {
-      console.error(err);
-      setError(err instanceof Error ? err.message : "Vetting failed. Please try again.");
-      updateProject(projectId, { status: "error" });
-    } finally {
-      setLoading(false);
-    }
-  }
+  const handleRerun = () => {
+    setStrategic({ status: "pending" });
+    setCompliance({ status: "pending" });
+    setMarket({ status: "pending" });
+    setSales({ status: "pending" });
+    runAll();
+  };
 
   if (!projectId || !idea) {
     return (
@@ -223,23 +321,40 @@ function VettingPage() {
       <section className="mx-auto max-w-6xl px-6 pt-14 pb-24">
         <Header idea={idea} />
 
-        {loading && <AnalyzingState />}
-        {!loading && error && <ErrorState message={error} onRetry={run} />}
-        {!loading && !error && analysis && (
-          <ResultsView
-            idea={idea}
-            analysis={analysis}
-            projectId={projectId}
-            canSave={isAuthed === false}
-            onSave={handleSaveAsGuest}
-            onRefine={() => navigate({ to: "/intake", search: { refine: projectId } })}
-            onRerun={() => {
-              startedRef.current = false;
-              setAnalysis(undefined);
-              run();
-            }}
-          />
-        )}
+        <ProgressiveResults
+          idea={idea}
+          projectId={projectId}
+          strategic={strategic}
+          compliance={compliance}
+          market={market}
+          sales={sales}
+          allDone={allDone}
+          analysis={analysis}
+          canSave={isAuthed === false}
+          onSave={handleSaveAsGuest}
+          onRefine={() => navigate({ to: "/intake", search: { refine: projectId } })}
+          onRerun={handleRerun}
+          onRetryStrategic={() =>
+            runPillar("strategic", setStrategic, () =>
+              runStrategic({ data: { idea, sketchName } }),
+            )
+          }
+          onRetryCompliance={() =>
+            runPillar("compliance", setCompliance, () =>
+              runCompliance({ data: { idea, sketchName } }),
+            )
+          }
+          onRetryMarket={() =>
+            runPillar("market", setMarket, () =>
+              runMarket({ data: { idea, sketchName } }),
+            )
+          }
+          onRetrySales={() =>
+            runPillar("sales", setSales, () =>
+              runSales({ data: { idea, sketchName } }),
+            )
+          }
+        />
       </section>
     </Shell>
   );
@@ -282,84 +397,319 @@ function Header({ idea }: { idea: string }) {
   );
 }
 
-/* ─────────────────────────────── States ─────────────────────────────── */
+/* ─────────────────────────────── Progressive states ─────────────────────────────── */
 
-const PROGRESS_STEPS = [
-  { icon: ShieldCheck, label: "Scanning compliance, regulations & prior art" },
-  { icon: TrendingUp, label: "Mapping market, competitors & whitespace" },
-  { icon: Users, label: "Modeling demand, pricing & revenue paths" },
-];
+type PillarStatus = "pending" | "running" | "done" | "error";
+type PState<T> = { status: PillarStatus; data?: T; error?: string };
 
-function AnalyzingState() {
-  const [step, setStep] = useState(0);
+const TERMINAL_LINES: Record<string, string[]> = {
+  strategic: [
+    "$ forge --pillar strategic --idea \"$IDEA\"",
+    "loading strategic skill preset…",
+    "weighing thesis, novelty, defensibility…",
+    "scoring overall idea health (0–100)…",
+    "calibrating verdict against base rates…",
+    "drafting one-line investment thesis…",
+  ],
+  compliance: [
+    "$ forge --pillar compliance --jurisdictions US,EU",
+    "loading compliance skill preset…",
+    "scanning GDPR, CCPA, sector regs…",
+    "checking IP, trademarks, prior art…",
+    "rating severity of detected risks…",
+    "summarising compliance posture…",
+  ],
+  market: [
+    "$ forge --pillar market --sourced-sizing on",
+    "loading market skill preset…",
+    "naming direct + indirect competitors…",
+    "querying Perplexity for sourced TAM/SAM/SOM…",
+    "mapping trend direction + barriers…",
+    "drafting differentiation angles…",
+  ],
+  sales: [
+    "$ forge --pillar sales --gtm topN=5",
+    "loading sales skill preset…",
+    "defining ICP + buyer triggers…",
+    "modelling pricing ladder (low/mid/premium)…",
+    "running year-1 revenue scenarios…",
+    "prioritising 5 GTM moves…",
+  ],
+};
+
+function Terminal({ kind, height = 84 }: { kind: keyof typeof TERMINAL_LINES; height?: number }) {
+  const lines = TERMINAL_LINES[kind];
+  const [tick, setTick] = useState(0);
   useEffect(() => {
-    const id = setInterval(() => setStep((s) => (s + 1) % PROGRESS_STEPS.length), 1800);
+    const id = setInterval(() => setTick((t) => t + 1), 1100);
     return () => clearInterval(id);
   }, []);
+  // Show 3 lines: scroll through the list
+  const window = [0, 1, 2].map((i) => lines[(tick + i) % lines.length]);
+  return (
+    <div
+      className="rounded-xl border border-ember/30 bg-black/70 p-3 font-mono text-[11px] leading-relaxed text-emerald-300 overflow-hidden"
+      style={{ height }}
+      aria-live="polite"
+    >
+      <div className="flex items-center gap-1.5 mb-1.5">
+        <span className="h-2 w-2 rounded-full bg-red-500/70" />
+        <span className="h-2 w-2 rounded-full bg-yellow-500/70" />
+        <span className="h-2 w-2 rounded-full bg-emerald-500/70" />
+        <span className="ml-2 text-[10px] uppercase tracking-wider text-emerald-400/70">
+          forge://{String(kind)}
+        </span>
+      </div>
+      {window.map((l, i) => (
+        <motion.div
+          key={`${tick}-${i}`}
+          initial={{ opacity: 0, y: 4 }}
+          animate={{ opacity: i === 2 ? 1 : 0.5 + i * 0.2, y: 0 }}
+          transition={{ duration: 0.35 }}
+          className="truncate"
+        >
+          <span className="text-emerald-500/70">›</span> {l}
+          {i === 2 && <span className="ml-0.5 inline-block w-1.5 h-3 align-middle bg-emerald-300 animate-pulse" />}
+        </motion.div>
+      ))}
+    </div>
+  );
+}
+
+function PillarTerminalCard({
+  icon: Icon,
+  title,
+  kind,
+  state,
+  onRetry,
+}: {
+  icon: typeof ShieldCheck;
+  title: string;
+  kind: keyof typeof TERMINAL_LINES;
+  state: PState<unknown>;
+  onRetry: () => void;
+}) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="mt-12 rounded-3xl border border-border bg-card/60 p-10 shadow-elegant"
+      transition={{ duration: 0.4 }}
+      className="rounded-3xl border border-border bg-card/60 p-6 shadow-elegant flex flex-col min-h-[280px]"
     >
-      <div className="flex items-center gap-3 text-ember">
-        <Loader2 className="h-5 w-5 animate-spin" />
-        <span className="text-xs uppercase tracking-[0.2em]">Analyzing</span>
+      <div className="flex items-center justify-between">
+        <span className="grid h-10 w-10 place-items-center rounded-xl border border-border bg-background/80 text-ember">
+          <Icon className="h-4 w-4" />
+        </span>
+        {state.status === "error" ? (
+          <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider text-destructive">
+            <AlertTriangle className="h-3 w-3" /> Failed
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-ember">
+            <Loader2 className="h-3 w-3 animate-spin" /> Working
+          </span>
+        )}
       </div>
-      <h2 className="mt-4 font-display text-2xl font-semibold">
-        Consulting our innovation desk…
-      </h2>
-      <p className="mt-2 max-w-xl text-sm text-muted-foreground">
-        We're running your concept through compliance, market and demand models.
-        This usually takes 15–30 seconds.
+      <h3 className="mt-4 font-display text-lg font-semibold">{title}</h3>
+      <p className="mt-1 text-xs text-muted-foreground">
+        {state.status === "error"
+          ? state.error || "Pillar failed."
+          : "Streaming reasoning from the model…"}
       </p>
-      <ul className="mt-8 space-y-3">
-        {PROGRESS_STEPS.map((s, i) => {
-          const Icon = s.icon;
-          const active = i === step;
-          const done = i < step;
-          return (
-            <li
-              key={s.label}
-              className={
-                "flex items-center gap-3 rounded-2xl border px-4 py-3 transition " +
-                (active
-                  ? "border-ember/40 bg-ember/5 text-foreground"
-                  : done
-                    ? "border-border/60 bg-background/40 text-muted-foreground"
-                    : "border-border/40 bg-background/20 text-muted-foreground/70")
-              }
-            >
-              <Icon className={"h-4 w-4 " + (active ? "text-ember" : "")} />
-              <span className="text-sm">{s.label}</span>
-              {active && <Loader2 className="ml-auto h-3.5 w-3.5 animate-spin text-ember" />}
-              {done && <CheckCircle2 className="ml-auto h-3.5 w-3.5 text-emerald-400" />}
-            </li>
-          );
-        })}
-      </ul>
+      <div className="mt-4">
+        {state.status === "error" ? (
+          <button
+            onClick={onRetry}
+            className="inline-flex items-center gap-2 rounded-full border border-border bg-background/60 px-3.5 py-1.5 text-xs hover:bg-accent transition"
+          >
+            <RefreshCcw className="h-3.5 w-3.5" /> Retry pillar
+          </button>
+        ) : (
+          <Terminal kind={kind} />
+        )}
+      </div>
     </motion.div>
   );
 }
 
-function ErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
+function OverallSkeleton() {
   return (
-    <div className="mt-12 rounded-3xl border border-destructive/30 bg-destructive/5 p-8">
-      <div className="flex items-center gap-2 text-destructive">
-        <AlertTriangle className="h-5 w-5" />
-        <span className="text-sm font-medium">Vetting failed</span>
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45 }}
+      className="relative overflow-hidden rounded-3xl border border-ember/30 bg-gradient-surface p-8 sm:p-10 shadow-ember"
+    >
+      <div className="grid gap-8 lg:grid-cols-[auto_1fr] lg:items-center">
+        <div className="grid h-32 w-32 place-items-center rounded-full border border-ember/40 bg-black/30">
+          <Loader2 className="h-7 w-7 animate-spin text-ember" />
+        </div>
+        <div>
+          <p className="text-xs uppercase tracking-[0.22em] text-ember">Overall idea health</p>
+          <div className="mt-3 h-7 w-2/3 rounded-md bg-foreground/10 animate-pulse" />
+          <div className="mt-3 h-4 w-1/2 rounded-md bg-foreground/10 animate-pulse" />
+          <div className="mt-6">
+            <Terminal kind="strategic" height={96} />
+          </div>
+        </div>
       </div>
-      <p className="mt-3 text-sm text-muted-foreground">{message}</p>
-      <button
-        onClick={onRetry}
-        className="mt-5 inline-flex items-center gap-2 rounded-full bg-gradient-ember px-4 py-2 text-sm font-medium text-ember-foreground shadow-ember hover:brightness-110 transition"
-      >
-        <RefreshCcw className="h-4 w-4" /> Try again
-      </button>
+    </motion.div>
+  );
+}
+
+function ProgressiveResults({
+  idea,
+  projectId,
+  strategic,
+  compliance,
+  market,
+  sales,
+  allDone,
+  analysis,
+  canSave,
+  onSave,
+  onRefine,
+  onRerun,
+  onRetryStrategic,
+  onRetryCompliance,
+  onRetryMarket,
+  onRetrySales,
+}: {
+  idea: string;
+  projectId: string;
+  strategic: PState<Pick<Analysis, "overallScore" | "healthVerdict" | "oneLineThesis">>;
+  compliance: PState<Analysis["compliance"]>;
+  market: PState<Analysis["market"]>;
+  sales: PState<Analysis["sales"]>;
+  allDone: boolean;
+  analysis: Analysis | undefined;
+  canSave: boolean;
+  onSave: () => void;
+  onRefine: () => void;
+  onRerun: () => void;
+  onRetryStrategic: () => void;
+  onRetryCompliance: () => void;
+  onRetryMarket: () => void;
+  onRetrySales: () => void;
+}) {
+  // When everything is done, defer to the full polished view (with focus group + chat).
+  if (allDone && analysis) {
+    return (
+      <ResultsView
+        idea={idea}
+        analysis={analysis}
+        projectId={projectId}
+        canSave={canSave}
+        onSave={onSave}
+        onRefine={onRefine}
+        onRerun={onRerun}
+      />
+    );
+  }
+
+  // Build a partial-overall card from any data we have so far.
+  const partialOverallScore =
+    strategic.data?.overallScore ??
+    (() => {
+      const parts = [
+        compliance.data?.score,
+        market.data?.score,
+        sales.data?.score,
+      ].filter((n): n is number => typeof n === "number");
+      if (parts.length === 0) return undefined;
+      return Math.round((parts.reduce((a, b) => a + b, 0) / parts.length) * 10);
+    })();
+
+  return (
+    <div className="mt-12 space-y-8">
+      {strategic.status === "done" && strategic.data ? (
+        <motion.section
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="relative overflow-hidden rounded-3xl border border-ember/30 bg-gradient-surface p-8 sm:p-10 shadow-ember"
+        >
+          <div className="grid gap-8 lg:grid-cols-[auto_1fr] lg:items-center">
+            <ScoreGauge value={strategic.data.overallScore} max={100} tone={scoreTone(strategic.data.overallScore, 100)} large />
+            <div>
+              <p className="text-xs uppercase tracking-[0.22em] text-ember">Overall idea health</p>
+              <h2 className="mt-3 font-display text-3xl sm:text-4xl font-semibold text-balance leading-tight">
+                {strategic.data.healthVerdict}
+              </h2>
+              <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
+                {strategic.data.oneLineThesis}
+              </p>
+              <p className="mt-4 text-xs text-muted-foreground/80">
+                Finishing the remaining pillars below…
+              </p>
+            </div>
+          </div>
+        </motion.section>
+      ) : strategic.status === "error" ? (
+        <div className="rounded-3xl border border-destructive/30 bg-destructive/5 p-6">
+          <div className="flex items-center gap-2 text-destructive">
+            <AlertTriangle className="h-5 w-5" />
+            <span className="text-sm font-medium">Strategic summary failed</span>
+          </div>
+          <p className="mt-2 text-sm text-muted-foreground">{strategic.error}</p>
+          <button
+            onClick={onRetryStrategic}
+            className="mt-4 inline-flex items-center gap-2 rounded-full bg-gradient-ember px-4 py-2 text-sm font-medium text-ember-foreground shadow-ember hover:brightness-110 transition"
+          >
+            <RefreshCcw className="h-4 w-4" /> Retry
+          </button>
+        </div>
+      ) : (
+        <OverallSkeleton />
+      )}
+
+      <div className="grid gap-5 lg:grid-cols-3">
+        {compliance.status === "done" && compliance.data ? (
+          <CompliancePillar data={compliance.data} />
+        ) : (
+          <PillarTerminalCard
+            icon={ShieldCheck}
+            title="Compliance & IP"
+            kind="compliance"
+            state={compliance}
+            onRetry={onRetryCompliance}
+          />
+        )}
+        {market.status === "done" && market.data ? (
+          <MarketPillar data={market.data} />
+        ) : (
+          <PillarTerminalCard
+            icon={TrendingUp}
+            title="Market viability"
+            kind="market"
+            state={market}
+            onRetry={onRetryMarket}
+          />
+        )}
+        {sales.status === "done" && sales.data ? (
+          <SalesPillar data={sales.data} />
+        ) : (
+          <PillarTerminalCard
+            icon={Users}
+            title="Sales potential"
+            kind="sales"
+            state={sales}
+            onRetry={onRetrySales}
+          />
+        )}
+      </div>
+
+      {partialOverallScore !== undefined && !allDone && (
+        <p className="text-center text-xs text-muted-foreground">
+          Pillars complete:{" "}
+          {[strategic, compliance, market, sales].filter((p) => p.status === "done").length}/4 ·
+          Focus group & chat unlock once analysis finishes.
+        </p>
+      )}
     </div>
   );
 }
+
 
 /* ─────────────────────────────── Results ─────────────────────────────── */
 
