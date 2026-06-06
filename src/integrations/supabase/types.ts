@@ -450,6 +450,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      sysadmin_exists: { Args: never; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "user" | "sysadmin"
