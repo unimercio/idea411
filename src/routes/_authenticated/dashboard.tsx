@@ -731,7 +731,7 @@ function HighlightCard({
   onOpen,
   accent,
 }: {
-  icon: (props: { className?: string }) => JSX.Element;
+  icon: typeof Clock;
   eyebrow: string;
   project: Project;
   onOpen: () => void;
