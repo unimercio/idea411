@@ -59,6 +59,89 @@ function DashboardPage() {
     };
   }, []);
 
+  // Hydrate a guest-saved idea once the user is authenticated.
+  useEffect(() => {
+    if (isAuthed !== true) return;
+    let cancelled = false;
+    (async () => {
+      let raw: string | null = null;
+      try {
+        raw = localStorage.getItem("ideaforge:pending-project");
+      } catch {
+        return;
+      }
+      if (!raw) return;
+      let pending: {
+        idea?: string;
+        sketchName?: string;
+        analysis?: import("@/lib/projects").Project["analysis"];
+      };
+      try {
+        pending = JSON.parse(raw);
+      } catch {
+        localStorage.removeItem("ideaforge:pending-project");
+        return;
+      }
+      if (!pending.idea) {
+        localStorage.removeItem("ideaforge:pending-project");
+        return;
+      }
+      const { data: userData } = await supabase.auth.getUser();
+      if (cancelled || !userData.user) return;
+      const userId = userData.user.id;
+      const id =
+        typeof crypto !== "undefined" && "randomUUID" in crypto
+          ? crypto.randomUUID()
+          : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      const title =
+        pending.idea.trim().split(/\s+/).slice(0, 7).join(" ").slice(0, 80) || "Saved idea";
+      const a = pending.analysis;
+      const scores = a
+        ? {
+            compliance: Math.round(a.compliance.score * 10),
+            market: Math.round(a.market.score * 10),
+            demand: Math.round(a.sales.score * 10),
+          }
+        : undefined;
+      const data: Record<string, unknown> = {
+        sketchName: pending.sketchName,
+        analysis: a,
+        scores,
+      };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await supabase.from("projects").insert({
+        id,
+        user_id: userId,
+        title,
+        idea: pending.idea,
+        status: a ? "ready" : "vetting",
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        data: data as any,
+      } as any);
+      localStorage.removeItem("ideaforge:pending-project");
+      if (error) {
+        console.error("[dashboard] failed to save pending idea", error);
+        toast.error("Couldn't save your idea. Please try again.");
+        return;
+      }
+      toast.success("Your idea was saved to your account");
+      // Trigger projects cache refresh
+      window.dispatchEvent(new CustomEvent("ideaforge:projects-changed"));
+      // Hard refresh of the in-memory cache so the new row appears.
+      const { data: rows } = await supabase
+        .from("projects")
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .select("*" as any)
+        .order("updated_at", { ascending: false });
+      if (!cancelled && rows) {
+        window.dispatchEvent(new CustomEvent("ideaforge:projects-changed"));
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuthed]);
+
   const checkAdminFn = useServerFn(checkAdmin);
   const adminQuery = useQuery({
     queryKey: ["isAdmin"],
