@@ -96,14 +96,70 @@ function SettingsPage() {
       website: string;
       avatar_url: string;
       language: string;
-    }) => updateFn({ data: vars }),
-    onSuccess: (_d, vars) => {
-      toast.success(t("settings.saved"));
+      _silent?: boolean;
+    }) => {
+      const { _silent, ...payload } = vars;
+      return updateFn({ data: payload }).then((r) => ({ r, _silent, vars: payload }));
+    },
+    onSuccess: ({ _silent, vars }) => {
       applyLanguage(vars.language);
+      baselineRef.current = JSON.stringify(vars);
+      setAutoSaveState("saved");
+      if (!_silent) toast.success(t("settings.saved"));
       qc.invalidateQueries({ queryKey: ["my-settings"] });
     },
-    onError: (e) => toast.error(e instanceof Error ? e.message : "Failed to save"),
+    onError: (e) => {
+      setAutoSaveState("error");
+      toast.error(e instanceof Error ? e.message : "Failed to save");
+    },
   });
+
+  // Auto-save: debounce changes and save silently
+  useEffect(() => {
+    if (!data) return;
+    const current = JSON.stringify({
+      first_name: firstName.trim(),
+      title: title.trim(),
+      company: company.trim(),
+      website: website.trim(),
+      avatar_url: avatarPath,
+      language,
+    });
+    if (current === baselineRef.current) return;
+    // Validate website URL — skip auto-save if invalid (user will see on manual save)
+    if (website && website.trim().length > 0) {
+      try { new URL(website.trim()); } catch { setAutoSaveState("dirty"); return; }
+    }
+    setAutoSaveState("dirty");
+    const handle = window.setTimeout(() => {
+      if (uploading || mutation.isPending) return;
+      setAutoSaveState("saving");
+      mutation.mutate({
+        first_name: firstName.trim(),
+        title: title.trim(),
+        company: company.trim(),
+        website: website.trim(),
+        avatar_url: avatarPath,
+        language,
+        _silent: true,
+      });
+    }, 1200);
+    return () => window.clearTimeout(handle);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [firstName, title, company, website, avatarPath, language, data, uploading]);
+
+  // Warn on unload if unsaved changes
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (autoSaveState === "dirty" || autoSaveState === "saving") {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [autoSaveState]);
+
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
