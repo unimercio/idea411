@@ -29,20 +29,21 @@ export const Route = createFileRoute("/intake")({
   component: IntakePage,
 });
 
-const ideaSchema = z.object({
-  idea: z
-    .string()
-    .trim()
-    .min(200, { message: "intake.errMin" })
-    .max(1200, { message: "intake.errMax" }),
-  email: z
-    .string()
-    .trim()
-    .max(255)
-    .email({ message: "intake.errEmail" })
-    .optional()
-    .or(z.literal("").transform(() => undefined)),
-});
+const makeIdeaSchema = (min: number, max: number) =>
+  z.object({
+    idea: z
+      .string()
+      .trim()
+      .min(min, { message: "intake.errMin" })
+      .max(max, { message: "intake.errMax" }),
+    email: z
+      .string()
+      .trim()
+      .max(255)
+      .email({ message: "intake.errEmail" })
+      .optional()
+      .or(z.literal("").transform(() => undefined)),
+  });
 
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024; // 8 MB
 const ACCEPTED = ["image/png", "image/jpeg", "image/webp", "image/heic"];
