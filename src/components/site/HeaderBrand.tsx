@@ -30,6 +30,7 @@ export function HeaderBrand({
         IdeaForge
       </Link>
       <WhatsNewButton className="inline-flex shrink-0 items-center gap-1.5 px-2 py-1.5 text-sm text-muted-foreground hover:text-foreground" />
+      <MobileInstallQR className="inline-flex shrink-0 items-center gap-1.5 px-2 py-1.5 text-sm text-muted-foreground hover:text-foreground" />
     </div>
   );
 }
