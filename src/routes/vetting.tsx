@@ -455,7 +455,7 @@ GTM: ${s.gtm.slice(0, 5).join("; ") || "(none)"}`;
             const parts: string[] = [];
             if (compliance.data) parts.push(summarizeCompliance(compliance.data));
             if (market.data) parts.push(summarizeMarket(market.data));
-            const context = parts.join("\n\n") || undefined;
+            const context = parts.length ? clampContext(parts.join("\n\n")) : undefined;
             void runPillar("sales", setSales, () =>
               runSales({ data: { idea, sketchName, context } }),
             );
