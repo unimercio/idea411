@@ -224,6 +224,8 @@ function VettingPage() {
             idea={idea}
             analysis={analysis}
             projectId={projectId}
+            canSave={isAuthed === false}
+            onSave={handleSaveAsGuest}
             onRefine={() => navigate({ to: "/intake", search: { refine: projectId } })}
             onRerun={() => {
               startedRef.current = false;
