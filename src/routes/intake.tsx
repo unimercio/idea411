@@ -133,10 +133,13 @@ function IntakePage() {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const parsed = ideaSchema.safeParse({ idea, email });
+    const parsed = makeIdeaSchema(charRange.min, charRange.max).safeParse({ idea, email });
     if (!parsed.success) {
       const msg = parsed.error.issues[0].message;
-      setError(msg.startsWith("intake.") ? t(msg) : msg);
+      const translated = msg.startsWith("intake.")
+        ? t(msg, { min: charRange.min, max: charRange.max })
+        : msg;
+      setError(translated);
       return;
     }
     setError(null);
