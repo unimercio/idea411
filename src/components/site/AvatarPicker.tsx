@@ -11,6 +11,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
+import { AvatarEditor } from "@/components/site/AvatarEditor";
 
 type Props = {
   onUploaded: (path: string) => void;
