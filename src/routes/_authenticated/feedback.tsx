@@ -48,6 +48,8 @@ type FeedbackItem = {
   status: FeedbackStatus;
   votes: number;
   created_at: string;
+  github_issue_number: number | null;
+  github_issue_url: string | null;
 };
 
 const TYPE_META: Record<FeedbackType, { label: string; icon: typeof Bug; tone: string }> = {
