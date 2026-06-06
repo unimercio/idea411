@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import { WhatsNewButton } from "@/components/site/WhatsNewButton";
 import {
   AlertTriangle,
   ArrowRight,
@@ -230,6 +231,7 @@ function DashboardPage() {
                 <Sparkles className="h-4 w-4" /> {claiming ? t("dashboard.claiming") : (adminExists ? "Claim sysadmin" : t("dashboard.claimAdmin"))}
               </button>
             )}
+            <WhatsNewButton />
             {isAuthed === true && (
               <Link
                 to="/settings"
