@@ -26,7 +26,13 @@ import {
   UsersRound,
 } from "lucide-react";
 import { z } from "zod";
-import { analyzeIdea, type Analysis } from "@/lib/api/vetting.functions";
+import {
+  analyzeStrategic,
+  analyzeCompliance,
+  analyzeMarket,
+  analyzeSales,
+  type Analysis,
+} from "@/lib/api/vetting.functions";
 import { chatAboutIdea } from "@/lib/api/vetting-chat.functions";
 import { runFocusGroup } from "@/lib/api/focus-group.functions";
 import { researchMarketSize } from "@/lib/api/market-research.functions";
