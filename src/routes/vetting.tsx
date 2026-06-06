@@ -327,7 +327,9 @@ GTM: ${s.gtm.slice(0, 5).join("; ") || "(none)"}`;
     if (!complianceData || !marketV1) return;
 
     // PHASE 2 — sales depends on market + compliance.
-    const salesCtx = [summarizeCompliance(complianceData), summarizeMarket(marketV1)].join("\n\n");
+    const salesCtx = clampContext(
+      [summarizeCompliance(complianceData), summarizeMarket(marketV1)].join("\n\n"),
+    );
     const salesData = await runPillar("sales", setSales, () =>
       runSales({ data: { idea, sketchName, context: salesCtx } }),
     );
