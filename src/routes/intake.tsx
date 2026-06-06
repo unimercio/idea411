@@ -162,6 +162,17 @@ function IntakePage() {
   };
 
   const chars = idea.trim().length;
+  const [charRange, setCharRange] = useState(() => getIntakeCharRange());
+  useEffect(() => {
+    const sync = () => setCharRange(getIntakeCharRange());
+    window.addEventListener("storage", sync);
+    window.addEventListener("focus", sync);
+    return () => {
+      window.removeEventListener("storage", sync);
+      window.removeEventListener("focus", sync);
+    };
+  }, []);
+
 
   return (
     <main className="min-h-screen bg-background text-foreground">
