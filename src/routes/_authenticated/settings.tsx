@@ -46,6 +46,8 @@ function SettingsPage() {
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const baselineRef = useRef<string>("");
+  const [autoSaveState, setAutoSaveState] = useState<"idle" | "dirty" | "saving" | "saved" | "error">("idle");
 
   useEffect(() => {
     if (data) {
@@ -55,8 +57,18 @@ function SettingsPage() {
       setWebsite(data.website ?? "");
       setAvatarPath(data.avatar_url ?? "");
       setLanguage(data.language ?? "en");
+      baselineRef.current = JSON.stringify({
+        first_name: data.first_name ?? "",
+        title: data.title ?? "",
+        company: data.company ?? "",
+        website: data.website ?? "",
+        avatar_url: data.avatar_url ?? "",
+        language: data.language ?? "en",
+      });
+      setAutoSaveState("idle");
     }
   }, [data]);
+
 
   // Generate signed URL for private avatar bucket
   useEffect(() => {
