@@ -314,33 +314,178 @@ function DashboardPage() {
 
 
 
-      <section className="mx-auto max-w-7xl px-6 py-16">
-        <div className="flex items-end justify-between flex-wrap gap-4">
-          <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-ember">{t("dashboard.eyebrow")}</p>
-            <h1 className="mt-3 font-display text-4xl sm:text-5xl font-semibold">{t("dashboard.title")}</h1>
-            <p className="mt-2 text-muted-foreground">
-              {projects.length === 0
-                ? t("dashboard.emptyCount")
-                : projects.length === 1
-                  ? t("dashboard.countOne", { count: projects.length })
-                  : t("dashboard.countMany", { count: projects.length })}
-            </p>
-          </div>
-        </div>
+      <DashboardBody projects={projects} />
+    </main>
+  );
+}
 
-        {projects.length === 0 ? (
-          <EmptyState />
-        ) : (
-          <div className="mt-12 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+function DashboardBody({ projects }: { projects: Project[] }) {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const [query, setQuery] = useState("");
+  const [status, setStatus] = useState<"all" | "ready" | "vetting">("all");
+  const [sort, setSort] = useState<"recent" | "score" | "title">("recent");
+  const [compareMode, setCompareMode] = useState(false);
+  const [selected, setSelected] = useState<string[]>([]);
+
+  const stats = useMemo(() => {
+    const ready = projects.filter((p) => !!p.scores).length;
+    const vetting = projects.length - ready;
+    const scores = projects
+      .map((p) => overallScore(p.scores))
+      .filter((s): s is number => s !== null);
+    const avg = scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+    const thisMonth = projects.filter((p) => p.createdAt >= monthStart).length;
+    return { total: projects.length, ready, vetting, avg, thisMonth };
+  }, [projects]);
+
+  const spotlight = useMemo(() => {
+    let best: { project: Project; score: number } | null = null;
+    for (const p of projects) {
+      const s = overallScore(p.scores);
+      if (s !== null && (!best || s > best.score)) best = { project: p, score: s };
+    }
+    return best;
+  }, [projects]);
+
+  const continueProject = useMemo(() => {
+    const sorted = [...projects].sort((a, b) => b.updatedAt - a.updatedAt);
+    return sorted.find((p) => p.id !== spotlight?.project.id) ?? sorted[0] ?? null;
+  }, [projects, spotlight]);
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    let list = projects.filter((p) => {
+      if (status === "ready" && !p.scores) return false;
+      if (status === "vetting" && p.scores) return false;
+      if (q && !`${p.title} ${p.idea}`.toLowerCase().includes(q)) return false;
+      return true;
+    });
+    list = [...list];
+    if (sort === "title") list.sort((a, b) => a.title.localeCompare(b.title));
+    else if (sort === "score")
+      list.sort((a, b) => (overallScore(b.scores) ?? -1) - (overallScore(a.scores) ?? -1));
+    else list.sort((a, b) => b.updatedAt - a.updatedAt);
+    return list;
+  }, [projects, query, status, sort]);
+
+  const toggleSelected = (id: string) => {
+    setSelected((prev) => {
+      if (prev.includes(id)) return prev.filter((x) => x !== id);
+      if (prev.length >= 3) return prev;
+      return [...prev, id];
+    });
+  };
+
+  const compareProjects = projects.filter((p) => selected.includes(p.id));
+
+  return (
+    <section className="mx-auto max-w-7xl px-6 py-12 space-y-10">
+      <div className="flex items-end justify-between flex-wrap gap-4">
+        <div>
+          <p className="text-xs uppercase tracking-[0.2em] text-ember">{t("dashboard.eyebrow")}</p>
+          <h1 className="mt-3 font-display text-4xl sm:text-5xl font-semibold">{t("dashboard.title")}</h1>
+          <p className="mt-2 text-muted-foreground">
+            {projects.length === 0
+              ? t("dashboard.emptyCount")
+              : projects.length === 1
+                ? t("dashboard.countOne", { count: projects.length })
+                : t("dashboard.countMany", { count: projects.length })}
+          </p>
+        </div>
+      </div>
+
+      {projects.length === 0 ? (
+        <EmptyState />
+      ) : (
+        <>
+          <StatsStrip stats={stats} />
+
+          <div className="grid gap-4 md:grid-cols-2">
+            {continueProject && (
+              <HighlightCard
+                icon={Clock}
+                eyebrow="Continue where you left off"
+                project={continueProject}
+                onOpen={() => navigate({ to: "/vetting", search: { id: continueProject.id } })}
+              />
+            )}
+            {spotlight && spotlight.project.id !== continueProject?.id && (
+              <HighlightCard
+                icon={Trophy}
+                eyebrow={`Top idea · ${spotlight.score}/100`}
+                project={spotlight.project}
+                onOpen={() => navigate({ to: "/vetting", search: { id: spotlight.project.id } })}
+                accent
+              />
+            )}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative flex-1 min-w-[220px] max-w-md">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Search ideas…"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <FilterChip label="All" active={status === "all"} onClick={() => setStatus("all")} />
+            <FilterChip label="Ready" active={status === "ready"} onClick={() => setStatus("ready")} />
+            <FilterChip label="Vetting" active={status === "vetting"} onClick={() => setStatus("vetting")} />
+            <div className="h-5 w-px bg-border mx-1" />
+            <FilterChip label="Recent" active={sort === "recent"} onClick={() => setSort("recent")} />
+            <FilterChip label="Score" active={sort === "score"} onClick={() => setSort("score")} />
+            <FilterChip label="Title" active={sort === "title"} onClick={() => setSort("title")} />
+            <button
+              onClick={() => {
+                setCompareMode((v) => !v);
+                setSelected([]);
+              }}
+              className={`ml-auto inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs transition ${
+                compareMode
+                  ? "border-ember/50 bg-ember/10 text-foreground"
+                  : "border-border text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <GitCompare className="h-3.5 w-3.5" /> {compareMode ? "Exit compare" : "Compare"}
+            </button>
+          </div>
+
+          {compareMode && compareProjects.length >= 2 && (
+            <CompareTable projects={compareProjects} onRemove={toggleSelected} />
+          )}
+          {compareMode && (
+            <p className="text-xs text-muted-foreground">
+              Select 2–3 projects to compare side-by-side ({selected.length}/3 selected).
+            </p>
+          )}
+
+          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
             <AnimatePresence initial={false}>
-              {projects.map((p, i) => (
-                <ProjectCard key={p.id} project={p} index={i} />
+              {filtered.map((p, i) => (
+                <ProjectCard
+                  key={p.id}
+                  project={p}
+                  index={i}
+                  selectable={compareMode}
+                  selected={selected.includes(p.id)}
+                  onToggle={() => toggleSelected(p.id)}
+                />
               ))}
             </AnimatePresence>
           </div>
-        )}
-      </section>
+          {filtered.length === 0 && (
+            <p className="text-center text-sm text-muted-foreground py-10">
+              No ideas match your filters.
+            </p>
+          )}
+        </>
+      )}
+    </section>
     </main>
   );
 }
