@@ -22,6 +22,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedBountiesRouteImport } from './routes/_authenticated/bounties'
 import { Route as AuthenticatedSysadminIndexRouteImport } from './routes/_authenticated/sysadmin.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
+import { Route as ApiPublicGithubWebhookRouteImport } from './routes/api/public/github-webhook'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin.users'
 import { Route as AuthenticatedAdminSkillsRouteImport } from './routes/_authenticated/admin.skills'
 import { Route as AuthenticatedAdminPromptTemplatesRouteImport } from './routes/_authenticated/admin.prompt-templates'
@@ -92,6 +93,11 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   path: '/admin/',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const ApiPublicGithubWebhookRoute = ApiPublicGithubWebhookRouteImport.update({
+  id: '/api/public/github-webhook',
+  path: '/api/public/github-webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
   id: '/admin/users',
   path: '/admin/users',
@@ -131,6 +137,7 @@ export interface FileRoutesByFullPath {
   '/admin/prompt-templates': typeof AuthenticatedAdminPromptTemplatesRoute
   '/admin/skills': typeof AuthenticatedAdminSkillsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/api/public/github-webhook': typeof ApiPublicGithubWebhookRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/sysadmin/': typeof AuthenticatedSysadminIndexRoute
 }
@@ -149,6 +156,7 @@ export interface FileRoutesByTo {
   '/admin/prompt-templates': typeof AuthenticatedAdminPromptTemplatesRoute
   '/admin/skills': typeof AuthenticatedAdminSkillsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/api/public/github-webhook': typeof ApiPublicGithubWebhookRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/sysadmin': typeof AuthenticatedSysadminIndexRoute
 }
@@ -169,6 +177,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/prompt-templates': typeof AuthenticatedAdminPromptTemplatesRoute
   '/_authenticated/admin/skills': typeof AuthenticatedAdminSkillsRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/api/public/github-webhook': typeof ApiPublicGithubWebhookRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/sysadmin/': typeof AuthenticatedSysadminIndexRoute
 }
@@ -189,6 +198,7 @@ export interface FileRouteTypes {
     | '/admin/prompt-templates'
     | '/admin/skills'
     | '/admin/users'
+    | '/api/public/github-webhook'
     | '/admin/'
     | '/sysadmin/'
   fileRoutesByTo: FileRoutesByTo
@@ -207,6 +217,7 @@ export interface FileRouteTypes {
     | '/admin/prompt-templates'
     | '/admin/skills'
     | '/admin/users'
+    | '/api/public/github-webhook'
     | '/admin'
     | '/sysadmin'
   id:
@@ -226,6 +237,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/prompt-templates'
     | '/_authenticated/admin/skills'
     | '/_authenticated/admin/users'
+    | '/api/public/github-webhook'
     | '/_authenticated/admin/'
     | '/_authenticated/sysadmin/'
   fileRoutesById: FileRoutesById
@@ -238,6 +250,7 @@ export interface RootRouteChildren {
   IntakeRoute: typeof IntakeRoute
   VettingRoute: typeof VettingRoute
   ApiFocusGroupStreamRoute: typeof ApiFocusGroupStreamRoute
+  ApiPublicGithubWebhookRoute: typeof ApiPublicGithubWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -333,6 +346,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/api/public/github-webhook': {
+      id: '/api/public/github-webhook'
+      path: '/api/public/github-webhook'
+      fullPath: '/api/public/github-webhook'
+      preLoaderRoute: typeof ApiPublicGithubWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/admin/users': {
       id: '/_authenticated/admin/users'
       path: '/admin/users'
@@ -403,7 +423,18 @@ const rootRouteChildren: RootRouteChildren = {
   IntakeRoute: IntakeRoute,
   VettingRoute: VettingRoute,
   ApiFocusGroupStreamRoute: ApiFocusGroupStreamRoute,
+  ApiPublicGithubWebhookRoute: ApiPublicGithubWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
