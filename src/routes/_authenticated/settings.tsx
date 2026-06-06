@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getMySettings, updateMySettings } from "@/lib/api/settings.functions";
 import { SUPPORTED_LANGUAGES, applyLanguage } from "@/i18n";
 import { HeaderBrand } from "@/components/site/HeaderBrand";
+import { AvatarPicker } from "@/components/site/AvatarPicker";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({
@@ -227,6 +228,11 @@ function SettingsPage() {
                     <Upload className="h-4 w-4 mr-2" />
                     {uploading ? t("settings.uploading") : avatarPath ? t("settings.changeAvatar") : t("settings.uploadAvatar")}
                   </Button>
+                  <AvatarPicker
+                    onUploaded={(p) => setAvatarPath(p)}
+                    currentPath={avatarPath}
+                    disabled={uploading || mutation.isPending}
+                  />
                   {avatarPath && (
                     <Button
                       type="button"
