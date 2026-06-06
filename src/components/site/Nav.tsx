@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -7,12 +7,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { checkAdmin } from "@/lib/api/prompt-templates.functions";
 
 import { HeaderBrand } from "./HeaderBrand";
-import { toast } from "sonner";
 import { getHomePath } from "@/lib/home-path";
 
 export function Nav() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const [isAuthed, setIsAuthed] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -39,16 +37,6 @@ export function Nav() {
   const isSysadmin = isAuthed === true && adminQuery.data?.isSysadmin === true;
   const homePath = getHomePath({ isAuthed, isAdmin, isSysadmin });
 
-
-  const handleSignOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    toast.success("Signed out.");
-    navigate({ to: "/", replace: true });
-  };
 
   return (
     <header className="fixed top-0 inset-x-0 z-50">
