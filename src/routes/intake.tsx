@@ -243,7 +243,7 @@ function IntakePage() {
               value={idea}
               onChange={(e) => setIdea(e.target.value)}
               rows={6}
-              maxLength={1200}
+              maxLength={charRange.max}
               placeholder={t("intake.ideaPlaceholder")}
               className="mt-2 w-full resize-none bg-transparent text-base placeholder:text-muted-foreground/60 focus:outline-none"
             />
@@ -257,9 +257,9 @@ function IntakePage() {
                 <Wand2 className="h-3.5 w-3.5 text-ember" />
                 {refining ? t("intake.refining") : t("intake.refineAI")}
               </button>
-              <span className={"text-[11px] " + (chars > 0 && chars < 400 ? "text-ember" : "text-muted-foreground")}>
-                {chars > 0 && chars < 400 ? t("intake.tipChars") : ""}
-                {chars}/1200
+              <span className={"text-[11px] " + (chars > 0 && chars < charRange.min ? "text-ember" : "text-muted-foreground")}>
+                {chars > 0 && chars < charRange.min ? t("intake.tipChars") : ""}
+                {chars}/{charRange.max}
               </span>
             </div>
             {refineHint && (
