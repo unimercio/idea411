@@ -1486,7 +1486,12 @@ function FocusGroupPanel({
       )}
 
       {transcript && !streaming && (
-        <FocusGroupReport transcript={transcript} />
+        <>
+          <div className="px-6 pt-5">
+            <FocusGroupAudio transcript={transcript} live={false} ended={true} />
+          </div>
+          <FocusGroupReport transcript={transcript} />
+        </>
       )}
     </motion.section>
   );
