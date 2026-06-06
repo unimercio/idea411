@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Headphones, Pause, Play, Square, VolumeX } from "lucide-react";
+import { Download, Headphones, Loader2, Pause, Play, Square, VolumeX } from "lucide-react";
 
 export type Turn = { speaker: string; text: string };
 
