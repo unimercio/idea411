@@ -114,6 +114,8 @@ function FeedbackPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
+  const createFeedbackFn = useServerFn(createFeedbackWithGithub);
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!userId) return;
@@ -122,21 +124,23 @@ function FeedbackPage() {
       return;
     }
     setSubmitting(true);
-    const { error } = await supabase.from("feedback_items").insert({
-      user_id: userId,
-      type,
-      title: title.trim(),
-      description: description.trim(),
-    });
-    setSubmitting(false);
-    if (error) {
-      toast.error(error.message);
-      return;
+    try {
+      const res = await createFeedbackFn({
+        data: { type, title: title.trim(), description: description.trim() },
+      });
+      setTitle("");
+      setDescription("");
+      if (res.github) {
+        toast.success(`Posted • GitHub issue #${res.github.number}`);
+      } else {
+        toast.success("Feedback posted");
+      }
+      void load();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to post");
+    } finally {
+      setSubmitting(false);
     }
-    setTitle("");
-    setDescription("");
-    toast.success("Feedback posted");
-    void load();
   };
 
   const toggleVote = async (itemId: string) => {
