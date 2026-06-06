@@ -413,15 +413,21 @@ export const analyzeIdea = createServerFn({ method: "POST" })
 const pillarInput = z.object({
   idea: z.string().trim().min(10).max(4000),
   sketchName: z.string().max(255).optional(),
+  /** Optional compact context summarising sibling pillar findings. */
+  context: z.string().max(8000).optional(),
 });
 
-function buildUserPrompt(data: { idea: string; sketchName?: string }) {
+function buildUserPrompt(data: { idea: string; sketchName?: string; context?: string }) {
   return `Vet the following product idea. Be honest, specific, and useful.
 
 IDEA:
 ${data.idea}
 ${data.sketchName ? `\n(The founder attached a napkin sketch named "${data.sketchName}".)` : ""}
-
+${
+  data.context
+    ? `\nCROSS-PILLAR CONTEXT (already analysed — reconcile and self-correct against these findings; do not silently contradict them):\n${data.context}\n`
+    : ""
+}
 Return your output by calling the provided tool. Do not return plain text.`;
 }
 

@@ -227,31 +227,68 @@ function VettingPage() {
     key: PillarKey,
     setter: React.Dispatch<React.SetStateAction<PillarState<T>>>,
     call: () => Promise<T>,
-  ) {
+  ): Promise<T | null> {
     setter({ status: "running" });
     try {
       const data = await call();
       setter({ status: "done", data });
+      return data;
     } catch (err) {
       console.error(`[vetting] ${key} failed`, err);
       setter({
         status: "error",
         error: err instanceof Error ? err.message : "Pillar failed.",
       });
+      return null;
     }
   }
 
-  function runAll() {
+  // ── Compact context summaries used to brief downstream pillars ──
+  function summarizeCompliance(c: Analysis["compliance"]) {
+    const risks = c.risks
+      .slice(0, 4)
+      .map((r) => `- [${r.severity}] ${r.title}: ${r.detail}`)
+      .join("\n");
+    return `COMPLIANCE (score ${c.score}/10):
+${c.summary}
+Top risks:
+${risks || "- (none recorded)"}
+Key regulations: ${c.regulations.slice(0, 5).join("; ") || "(none)"}`;
+  }
+  function summarizeMarket(m: Analysis["market"]) {
+    const comps = m.competitors
+      .slice(0, 5)
+      .map((c) => `- ${c.name} (${c.type}): ${c.note}`)
+      .join("\n");
+    return `MARKET (score ${m.score}/10):
+${m.summary}
+TAM ${m.tam} · SAM ${m.sam} · SOM ${m.som}
+Competitors:
+${comps || "- (none)"}
+Differentiation: ${m.differentiation.slice(0, 4).join("; ") || "(none)"}`;
+  }
+  function summarizeSales(s: Analysis["sales"]) {
+    return `SALES (score ${s.score}/10, demand ${s.demand}):
+${s.summary}
+ICP: ${s.targetCustomer}
+Pricing: low ${s.pricing.low} · mid ${s.pricing.mid} · premium ${s.pricing.premium} · recommended ${s.pricing.recommended}
+Revenue: cons ${s.revenue.conservative} · mod ${s.revenue.moderate} · opt ${s.revenue.optimistic}
+GTM: ${s.gtm.slice(0, 5).join("; ") || "(none)"}`;
+  }
+
+  async function runAll() {
     if (!projectId || !idea) return;
     savedRef.current = false;
-    runPillar("strategic", setStrategic, () =>
-      runStrategic({ data: { idea, sketchName } }),
-    );
-    runPillar("compliance", setCompliance, () =>
+
+    // Strategic is dependent on everything; keep it pending until the end.
+    setStrategic({ status: "pending" });
+
+    // PHASE 1 — independent data gathering: compliance + market(v1) in parallel.
+    const compliancePromise = runPillar("compliance", setCompliance, () =>
       runCompliance({ data: { idea, sketchName } }),
     );
-    // Market pillar + sourced sizing run together; sizing merges into market.
-    (async () => {
+
+    const marketV1Promise = (async () => {
       setMarket({ status: "running" });
       try {
         const [m, sizing] = await Promise.all([
@@ -268,15 +305,61 @@ function VettingPage() {
           m.som = sizing.som.value;
         }
         setMarket({ status: "done", data: m });
+        return m;
       } catch (err) {
         console.error("[vetting] market failed", err);
         setMarket({
           status: "error",
           error: err instanceof Error ? err.message : "Market pillar failed.",
         });
+        return null;
       }
     })();
-    runPillar("sales", setSales, () => runSales({ data: { idea, sketchName } }));
+
+    const [complianceData, marketV1] = await Promise.all([
+      compliancePromise,
+      marketV1Promise,
+    ]);
+    if (!complianceData || !marketV1) return;
+
+    // PHASE 2 — sales depends on market + compliance.
+    const salesCtx = [summarizeCompliance(complianceData), summarizeMarket(marketV1)].join("\n\n");
+    const salesData = await runPillar("sales", setSales, () =>
+      runSales({ data: { idea, sketchName, context: salesCtx } }),
+    );
+    if (!salesData) return;
+
+    // PHASE 3 — self-correct market against sales findings (sales & market are
+    // mutually dependent: if pricing/demand shift, sizing/competitive read
+    // should reconcile too).
+    const marketCtx = [summarizeCompliance(complianceData), summarizeSales(salesData)].join("\n\n");
+    setMarket({ status: "running" });
+    let marketFinal = marketV1;
+    try {
+      const m2 = await runMarket({ data: { idea, sketchName, context: marketCtx } });
+      // Preserve sourced sizing from v1 (Perplexity-grounded).
+      if (marketV1.sourcedSizing) {
+        m2.sourcedSizing = marketV1.sourcedSizing;
+        m2.tam = marketV1.tam;
+        m2.sam = marketV1.sam;
+        m2.som = marketV1.som;
+      }
+      marketFinal = m2;
+      setMarket({ status: "done", data: m2 });
+    } catch (err) {
+      console.warn("[vetting] market self-correction failed, keeping v1", err);
+      setMarket({ status: "done", data: marketV1 });
+    }
+
+    // PHASE 4 — strategic / overall, with full context from all three pillars.
+    const stratCtx = [
+      summarizeCompliance(complianceData),
+      summarizeMarket(marketFinal),
+      summarizeSales(salesData),
+    ].join("\n\n");
+    await runPillar("strategic", setStrategic, () =>
+      runStrategic({ data: { idea, sketchName, context: stratCtx } }),
+    );
   }
 
   const startedRef = useRef(false);
@@ -285,7 +368,7 @@ function VettingPage() {
     if (!projectId || !idea) return;
     if (cachedAnalysis) return;
     startedRef.current = true;
-    runAll();
+    void runAll();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId, idea, cachedAnalysis]);
 
@@ -294,7 +377,7 @@ function VettingPage() {
     setCompliance({ status: "pending" });
     setMarket({ status: "pending" });
     setSales({ status: "pending" });
-    runAll();
+    void runAll();
   };
 
   if (!projectId || !idea) {
@@ -334,26 +417,39 @@ function VettingPage() {
           onSave={handleSaveAsGuest}
           onRefine={() => navigate({ to: "/intake", search: { refine: projectId } })}
           onRerun={handleRerun}
-          onRetryStrategic={() =>
-            runPillar("strategic", setStrategic, () =>
-              runStrategic({ data: { idea, sketchName } }),
-            )
-          }
+          onRetryStrategic={() => {
+            const parts: string[] = [];
+            if (compliance.data) parts.push(summarizeCompliance(compliance.data));
+            if (market.data) parts.push(summarizeMarket(market.data));
+            if (sales.data) parts.push(summarizeSales(sales.data));
+            const context = parts.join("\n\n") || undefined;
+            void runPillar("strategic", setStrategic, () =>
+              runStrategic({ data: { idea, sketchName, context } }),
+            );
+          }}
           onRetryCompliance={() =>
-            runPillar("compliance", setCompliance, () =>
+            void runPillar("compliance", setCompliance, () =>
               runCompliance({ data: { idea, sketchName } }),
             )
           }
-          onRetryMarket={() =>
-            runPillar("market", setMarket, () =>
-              runMarket({ data: { idea, sketchName } }),
-            )
-          }
-          onRetrySales={() =>
-            runPillar("sales", setSales, () =>
-              runSales({ data: { idea, sketchName } }),
-            )
-          }
+          onRetryMarket={() => {
+            const parts: string[] = [];
+            if (compliance.data) parts.push(summarizeCompliance(compliance.data));
+            if (sales.data) parts.push(summarizeSales(sales.data));
+            const context = parts.join("\n\n") || undefined;
+            void runPillar("market", setMarket, () =>
+              runMarket({ data: { idea, sketchName, context } }),
+            );
+          }}
+          onRetrySales={() => {
+            const parts: string[] = [];
+            if (compliance.data) parts.push(summarizeCompliance(compliance.data));
+            if (market.data) parts.push(summarizeMarket(market.data));
+            const context = parts.join("\n\n") || undefined;
+            void runPillar("sales", setSales, () =>
+              runSales({ data: { idea, sketchName, context } }),
+            );
+          }}
         />
       </section>
     </Shell>
@@ -404,12 +500,13 @@ type PState<T> = { status: PillarStatus; data?: T; error?: string };
 
 const TERMINAL_LINES: Record<string, string[]> = {
   strategic: [
-    "$ forge --pillar strategic --idea \"$IDEA\"",
-    "loading strategic skill preset…",
+    "$ forge --pillar strategic --depends-on compliance,market,sales",
+    "waiting for sibling pillars to finish…",
+    "ingesting compliance, market and sales findings…",
+    "reconciling cross-pillar signals…",
     "weighing thesis, novelty, defensibility…",
     "scoring overall idea health (0–100)…",
-    "calibrating verdict against base rates…",
-    "drafting one-line investment thesis…",
+    "drafting one-line verdict + thesis…",
   ],
   compliance: [
     "$ forge --pillar compliance --jurisdictions US,EU",
