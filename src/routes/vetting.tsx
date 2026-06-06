@@ -37,6 +37,9 @@ import {
   updateProject,
   type ChatMessage,
 } from "@/lib/projects";
+import { supabase } from "@/integrations/supabase/client";
+import { Save } from "lucide-react";
+import { toast } from "sonner";
 
 const search = z.object({
   idea: z.string().trim().min(1).max(4000).optional().catch(undefined),
