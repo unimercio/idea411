@@ -11,18 +11,14 @@ import {
   ArrowRight,
   Plus,
   Search,
-  Settings,
   ShieldCheck,
   ShieldQuestion,
   Sparkles,
   Trash2,
-  Users,
   Trophy,
   Clock,
   GitCompare,
   X,
-  MessageSquare,
-  Coins,
 } from "lucide-react";
 import {
   deleteProject,
