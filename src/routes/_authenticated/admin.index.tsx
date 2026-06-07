@@ -18,6 +18,8 @@ import {
   Plus,
   FileText,
   Trophy,
+  MessageSquare,
+  Coins,
 } from "lucide-react";
 import { checkAdmin } from "@/lib/api/prompt-templates.functions";
 import { getAdminStats } from "@/lib/api/admin-stats.functions";
@@ -451,9 +453,12 @@ function UsageChart({ data }: { data: { date: string; signups: number; projects:
 function QuickActions() {
   const tiles = [
     { to: "/admin/users", icon: Users, label: "Users" },
-    { to: "/admin/prompt-templates", icon: Settings, label: "Templates" },
+    { to: "/admin/prompt-templates", icon: Settings, label: "Prompts" },
     { to: "/admin/skills", icon: Sparkles, label: "Skills" },
     { to: "/admin/audit-log", icon: Activity, label: "Audit log" },
+    { to: "/feedback", icon: MessageSquare, label: "Feedback" },
+    { to: "/bounties", icon: Coins, label: "Bounties" },
+    { to: "/settings", icon: Settings, label: "Settings" },
     { to: "/dashboard", icon: LayoutDashboard, label: "My projects" },
   ] as const;
   return (
@@ -485,6 +490,9 @@ function SearchResults({ query }: { query: string }) {
       { label: "Prompt templates", to: "/admin/prompt-templates" as const, keys: ["template", "prompt", "ai"] },
       { label: "Model skills", to: "/admin/skills" as const, keys: ["skill", "model"] },
       { label: "Audit log", to: "/admin/audit-log" as const, keys: ["audit", "log", "activity", "history"] },
+      { label: "Feedback", to: "/feedback" as const, keys: ["feedback", "wish", "bug", "issue"] },
+      { label: "Bounties", to: "/bounties" as const, keys: ["bounty", "bounties", "reward"] },
+      { label: "Settings", to: "/settings" as const, keys: ["setting", "settings", "account", "preferences"] },
       { label: "My projects", to: "/dashboard" as const, keys: ["project", "idea", "dashboard"] },
     ];
     return all.filter(
