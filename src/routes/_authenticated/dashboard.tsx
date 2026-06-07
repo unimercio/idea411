@@ -198,31 +198,6 @@ function DashboardPage() {
         <div className="mx-auto max-w-7xl px-6 py-5 flex items-center justify-between">
           <HeaderBrand to={isSysadmin ? "/sysadmin" : isAdmin ? "/admin" : "/dashboard"} />
           <div className="flex items-center gap-2">
-            {isAdmin && (
-              <>
-                <Link
-                  to="/admin/prompt-templates"
-                  className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground px-3 py-2"
-                  title={t("dashboard.managePrompts")}
-                >
-                  <Settings className="h-4 w-4" /> {t("dashboard.prompts")}
-                </Link>
-                <Link
-                  to="/admin/skills"
-                  className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground px-3 py-2"
-                  title={t("dashboard.manageSkills")}
-                >
-                  <Sparkles className="h-4 w-4" /> {t("dashboard.skills")}
-                </Link>
-                <Link
-                  to="/admin/users"
-                  className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground px-3 py-2"
-                  title={t("dashboard.manageUsers")}
-                >
-                  <Users className="h-4 w-4" /> {t("dashboard.users")}
-                </Link>
-              </>
-            )}
             {isAuthed === true && !sysadminExists && !adminExists && adminQuery.isFetched && (
               <button
                 onClick={handleClaimAdmin}
@@ -232,33 +207,6 @@ function DashboardPage() {
               >
                 <Sparkles className="h-4 w-4" /> {claiming ? t("dashboard.claiming") : (adminExists ? "Claim sysadmin" : t("dashboard.claimAdmin"))}
               </button>
-            )}
-            {isAuthed === true && (
-              <Link
-                to="/feedback"
-                className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground px-3 py-2"
-                title="Feedback"
-              >
-                <MessageSquare className="h-4 w-4" /> Feedback
-              </Link>
-            )}
-            {isAuthed === true && (
-              <Link
-                to="/bounties"
-                className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground px-3 py-2"
-                title="Bounties"
-              >
-                <Coins className="h-4 w-4" /> Bounties
-              </Link>
-            )}
-            {isAuthed === true && (
-              <Link
-                to="/settings"
-                className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground px-3 py-2"
-                title={t("dashboard.accountSettings")}
-              >
-                <Settings className="h-4 w-4" /> {t("dashboard.settings")}
-              </Link>
             )}
             {isAuthed === false && (
               <Link
