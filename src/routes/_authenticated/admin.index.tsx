@@ -453,9 +453,12 @@ function UsageChart({ data }: { data: { date: string; signups: number; projects:
 function QuickActions() {
   const tiles = [
     { to: "/admin/users", icon: Users, label: "Users" },
-    { to: "/admin/prompt-templates", icon: Settings, label: "Templates" },
+    { to: "/admin/prompt-templates", icon: Settings, label: "Prompts" },
     { to: "/admin/skills", icon: Sparkles, label: "Skills" },
     { to: "/admin/audit-log", icon: Activity, label: "Audit log" },
+    { to: "/feedback", icon: MessageSquare, label: "Feedback" },
+    { to: "/bounties", icon: Coins, label: "Bounties" },
+    { to: "/settings", icon: Settings, label: "Settings" },
     { to: "/dashboard", icon: LayoutDashboard, label: "My projects" },
   ] as const;
   return (
