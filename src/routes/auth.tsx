@@ -3,10 +3,14 @@ import { Mail } from "lucide-react";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { useTranslation } from "react-i18next";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { toast } from "sonner";
 import { HeaderBrand } from "@/components/site/HeaderBrand";
+import { checkAdmin } from "@/lib/api/prompt-templates.functions";
+import { getHomePath } from "@/lib/home-path";
+
 
 const searchSchema = z.object({
   redirect: z.string().trim().min(1).max(512).optional().catch(undefined),
