@@ -18,6 +18,8 @@ import {
   Plus,
   FileText,
   Trophy,
+  MessageSquare,
+  Coins,
 } from "lucide-react";
 import { checkAdmin } from "@/lib/api/prompt-templates.functions";
 import { getAdminStats } from "@/lib/api/admin-stats.functions";
