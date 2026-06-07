@@ -31,7 +31,8 @@ function AuthPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { redirect: redirectTo } = Route.useSearch();
-  const dest = redirectTo && redirectTo.startsWith("/") ? redirectTo : "/dashboard";
+  const explicitRedirect = redirectTo && redirectTo.startsWith("/") ? redirectTo : null;
+  const checkAdminFn = useServerFn(checkAdmin);
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -42,15 +43,42 @@ function AuthPage() {
   const [resending, setResending] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
 
+  // Destination used for email confirmation / OAuth redirect URLs (best-effort default).
+  const dest = explicitRedirect ?? "/dashboard";
+
+  const resolveDestination = async (): Promise<string> => {
+    if (explicitRedirect) return explicitRedirect;
+    try {
+      const res = await checkAdminFn();
+      return getHomePath({
+        isAuthed: true,
+        isAdmin: Boolean(res?.isAdmin),
+        isSysadmin: Boolean(res?.isSysadmin),
+      });
+    } catch {
+      return "/dashboard";
+    }
+  };
+
   useEffect(() => {
+    let cancelled = false;
+    const go = async () => {
+      const target = await resolveDestination();
+      if (!cancelled) navigate({ to: target, replace: true });
+    };
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: dest, replace: true });
+      if (data.session) void go();
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
-      if (session) navigate({ to: dest, replace: true });
+      if (session) void go();
     });
-    return () => sub.subscription.unsubscribe();
-  }, [navigate, dest]);
+    return () => {
+      cancelled = true;
+      sub.subscription.unsubscribe();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [navigate, explicitRedirect]);
+
 
   useEffect(() => {
     if (resendCooldown <= 0) return;
