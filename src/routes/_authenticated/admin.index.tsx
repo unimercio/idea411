@@ -490,6 +490,9 @@ function SearchResults({ query }: { query: string }) {
       { label: "Prompt templates", to: "/admin/prompt-templates" as const, keys: ["template", "prompt", "ai"] },
       { label: "Model skills", to: "/admin/skills" as const, keys: ["skill", "model"] },
       { label: "Audit log", to: "/admin/audit-log" as const, keys: ["audit", "log", "activity", "history"] },
+      { label: "Feedback", to: "/feedback" as const, keys: ["feedback", "wish", "bug", "issue"] },
+      { label: "Bounties", to: "/bounties" as const, keys: ["bounty", "bounties", "reward"] },
+      { label: "Settings", to: "/settings" as const, keys: ["setting", "settings", "account", "preferences"] },
       { label: "My projects", to: "/dashboard" as const, keys: ["project", "idea", "dashboard"] },
     ];
     return all.filter(
