@@ -260,22 +260,13 @@ function DashboardPage() {
                 <Settings className="h-4 w-4" /> {t("dashboard.settings")}
               </Link>
             )}
-            {isAuthed === true ? (
-              <button
-                onClick={handleSignOut}
-                className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground px-3 py-2"
-              >
-                {t("dashboard.signOut")}
-              </button>
-            ) : isAuthed === false ? (
+            {isAuthed === false && (
               <Link
                 to="/auth"
                 className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground px-3 py-2"
               >
                 {t("dashboard.signIn")}
               </Link>
-            ) : (
-              <span className="inline-flex w-16" aria-hidden />
             )}
             <Link
               to="/intake"
