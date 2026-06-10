@@ -1,51 +1,51 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion } from "motion/react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
-import { useTranslation } from "react-i18next";
-import { HeaderBrand } from "@/components/site/HeaderBrand";
-import { Input } from "@/components/ui/input";
 import {
-  AlertTriangle,
   ArrowRight,
-  Plus,
-  Search,
-  ShieldCheck,
-  ShieldQuestion,
-  Sparkles,
-  Trash2,
-  Trophy,
+  ArrowUpRight,
+  Briefcase,
+  CheckCircle2,
   Clock,
-  GitCompare,
-  X,
+  Gauge,
+  Plus,
+  Sparkles,
+  TrendingUp,
+  Workflow,
+  Activity,
+  MessageSquare,
+  Zap,
 } from "lucide-react";
+import { OSShell } from "@/components/os/OSShell";
 import {
-  deleteProject,
   overallScore,
   refreshProjects,
   timeAgo,
   useProjects,
-  type Iteration,
   type Project,
 } from "@/lib/projects";
 import { supabase } from "@/integrations/supabase/client";
-import { checkAdmin } from "@/lib/api/prompt-templates.functions";
 import { claimFirstSysadmin } from "@/lib/api/admin-users.functions";
+import { checkAdmin } from "@/lib/api/prompt-templates.functions";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [
-      { title: "Projects — IdeaForge" },
-      { name: "description", content: "All your IdeaForge concepts in one place." },
+      { title: "Incubator OS — Seven Day Ventures" },
+      {
+        name: "description",
+        content:
+          "Command center for the Seven Day Ventures incubator: ventures, ideas, workflows, and team chat.",
+      },
     ],
   }),
   component: DashboardPage,
 });
 
 function DashboardPage() {
-  const { t } = useTranslation();
   const projects = useProjects();
   const navigate = useNavigate();
   const [isAuthed, setIsAuthed] = useState<boolean | null>(null);
@@ -64,7 +64,7 @@ function DashboardPage() {
     };
   }, []);
 
-  // Hydrate a guest-saved idea once the user is authenticated.
+  // Hydrate a guest-saved idea once authenticated (preserved from previous flow).
   useEffect(() => {
     if (isAuthed !== true) return;
     let cancelled = false;
@@ -81,7 +81,7 @@ function DashboardPage() {
       let pending: {
         idea?: string;
         sketchName?: string;
-        analysis?: import("@/lib/projects").Project["analysis"];
+        analysis?: Project["analysis"];
       };
       try {
         pending = JSON.parse(raw);
@@ -132,16 +132,11 @@ function DashboardPage() {
         /* ignore */
       }
       if (error) {
-        console.error("[dashboard] failed to save pending idea", error);
-        toast.error("Couldn't save your idea", {
-          description: error.message,
-        });
+        toast.error("Couldn't save your idea", { description: error.message });
         return;
       }
       toast.success("Your idea was saved to your account");
       await refreshProjects();
-
-
     })();
     return () => {
       cancelled = true;
@@ -154,10 +149,8 @@ function DashboardPage() {
     queryFn: () => checkAdminFn(),
     enabled: isAuthed === true,
   });
-  const isAdmin = isAuthed === true && adminQuery.data?.isAdmin === true;
-  const isSysadmin = isAuthed === true && adminQuery.data?.isSysadmin === true;
-  const adminExists = adminQuery.data?.adminExists === true;
   const sysadminExists = adminQuery.data?.sysadminExists === true;
+  const adminExists = adminQuery.data?.adminExists === true;
   const claimFn = useServerFn(claimFirstSysadmin);
   const [claiming, setClaiming] = useState(false);
   const handleClaimAdmin = async () => {
@@ -165,610 +158,366 @@ function DashboardPage() {
     try {
       const res = await claimFn();
       if (res.claimed) {
-        toast.success(t("dashboard.becameAdmin"));
+        toast.success("You're now sysadmin");
         adminQuery.refetch();
       } else {
-        toast.error(t("dashboard.adminExists"));
+        toast.error("A sysadmin already exists");
       }
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : t("dashboard.claimFailed"));
+      toast.error(e instanceof Error ? e.message : "Claim failed");
     } finally {
       setClaiming(false);
     }
   };
 
-  const handleSignOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    toast.success(t("dashboard.signedOut"));
-    navigate({ to: "/", replace: true });
-  };
-
+  const metrics = useMemo(() => buildMetrics(projects), [projects]);
+  const recent = useMemo(
+    () => [...projects].sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 6),
+    [projects],
+  );
 
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      <header className="border-b border-border">
-        <div className="mx-auto max-w-7xl px-6 py-5 flex items-center justify-between">
-          <HeaderBrand to={isSysadmin ? "/sysadmin" : isAdmin ? "/admin" : "/dashboard"} />
-          <div className="flex items-center gap-2">
-            {isAuthed === true && !sysadminExists && !adminExists && adminQuery.isFetched && (
-              <button
-                onClick={handleClaimAdmin}
-                disabled={claiming}
-                className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground px-3 py-2 disabled:opacity-50"
-                title={t("dashboard.claimAdminTitle")}
-              >
-                <Sparkles className="h-4 w-4" /> {claiming ? t("dashboard.claiming") : (adminExists ? "Claim sysadmin" : t("dashboard.claimAdmin"))}
-              </button>
-            )}
-            {isAuthed === false && (
-              <Link
-                to="/auth"
-                className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground px-3 py-2"
-              >
-                {t("dashboard.signIn")}
-              </Link>
-            )}
-            <Link
-              to="/intake"
-              className="inline-flex items-center gap-2 rounded-full bg-gradient-ember px-4 py-2 text-sm font-medium text-ember-foreground shadow-ember hover:brightness-110 transition"
-            >
-              <Plus className="h-4 w-4" /> {t("dashboard.newIdea")}
-            </Link>
+    <OSShell
+      eyebrow="Incubator OS"
+      title="Welcome back, operator."
+      description="Seven Day Ventures command center — every active venture, idea, and workflow in one calm surface."
+      actions={
+        isAuthed === true && !sysadminExists && !adminExists && adminQuery.isFetched ? (
+          <button
+            onClick={handleClaimAdmin}
+            disabled={claiming}
+            className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface-2 px-3 py-2 text-xs text-muted-foreground hover:text-foreground transition disabled:opacity-50"
+          >
+            <Sparkles className="h-3.5 w-3.5" /> {claiming ? "Claiming…" : "Claim sysadmin"}
+          </button>
+        ) : null
+      }
+    >
+      <div className="space-y-8">
+        <MetricsGrid metrics={metrics} />
+
+        <div className="grid gap-6 lg:grid-cols-3">
+          <div className="lg:col-span-2 space-y-6">
+            <QuickActions />
+            <ActivityFeed projects={recent} onOpen={(id) => navigate({ to: "/vetting", search: { id } })} />
+          </div>
+          <div className="space-y-6">
+            <SystemHealthCard />
+            <ModelRoutingCard />
           </div>
         </div>
-      </header>
-
-      {isAuthed === true && adminQuery.isFetched && (
-        <div className="mx-auto max-w-7xl px-6 pt-6">
-          {(() => {
-            const err = adminQuery.error instanceof Error ? adminQuery.error.message : null;
-            if (!err && !isAdmin) return null;
-            const status: "admin" | "error" = err ? "error" : "admin";
-            const styles = {
-              admin: "border-emerald-500/30 bg-emerald-500/10 text-emerald-300",
-              error: "border-destructive/40 bg-destructive/10 text-destructive",
-            }[status];
-            return (
-              <div
-                className={`flex items-start gap-3 rounded-2xl border px-4 py-3 text-sm ${styles}`}
-                role="status"
-              >
-                <ShieldIcon status={status} />
-                <div className="min-w-0 flex-1">
-                  {status === "admin" && (
-                    <p className="font-medium text-foreground">
-                      {isSysadmin ? "You are a Sysadmin" : t("dashboard.youAreAdmin")}
-                    </p>
-                  )}
-                  {status === "error" && (
-                    <>
-                      <p className="font-medium text-foreground">
-                        {t("dashboard.verifyFailed")}
-                      </p>
-                      <p className="text-muted-foreground break-words">
-                        {err ?? "Unknown error"}.{" "}
-                        <button
-                          onClick={() => adminQuery.refetch()}
-                          className="underline underline-offset-2 hover:text-foreground"
-                        >
-                          {t("common.retry")}
-                        </button>
-                      </p>
-                    </>
-                  )}
-                </div>
-              </div>
-            );
-          })()}
-        </div>
-      )}
-
-
-
-      <DashboardBody projects={projects} />
-    </main>
+      </div>
+    </OSShell>
   );
 }
 
-function DashboardBody({ projects }: { projects: Project[] }) {
-  const { t } = useTranslation();
-  const navigate = useNavigate();
-  const [query, setQuery] = useState("");
-  const [status, setStatus] = useState<"all" | "ready" | "vetting">("all");
-  const [sort, setSort] = useState<"recent" | "score" | "title">("recent");
-  const [compareMode, setCompareMode] = useState(false);
-  const [selected, setSelected] = useState<string[]>([]);
+/* ───────── Metrics ───────── */
 
-  const stats = useMemo(() => {
-    const ready = projects.filter((p) => !!p.scores).length;
-    const vetting = projects.length - ready;
-    const scores = projects
-      .map((p) => overallScore(p.scores))
-      .filter((s): s is number => s !== null);
-    const avg = scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
-    const now = new Date();
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
-    const thisMonth = projects.filter((p) => p.createdAt >= monthStart).length;
-    return { total: projects.length, ready, vetting, avg, thisMonth };
-  }, [projects]);
+type Metric = {
+  label: string;
+  value: string;
+  delta?: { value: string; positive: boolean };
+  icon: typeof Briefcase;
+  hint?: string;
+};
 
-  const spotlight = useMemo(() => {
-    let best: { project: Project; score: number } | null = null;
-    for (const p of projects) {
-      const s = overallScore(p.scores);
-      if (s !== null && (!best || s > best.score)) best = { project: p, score: s };
-    }
-    return best;
-  }, [projects]);
+function buildMetrics(projects: Project[]): Metric[] {
+  const ready = projects.filter((p) => !!p.scores);
+  const pipeline = projects.length - ready.length;
+  const scores = projects.map((p) => overallScore(p.scores)).filter((s): s is number => s !== null);
+  const avg = scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
+  const successRate = projects.length
+    ? Math.round((ready.filter((p) => (overallScore(p.scores) ?? 0) >= 70).length / projects.length) * 100)
+    : 0;
 
-  const continueProject = useMemo(() => {
-    const sorted = [...projects].sort((a, b) => b.updatedAt - a.updatedAt);
-    return sorted.find((p) => p.id !== spotlight?.project.id) ?? sorted[0] ?? null;
-  }, [projects, spotlight]);
+  const now = Date.now();
+  const weekAgo = now - 7 * 24 * 60 * 60 * 1000;
+  const newThisWeek = projects.filter((p) => p.createdAt >= weekAgo).length;
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    let list = projects.filter((p) => {
-      if (status === "ready" && !p.scores) return false;
-      if (status === "vetting" && p.scores) return false;
-      if (q && !`${p.title} ${p.idea}`.toLowerCase().includes(q)) return false;
-      return true;
-    });
-    list = [...list];
-    if (sort === "title") list.sort((a, b) => a.title.localeCompare(b.title));
-    else if (sort === "score")
-      list.sort((a, b) => (overallScore(b.scores) ?? -1) - (overallScore(a.scores) ?? -1));
-    else list.sort((a, b) => b.updatedAt - a.updatedAt);
-    return list;
-  }, [projects, query, status, sort]);
+  return [
+    {
+      label: "Active Ventures",
+      value: String(ready.length),
+      delta: newThisWeek > 0 ? { value: `+${newThisWeek} this week`, positive: true } : undefined,
+      icon: Briefcase,
+      hint: "Vetted & scored",
+    },
+    {
+      label: "Ideas in Pipeline",
+      value: String(pipeline),
+      icon: Clock,
+      hint: "Awaiting vetting",
+    },
+    {
+      label: "Avg. ForgeScore",
+      value: avg ? `${avg}` : "—",
+      delta: avg ? { value: `${avg}/100`, positive: avg >= 60 } : undefined,
+      icon: Gauge,
+      hint: "Across all ventures",
+    },
+    {
+      label: "Success Rate",
+      value: `${successRate}%`,
+      delta: { value: "≥70 ForgeScore", positive: successRate >= 50 },
+      icon: TrendingUp,
+      hint: "Ventures meeting bar",
+    },
+  ];
+}
 
-  const toggleSelected = (id: string) => {
-    setSelected((prev) => {
-      if (prev.includes(id)) return prev.filter((x) => x !== id);
-      if (prev.length >= 3) return prev;
-      return [...prev, id];
-    });
-  };
-
-  const compareProjects = projects.filter((p) => selected.includes(p.id));
-
+function MetricsGrid({ metrics }: { metrics: Metric[] }) {
   return (
-    <section className="mx-auto max-w-7xl px-6 py-12 space-y-10">
-      <div className="flex items-end justify-between flex-wrap gap-4">
-        <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-ember">{t("dashboard.eyebrow")}</p>
-          <h1 className="mt-3 font-display text-4xl sm:text-5xl font-semibold">{t("dashboard.title")}</h1>
-          <p className="mt-2 text-muted-foreground">
-            {projects.length === 0
-              ? t("dashboard.emptyCount")
-              : projects.length === 1
-                ? t("dashboard.countOne", { count: projects.length })
-                : t("dashboard.countMany", { count: projects.length })}
-          </p>
-        </div>
-      </div>
-
-      {projects.length === 0 ? (
-        <EmptyState />
-      ) : (
-        <>
-          <StatsStrip stats={stats} />
-
-          <div className="grid gap-4 md:grid-cols-2">
-            {continueProject && (
-              <HighlightCard
-                icon={Clock}
-                eyebrow="Continue where you left off"
-                project={continueProject}
-                onOpen={() => navigate({ to: "/vetting", search: { id: continueProject.id } })}
-              />
-            )}
-            {spotlight && spotlight.project.id !== continueProject?.id && (
-              <HighlightCard
-                icon={Trophy}
-                eyebrow={`Top idea · ${spotlight.score}/100`}
-                project={spotlight.project}
-                onOpen={() => navigate({ to: "/vetting", search: { id: spotlight.project.id } })}
-                accent
-              />
-            )}
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="relative flex-1 min-w-[220px] max-w-md">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Search ideas…"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                className="pl-9"
-              />
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {metrics.map((m, i) => {
+        const Icon = m.icon;
+        return (
+          <motion.div
+            key={m.label}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: i * 0.05, ease: [0.22, 1, 0.36, 1] }}
+            className="group relative overflow-hidden rounded-xl border border-border bg-card/70 p-5 shadow-elegant transition hover:border-indigo/40"
+          >
+            <div className="flex items-start justify-between">
+              <div className="grid h-9 w-9 place-items-center rounded-lg border border-border bg-surface-2 text-indigo">
+                <Icon className="h-4 w-4" />
+              </div>
+              {m.delta && (
+                <span
+                  className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                    m.delta.positive
+                      ? "bg-success/10 text-[oklch(0.78_0.16_155)]"
+                      : "bg-muted text-muted-foreground"
+                  }`}
+                >
+                  <ArrowUpRight className="h-3 w-3" /> {m.delta.value}
+                </span>
+              )}
             </div>
-            <FilterChip label="All" active={status === "all"} onClick={() => setStatus("all")} />
-            <FilterChip label="Ready" active={status === "ready"} onClick={() => setStatus("ready")} />
-            <FilterChip label="Vetting" active={status === "vetting"} onClick={() => setStatus("vetting")} />
-            <div className="h-5 w-px bg-border mx-1" />
-            <FilterChip label="Recent" active={sort === "recent"} onClick={() => setSort("recent")} />
-            <FilterChip label="Score" active={sort === "score"} onClick={() => setSort("score")} />
-            <FilterChip label="Title" active={sort === "title"} onClick={() => setSort("title")} />
-            <button
-              onClick={() => {
-                setCompareMode((v) => !v);
-                setSelected([]);
-              }}
-              className={`ml-auto inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs transition ${
-                compareMode
-                  ? "border-ember/50 bg-ember/10 text-foreground"
-                  : "border-border text-muted-foreground hover:text-foreground"
-              }`}
+            <p className="mt-5 text-xs uppercase tracking-[0.18em] text-muted-foreground">
+              {m.label}
+            </p>
+            <p className="mt-1 font-display text-3xl font-semibold tabular-nums">{m.value}</p>
+            {m.hint && <p className="mt-1 text-xs text-muted-foreground">{m.hint}</p>}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -bottom-12 -right-12 h-32 w-32 rounded-full bg-indigo/10 blur-3xl opacity-0 group-hover:opacity-100 transition duration-500"
+            />
+          </motion.div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ───────── Quick actions ───────── */
+
+const QUICK = [
+  {
+    to: "/intake" as const,
+    label: "Capture a new idea",
+    body: "Quick capture or detailed intake with AI-assisted enhancement.",
+    icon: Sparkles,
+  },
+  {
+    to: "/portfolio" as const,
+    label: "Open the portfolio",
+    body: "Kanban + table view of every active venture with scores and KPIs.",
+    icon: Briefcase,
+  },
+  {
+    to: "/workflows" as const,
+    label: "Run a workflow",
+    body: "Launch Venture Incubator v3 and other Langflow pipelines.",
+    icon: Workflow,
+  },
+  {
+    to: "/chat" as const,
+    label: "Team chat & feedback",
+    body: "Threaded comments on ideas and ventures via the Hermes Gateway.",
+    icon: MessageSquare,
+  },
+];
+
+function QuickActions() {
+  return (
+    <section className="rounded-xl border border-border bg-card/50 p-5">
+      <div className="flex items-center justify-between">
+        <h2 className="font-display text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+          Quick actions
+        </h2>
+        <Link
+          to="/intake"
+          className="inline-flex items-center gap-1 text-xs text-indigo hover:underline"
+        >
+          <Plus className="h-3 w-3" /> New idea
+        </Link>
+      </div>
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        {QUICK.map((q) => {
+          const Icon = q.icon;
+          return (
+            <Link
+              key={q.to}
+              to={q.to}
+              className="group flex items-start gap-3 rounded-lg border border-border bg-surface-1/60 p-4 transition hover:border-indigo/40 hover:bg-surface-2/60"
             >
-              <GitCompare className="h-3.5 w-3.5" /> {compareMode ? "Exit compare" : "Compare"}
-            </button>
-          </div>
+              <div className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-surface-2 text-indigo">
+                <Icon className="h-4 w-4" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium">{q.label}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground line-clamp-2">{q.body}</p>
+              </div>
+              <ArrowRight className="h-4 w-4 text-muted-foreground transition group-hover:translate-x-0.5 group-hover:text-foreground" />
+            </Link>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
 
-          {compareMode && compareProjects.length >= 2 && (
-            <CompareTable projects={compareProjects} onRemove={toggleSelected} />
-          )}
-          {compareMode && (
-            <p className="text-xs text-muted-foreground">
-              Select 2–3 projects to compare side-by-side ({selected.length}/3 selected).
-            </p>
-          )}
+/* ───────── Activity feed ───────── */
 
-          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-            <AnimatePresence initial={false}>
-              {filtered.map((p, i) => (
-                <ProjectCard
-                  key={p.id}
-                  project={p}
-                  index={i}
-                  selectable={compareMode}
-                  selected={selected.includes(p.id)}
-                  onToggle={() => toggleSelected(p.id)}
-                />
-              ))}
-            </AnimatePresence>
-          </div>
-          {filtered.length === 0 && (
-            <p className="text-center text-sm text-muted-foreground py-10">
-              No ideas match your filters.
-            </p>
-          )}
-        </>
+function ActivityFeed({ projects, onOpen }: { projects: Project[]; onOpen: (id: string) => void }) {
+  return (
+    <section className="rounded-xl border border-border bg-card/50">
+      <header className="flex items-center justify-between border-b border-border px-5 py-4">
+        <h2 className="font-display text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+          Recent activity
+        </h2>
+        <Link to="/portfolio" className="text-xs text-indigo hover:underline">
+          View all
+        </Link>
+      </header>
+      {projects.length === 0 ? (
+        <div className="px-5 py-12 text-center">
+          <p className="text-sm text-muted-foreground">No ventures yet.</p>
+          <Link
+            to="/intake"
+            className="mt-4 inline-flex items-center gap-1.5 rounded-md bg-gradient-indigo px-3.5 py-2 text-xs font-medium text-ember-foreground shadow-indigo hover:brightness-110 transition"
+          >
+            <Plus className="h-3.5 w-3.5" /> Capture your first idea
+          </Link>
+        </div>
+      ) : (
+        <ul className="divide-y divide-border">
+          {projects.map((p, i) => {
+            const score = overallScore(p.scores);
+            const ready = !!p.scores;
+            return (
+              <motion.li
+                key={p.id}
+                initial={{ opacity: 0, x: -8 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3, delay: i * 0.04 }}
+              >
+                <button
+                  onClick={() => onOpen(p.id)}
+                  className="flex w-full items-center gap-4 px-5 py-3.5 text-left transition hover:bg-surface-2/40"
+                >
+                  <div
+                    className={`grid h-8 w-8 shrink-0 place-items-center rounded-full ${
+                      ready ? "bg-success/15 text-[oklch(0.78_0.16_155)]" : "bg-indigo/15 text-indigo"
+                    }`}
+                  >
+                    {ready ? <CheckCircle2 className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">{p.title}</p>
+                    <p className="truncate text-xs text-muted-foreground">{p.idea}</p>
+                  </div>
+                  <div className="hidden sm:flex items-center gap-3 shrink-0">
+                    {score !== null ? (
+                      <span className="font-display text-sm font-semibold tabular-nums">
+                        {score}
+                        <span className="ml-0.5 text-xs text-muted-foreground">/100</span>
+                      </span>
+                    ) : (
+                      <span className="rounded-full border border-indigo/30 bg-indigo/10 px-2 py-0.5 text-[10px] uppercase tracking-wider text-indigo">
+                        Vetting
+                      </span>
+                    )}
+                    <span className="text-xs text-muted-foreground tabular-nums w-20 text-right">
+                      {timeAgo(p.updatedAt)}
+                    </span>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                </button>
+              </motion.li>
+            );
+          })}
+        </ul>
       )}
     </section>
   );
 }
 
-function ShieldIcon({ status }: { status: "admin" | "not-admin" | "error" }) {
-  if (status === "admin") return <ShieldCheck className="h-5 w-5 mt-0.5 shrink-0" />;
-  if (status === "error") return <AlertTriangle className="h-5 w-5 mt-0.5 shrink-0" />;
-  return <ShieldQuestion className="h-5 w-5 mt-0.5 shrink-0" />;
-}
+/* ───────── System cards ───────── */
 
-function ProjectCard({
-  project,
-  index,
-  selectable,
-  selected,
-  onToggle,
-}: {
-  project: Project;
-  index: number;
-  selectable?: boolean;
-  selected?: boolean;
-  onToggle?: () => void;
-}) {
-  const { t } = useTranslation();
-  const navigate = useNavigate();
-  const score = overallScore(project.scores);
-
+function SystemHealthCard() {
+  const services = [
+    { name: "Langflow", status: "pending" as const },
+    { name: "LiteLLM", status: "pending" as const },
+    { name: "Ollama", status: "pending" as const },
+    { name: "Hermes Gateway", status: "pending" as const },
+  ];
   return (
-    <motion.article
-      layout
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -8 }}
-      transition={{ duration: 0.45, delay: 0.04 * index, ease: [0.22, 1, 0.36, 1] }}
-      onClick={selectable ? onToggle : undefined}
-      className={`group relative rounded-3xl border bg-card/80 p-6 shadow-elegant transition ${
-        selectable ? "cursor-pointer" : ""
-      } ${
-        selected
-          ? "border-ember ring-2 ring-ember/40"
-          : "border-border hover:border-ember/40"
-      }`}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-            {timeAgo(project.updatedAt)}
-          </p>
-          <h3 className="mt-2 font-display text-lg font-semibold leading-tight truncate">
-            {project.title}
-          </h3>
-        </div>
-        <StatusChip project={project} />
-      </div>
-
-      <p className="mt-4 text-sm text-muted-foreground line-clamp-3 min-h-[60px]">
-        {project.idea}
-      </p>
-
-      <div className="mt-6 flex items-end justify-between gap-4">
-        <div>
-          <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">{t("dashboard.forgeScore")}</p>
-          {score !== null ? (
-            <div className="mt-1 flex items-baseline gap-1.5">
-              <span className="font-display text-3xl font-semibold">{score}</span>
-              <span className="text-xs text-muted-foreground">/100</span>
-              {project.iterations && project.iterations.length > 1 && (
-                <span className="ml-1 text-[10px] uppercase tracking-wider text-muted-foreground">
-                  · {t("dashboard.itersShort", { n: project.iterations.length })}
-                </span>
-              )}
+    <section className="rounded-xl border border-border bg-card/50 p-5">
+      <header className="flex items-center justify-between">
+        <h2 className="font-display text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+          System health
+        </h2>
+        <Link to="/system" className="text-xs text-indigo hover:underline">
+          Details
+        </Link>
+      </header>
+      <ul className="mt-4 space-y-2.5">
+        {services.map((s) => (
+          <li
+            key={s.name}
+            className="flex items-center justify-between rounded-lg border border-border bg-surface-1/40 px-3 py-2.5"
+          >
+            <div className="flex items-center gap-2.5">
+              <span className="relative grid h-6 w-6 place-items-center rounded-full bg-surface-2">
+                <Activity className="h-3 w-3 text-muted-foreground" />
+              </span>
+              <span className="text-sm">{s.name}</span>
             </div>
-          ) : (
-            <div className="mt-1 flex items-center gap-1.5 text-xs text-ember">
-              <Sparkles className="h-3.5 w-3.5" /> {t("dashboard.vettingDots")}
-            </div>
-          )}
-        </div>
-        <IterationSparkline iterations={project.iterations} />
-      </div>
-
-      <div className="mt-6 flex items-center gap-2">
-        <button
-          onClick={() => navigate({ to: "/vetting", search: { id: project.id } })}
-          className="inline-flex items-center gap-1.5 rounded-full bg-gradient-ember px-4 py-2 text-sm font-medium text-ember-foreground shadow-ember hover:brightness-110 transition"
-        >
-          {t("dashboard.reopen")} <ArrowRight className="h-3.5 w-3.5" />
-        </button>
-        <button
-          onClick={() => {
-            if (confirm(t("dashboard.deleteConfirm", { title: project.title }))) {
-              deleteProject(project.id);
-            }
-          }}
-          aria-label={t("dashboard.deleteAria")}
-          className="ml-auto inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-background/60 text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-foreground transition"
-        >
-          <Trash2 className="h-3.5 w-3.5" />
-        </button>
-      </div>
-    </motion.article>
-  );
-}
-
-function StatusChip({ project }: { project: Project }) {
-  const { t } = useTranslation();
-  if (project.scores) {
-    return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] uppercase tracking-wider text-emerald-400">
-        {t("dashboard.ready")}
-      </span>
-    );
-  }
-  return (
-    <span className="inline-flex items-center gap-1 rounded-full border border-ember/40 bg-ember/10 px-2 py-0.5 text-[10px] uppercase tracking-wider text-ember">
-      {t("dashboard.vetting")}
-    </span>
-  );
-}
-
-function EmptyState() {
-  const { t } = useTranslation();
-  return (
-    <div className="mt-12 grid place-items-center rounded-3xl border border-dashed border-border bg-card/40 px-6 py-24 text-center">
-      <span className="grid h-12 w-12 place-items-center rounded-2xl border border-border bg-background/80 text-ember">
-        <Sparkles className="h-5 w-5" />
-      </span>
-      <p className="mt-5 max-w-md text-sm text-muted-foreground">
-        {t("dashboard.emptyMsg")}
-      </p>
-      <Link
-        to="/intake"
-        className="mt-6 inline-flex items-center gap-2 rounded-full bg-gradient-ember px-5 py-2.5 text-sm font-medium text-ember-foreground shadow-ember hover:brightness-110 transition"
-      >
-        <Plus className="h-4 w-4" /> {t("dashboard.startProject")}
-      </Link>
-    </div>
-  );
-}
-
-function IterationSparkline({ iterations }: { iterations?: Iteration[] }) {
-  const { t } = useTranslation();
-  if (!iterations || iterations.length === 0) return null;
-  const w = 120;
-  const h = 44;
-  const pad = 4;
-  const data = iterations.map((it) => it.overall);
-  const last = data[data.length - 1];
-  const prev = data.length > 1 ? data[data.length - 2] : null;
-  const delta = prev !== null ? last - prev : 0;
-  const min = Math.min(...data, 0);
-  const max = Math.max(...data, 100);
-  const range = Math.max(1, max - min);
-  const pts =
-    data.length === 1
-      ? [
-          [pad, h / 2] as const,
-          [w - pad, h / 2] as const,
-        ]
-      : data.map(
-          (v, i) =>
-            [
-              pad + (i * (w - pad * 2)) / (data.length - 1),
-              h - pad - ((v - min) / range) * (h - pad * 2),
-            ] as const,
-        );
-  const path = pts.map(([x, y], i) => `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
-  const area = `${path} L${(w - pad).toFixed(1)},${h - pad} L${pad},${h - pad} Z`;
-  const trendColor =
-    delta > 0 ? "oklch(0.74 0.16 155)" : delta < 0 ? "oklch(0.68 0.19 38)" : "oklch(0.7 0 0)";
-  return (
-    <div className="flex flex-col items-end gap-1">
-      <svg width={w} height={h} className="overflow-visible" aria-label={t("dashboard.scoreTrend")}>
-        <defs>
-          <linearGradient id={`spark-${iterations[0].at}`} x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stopColor={trendColor} stopOpacity="0.35" />
-            <stop offset="100%" stopColor={trendColor} stopOpacity="0" />
-          </linearGradient>
-        </defs>
-        <path d={area} fill={`url(#spark-${iterations[0].at})`} />
-        <path d={path} fill="none" stroke={trendColor} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
-        {pts.map(([x, y], i) => (
-          <circle key={i} cx={x} cy={y} r={i === pts.length - 1 ? 2.5 : 1.5} fill={trendColor} />
+            <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
+              <span className="h-1.5 w-1.5 rounded-full bg-warning animate-pulse" />
+              Awaiting endpoint
+            </span>
+          </li>
         ))}
-      </svg>
-      {prev !== null && (
-        <span
-          className="text-[10px] tabular-nums"
-          style={{ color: trendColor }}
-        >
-          {delta > 0 ? "▲" : delta < 0 ? "▼" : "—"} {Math.abs(delta)} {t("dashboard.pts")}
-        </span>
-      )}
-    </div>
+      </ul>
+    </section>
   );
 }
 
-function StatsStrip({
-  stats,
-}: {
-  stats: { total: number; ready: number; vetting: number; avg: number | null; thisMonth: number };
-}) {
-  const items: { label: string; value: number | string; suffix?: string }[] = [
-    { label: "Total ideas", value: stats.total },
-    { label: "Avg ForgeScore", value: stats.avg ?? "—", suffix: stats.avg !== null ? "/100" : "" },
-    { label: "Ready", value: stats.ready },
-    { label: "Vetting", value: stats.vetting },
-    { label: "This month", value: stats.thisMonth },
-  ];
+function ModelRoutingCard() {
   return (
-    <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
-      {items.map((it) => (
-        <div key={it.label} className="rounded-2xl border border-border bg-card/60 px-4 py-3 shadow-elegant">
-          <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">{it.label}</p>
-          <p className="mt-1 font-display text-2xl font-semibold">
-            {it.value}
-            {it.suffix ? <span className="text-xs text-muted-foreground ml-1">{it.suffix}</span> : null}
-          </p>
+    <section className="relative overflow-hidden rounded-xl border border-border bg-gradient-to-br from-indigo/10 via-card/60 to-card/60 p-5 shadow-elegant">
+      <div className="absolute inset-0 grid-bg opacity-[0.1]" aria-hidden />
+      <div className="relative">
+        <div className="flex items-center gap-2 text-indigo">
+          <Zap className="h-4 w-4" />
+          <p className="text-[11px] font-medium uppercase tracking-[0.18em]">Model routing</p>
         </div>
-      ))}
-    </div>
-  );
-}
-
-function FilterChip({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
-  return (
-    <button
-      onClick={onClick}
-      className={`rounded-full border px-3 py-1.5 text-xs transition ${
-        active
-          ? "border-ember/50 bg-ember/10 text-foreground"
-          : "border-border bg-background/60 text-muted-foreground hover:text-foreground"
-      }`}
-    >
-      {label}
-    </button>
-  );
-}
-
-function HighlightCard({
-  icon: Icon,
-  eyebrow,
-  project,
-  onOpen,
-  accent,
-}: {
-  icon: typeof Clock;
-  eyebrow: string;
-  project: Project;
-  onOpen: () => void;
-  accent?: boolean;
-}) {
-  const score = overallScore(project.scores);
-  return (
-    <div
-      className={`rounded-3xl border p-6 shadow-elegant transition ${
-        accent
-          ? "border-ember/40 bg-gradient-to-br from-ember/10 via-card/80 to-card/80"
-          : "border-border bg-card/80"
-      }`}
-    >
-      <p className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.18em] text-ember">
-        <Icon className="h-3.5 w-3.5" /> {eyebrow}
-      </p>
-      <h3 className="mt-3 font-display text-xl font-semibold truncate">{project.title}</h3>
-      <p className="mt-2 text-sm text-muted-foreground line-clamp-2">{project.idea}</p>
-      <div className="mt-4 flex items-center justify-between">
-        <span className="text-xs text-muted-foreground">{timeAgo(project.updatedAt)}</span>
-        {score !== null && (
-          <span className="font-display text-2xl font-semibold">
-            {score}
-            <span className="ml-1 text-xs text-muted-foreground">/100</span>
-          </span>
-        )}
+        <p className="mt-3 font-display text-lg font-semibold leading-snug">
+          Grok-4.3 for reasoning, Ollama for local privacy.
+        </p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Adaptive routing keeps premium tokens for high-leverage steps and offloads bulk work to your local stack.
+        </p>
+        <Link
+          to="/system"
+          className="mt-4 inline-flex items-center gap-1.5 rounded-md border border-border bg-surface-2/70 px-3 py-1.5 text-xs hover:bg-surface-3 transition"
+        >
+          Configure routing <ArrowRight className="h-3 w-3" />
+        </Link>
       </div>
-      <button
-        onClick={onOpen}
-        className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-gradient-ember px-4 py-2 text-sm font-medium text-ember-foreground shadow-ember hover:brightness-110 transition"
-      >
-        Reopen <ArrowRight className="h-3.5 w-3.5" />
-      </button>
-    </div>
-  );
-}
-
-function CompareTable({ projects, onRemove }: { projects: Project[]; onRemove: (id: string) => void }) {
-  const rows: { label: string; get: (p: Project) => number | string | null }[] = [
-    { label: "Overall", get: (p) => overallScore(p.scores) },
-    { label: "Compliance", get: (p) => p.scores?.compliance ?? null },
-    { label: "Market", get: (p) => p.scores?.market ?? null },
-    { label: "Demand", get: (p) => p.scores?.demand ?? null },
-    { label: "Iterations", get: (p) => p.iterations?.length ?? 0 },
-    { label: "Status", get: (p) => (p.scores ? "Ready" : "Vetting") },
-  ];
-  return (
-    <div className="overflow-x-auto rounded-2xl border border-border bg-card/60">
-      <table className="w-full text-sm">
-        <thead className="bg-muted/30 text-xs uppercase tracking-wider text-muted-foreground">
-          <tr>
-            <th className="px-4 py-3 text-left font-medium">Metric</th>
-            {projects.map((p) => (
-              <th key={p.id} className="px-4 py-3 text-left font-medium">
-                <div className="flex items-center gap-2">
-                  <span className="truncate max-w-[180px]">{p.title}</span>
-                  <button
-                    onClick={() => onRemove(p.id)}
-                    className="ml-auto text-muted-foreground hover:text-foreground"
-                    aria-label="Remove from compare"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((r) => (
-            <tr key={r.label} className="border-t border-border">
-              <td className="px-4 py-2.5 text-muted-foreground">{r.label}</td>
-              {projects.map((p) => (
-                <td key={p.id} className="px-4 py-2.5 font-medium">
-                  {r.get(p) ?? "—"}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    </section>
   );
 }
