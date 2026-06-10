@@ -16,7 +16,7 @@ export interface LangflowRunResult {
   flowId: string;
   ok: boolean;
   report: string;
-  raw?: unknown;
+  rawJson?: string;
   durationMs: number;
   error?: string;
 }

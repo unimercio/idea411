@@ -29,20 +29,22 @@ export const listVentureFeedback = createServerFn({ method: "POST" })
       .eq("project_id", data.projectId)
       .order("created_at", { ascending: true });
     if (error) throw new Error(error.message);
-    // Profiles for author emails (optional; tolerate missing column)
+    // Profile names (no email column on profiles in this project)
     const userIds = Array.from(new Set((rows ?? []).map((r) => r.user_id)));
-    let emails = new Map<string, string>();
+    const names = new Map<string, string>();
     if (userIds.length) {
       const { data: profs } = await context.supabase
         .from("profiles")
-        .select("user_id, email")
+        .select("user_id, first_name")
         .in("user_id", userIds);
-      if (profs) emails = new Map(profs.map((p: { user_id: string; email: string | null }) => [p.user_id, p.email ?? ""]));
+      if (profs) {
+        for (const p of profs) names.set(p.user_id, p.first_name ?? "");
+      }
     }
     return (rows ?? []).map((r) => ({
       ...r,
       type: r.type as VentureFeedbackType,
-      author_email: emails.get(r.user_id) ?? null,
+      author_email: names.get(r.user_id) || null,
     }));
   });
 
