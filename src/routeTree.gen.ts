@@ -16,9 +16,13 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiFocusGroupStreamRouteImport } from './routes/api/focus-group-stream'
+import { Route as AuthenticatedWorkflowsRouteImport } from './routes/_authenticated/workflows'
+import { Route as AuthenticatedSystemRouteImport } from './routes/_authenticated/system'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedPortfolioRouteImport } from './routes/_authenticated/portfolio'
 import { Route as AuthenticatedFeedbackRouteImport } from './routes/_authenticated/feedback'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated/chat'
 import { Route as AuthenticatedBountiesRouteImport } from './routes/_authenticated/bounties'
 import { Route as AuthenticatedSysadminIndexRouteImport } from './routes/_authenticated/sysadmin.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
@@ -62,9 +66,24 @@ const ApiFocusGroupStreamRoute = ApiFocusGroupStreamRouteImport.update({
   path: '/api/focus-group-stream',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedWorkflowsRoute = AuthenticatedWorkflowsRouteImport.update({
+  id: '/workflows',
+  path: '/workflows',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedSystemRoute = AuthenticatedSystemRouteImport.update({
+  id: '/system',
+  path: '/system',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedPortfolioRoute = AuthenticatedPortfolioRouteImport.update({
+  id: '/portfolio',
+  path: '/portfolio',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedFeedbackRoute = AuthenticatedFeedbackRouteImport.update({
@@ -75,6 +94,11 @@ const AuthenticatedFeedbackRoute = AuthenticatedFeedbackRouteImport.update({
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedChatRoute = AuthenticatedChatRouteImport.update({
+  id: '/chat',
+  path: '/chat',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedBountiesRoute = AuthenticatedBountiesRouteImport.update({
@@ -129,9 +153,13 @@ export interface FileRoutesByFullPath {
   '/intake': typeof IntakeRoute
   '/vetting': typeof VettingRoute
   '/bounties': typeof AuthenticatedBountiesRoute
+  '/chat': typeof AuthenticatedChatRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/feedback': typeof AuthenticatedFeedbackRoute
+  '/portfolio': typeof AuthenticatedPortfolioRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/system': typeof AuthenticatedSystemRoute
+  '/workflows': typeof AuthenticatedWorkflowsRoute
   '/api/focus-group-stream': typeof ApiFocusGroupStreamRoute
   '/admin/audit-log': typeof AuthenticatedAdminAuditLogRoute
   '/admin/prompt-templates': typeof AuthenticatedAdminPromptTemplatesRoute
@@ -148,9 +176,13 @@ export interface FileRoutesByTo {
   '/intake': typeof IntakeRoute
   '/vetting': typeof VettingRoute
   '/bounties': typeof AuthenticatedBountiesRoute
+  '/chat': typeof AuthenticatedChatRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/feedback': typeof AuthenticatedFeedbackRoute
+  '/portfolio': typeof AuthenticatedPortfolioRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/system': typeof AuthenticatedSystemRoute
+  '/workflows': typeof AuthenticatedWorkflowsRoute
   '/api/focus-group-stream': typeof ApiFocusGroupStreamRoute
   '/admin/audit-log': typeof AuthenticatedAdminAuditLogRoute
   '/admin/prompt-templates': typeof AuthenticatedAdminPromptTemplatesRoute
@@ -169,9 +201,13 @@ export interface FileRoutesById {
   '/intake': typeof IntakeRoute
   '/vetting': typeof VettingRoute
   '/_authenticated/bounties': typeof AuthenticatedBountiesRoute
+  '/_authenticated/chat': typeof AuthenticatedChatRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/feedback': typeof AuthenticatedFeedbackRoute
+  '/_authenticated/portfolio': typeof AuthenticatedPortfolioRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/_authenticated/system': typeof AuthenticatedSystemRoute
+  '/_authenticated/workflows': typeof AuthenticatedWorkflowsRoute
   '/api/focus-group-stream': typeof ApiFocusGroupStreamRoute
   '/_authenticated/admin/audit-log': typeof AuthenticatedAdminAuditLogRoute
   '/_authenticated/admin/prompt-templates': typeof AuthenticatedAdminPromptTemplatesRoute
@@ -190,9 +226,13 @@ export interface FileRouteTypes {
     | '/intake'
     | '/vetting'
     | '/bounties'
+    | '/chat'
     | '/dashboard'
     | '/feedback'
+    | '/portfolio'
     | '/settings'
+    | '/system'
+    | '/workflows'
     | '/api/focus-group-stream'
     | '/admin/audit-log'
     | '/admin/prompt-templates'
@@ -209,9 +249,13 @@ export interface FileRouteTypes {
     | '/intake'
     | '/vetting'
     | '/bounties'
+    | '/chat'
     | '/dashboard'
     | '/feedback'
+    | '/portfolio'
     | '/settings'
+    | '/system'
+    | '/workflows'
     | '/api/focus-group-stream'
     | '/admin/audit-log'
     | '/admin/prompt-templates'
@@ -229,9 +273,13 @@ export interface FileRouteTypes {
     | '/intake'
     | '/vetting'
     | '/_authenticated/bounties'
+    | '/_authenticated/chat'
     | '/_authenticated/dashboard'
     | '/_authenticated/feedback'
+    | '/_authenticated/portfolio'
     | '/_authenticated/settings'
+    | '/_authenticated/system'
+    | '/_authenticated/workflows'
     | '/api/focus-group-stream'
     | '/_authenticated/admin/audit-log'
     | '/_authenticated/admin/prompt-templates'
@@ -304,11 +352,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiFocusGroupStreamRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/workflows': {
+      id: '/_authenticated/workflows'
+      path: '/workflows'
+      fullPath: '/workflows'
+      preLoaderRoute: typeof AuthenticatedWorkflowsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/system': {
+      id: '/_authenticated/system'
+      path: '/system'
+      fullPath: '/system'
+      preLoaderRoute: typeof AuthenticatedSystemRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/settings': {
       id: '/_authenticated/settings'
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/portfolio': {
+      id: '/_authenticated/portfolio'
+      path: '/portfolio'
+      fullPath: '/portfolio'
+      preLoaderRoute: typeof AuthenticatedPortfolioRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/feedback': {
@@ -323,6 +392,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/chat': {
+      id: '/_authenticated/chat'
+      path: '/chat'
+      fullPath: '/chat'
+      preLoaderRoute: typeof AuthenticatedChatRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/bounties': {
@@ -386,9 +462,13 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteChildren {
   AuthenticatedBountiesRoute: typeof AuthenticatedBountiesRoute
+  AuthenticatedChatRoute: typeof AuthenticatedChatRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedFeedbackRoute: typeof AuthenticatedFeedbackRoute
+  AuthenticatedPortfolioRoute: typeof AuthenticatedPortfolioRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedSystemRoute: typeof AuthenticatedSystemRoute
+  AuthenticatedWorkflowsRoute: typeof AuthenticatedWorkflowsRoute
   AuthenticatedAdminAuditLogRoute: typeof AuthenticatedAdminAuditLogRoute
   AuthenticatedAdminPromptTemplatesRoute: typeof AuthenticatedAdminPromptTemplatesRoute
   AuthenticatedAdminSkillsRoute: typeof AuthenticatedAdminSkillsRoute
@@ -399,9 +479,13 @@ interface AuthenticatedRouteChildren {
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedBountiesRoute: AuthenticatedBountiesRoute,
+  AuthenticatedChatRoute: AuthenticatedChatRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedFeedbackRoute: AuthenticatedFeedbackRoute,
+  AuthenticatedPortfolioRoute: AuthenticatedPortfolioRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedSystemRoute: AuthenticatedSystemRoute,
+  AuthenticatedWorkflowsRoute: AuthenticatedWorkflowsRoute,
   AuthenticatedAdminAuditLogRoute: AuthenticatedAdminAuditLogRoute,
   AuthenticatedAdminPromptTemplatesRoute:
     AuthenticatedAdminPromptTemplatesRoute,
@@ -428,3 +512,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
