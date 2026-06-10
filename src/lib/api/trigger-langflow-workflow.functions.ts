@@ -86,7 +86,7 @@ export const triggerLangflowWorkflow = createServerFn({ method: "POST" })
           flowId,
           ok: false,
           report: "",
-          raw: json,
+          rawJson: typeof json === "string" ? json : JSON.stringify(json).slice(0, 4000),
           durationMs,
           error: `Langflow HTTP ${res.status}: ${typeof json === "string" ? json.slice(0, 400) : (json as { detail?: string })?.detail ?? "request failed"}`,
         };
@@ -95,7 +95,7 @@ export const triggerLangflowWorkflow = createServerFn({ method: "POST" })
         flowId,
         ok: true,
         report: extractReport(json),
-        raw: json,
+        rawJson: typeof json === "string" ? json : JSON.stringify(json).slice(0, 4000),
         durationMs,
       };
     } catch (e) {
