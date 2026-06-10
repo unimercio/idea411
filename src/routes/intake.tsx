@@ -2,11 +2,12 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "motion/react";
-import { ArrowRight, ImagePlus, Sparkles, X, History, Mail, Wand2 } from "lucide-react";
+import { ArrowRight, ImagePlus, Sparkles, X, History, Mail, Wand2, Zap } from "lucide-react";
 import { z } from "zod";
 import { useTranslation } from "react-i18next";
 import { getProject, overallScore } from "@/lib/projects";
 import { refineIdea } from "@/lib/api/vetting.functions";
+import { enhanceIdea } from "@/lib/api/enhance-idea.functions";
 import { HeaderBrand } from "@/components/site/HeaderBrand";
 import { getIntakeCharRange } from "@/lib/intakeCharRange";
 
@@ -79,8 +80,11 @@ function IntakePage() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [refining, setRefining] = useState(false);
+  const [enhancing, setEnhancing] = useState(false);
+  const [mode, setMode] = useState<"quick" | "detailed">("quick");
   const [refineHint, setRefineHint] = useState<string | null>(null);
   const refineFn = useServerFn(refineIdea);
+  const enhanceFn = useServerFn(enhanceIdea);
 
   const onRefine = async () => {
     if (idea.trim().length < 5) {
@@ -98,6 +102,27 @@ function IntakePage() {
       setError(err instanceof Error ? err.message : t("intake.errRefine"));
     } finally {
       setRefining(false);
+    }
+  };
+
+  const onEnhance = async () => {
+    if (idea.trim().length < 5) {
+      setError(t("intake.errWriteMore"));
+      return;
+    }
+    setError(null);
+    setEnhancing(true);
+    try {
+      const result = await enhanceFn({ data: { idea: idea.trim(), mode } });
+      if (!result.ok) {
+        setError(result.error ?? "Enhance failed");
+      } else {
+        setIdea(result.refined);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Enhance failed");
+    } finally {
+      setEnhancing(false);
     }
   };
 
