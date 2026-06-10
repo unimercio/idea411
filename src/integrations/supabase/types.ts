@@ -566,6 +566,54 @@ export type Database = {
         }
         Relationships: []
       }
+      venture_feedback: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          parent_id: string | null
+          project_id: string
+          type: Database["public"]["Enums"]["venture_feedback_type"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          parent_id?: string | null
+          project_id: string
+          type?: Database["public"]["Enums"]["venture_feedback_type"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          parent_id?: string | null
+          project_id?: string
+          type?: Database["public"]["Enums"]["venture_feedback_type"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "venture_feedback_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "venture_feedback"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "venture_feedback_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -617,6 +665,7 @@ export type Database = {
         | "market_research"
         | "intake_refine"
         | "focus_group"
+      venture_feedback_type: "general" | "risk" | "opportunity" | "next_step"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -782,6 +831,7 @@ export const Constants = {
         "intake_refine",
         "focus_group",
       ],
+      venture_feedback_type: ["general", "risk", "opportunity", "next_step"],
     },
   },
 } as const

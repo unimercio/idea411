@@ -2,11 +2,12 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "motion/react";
-import { ArrowRight, ImagePlus, Sparkles, X, History, Mail, Wand2 } from "lucide-react";
+import { ArrowRight, ImagePlus, Sparkles, X, History, Mail, Wand2, Zap } from "lucide-react";
 import { z } from "zod";
 import { useTranslation } from "react-i18next";
 import { getProject, overallScore } from "@/lib/projects";
 import { refineIdea } from "@/lib/api/vetting.functions";
+import { enhanceIdea } from "@/lib/api/enhance-idea.functions";
 import { HeaderBrand } from "@/components/site/HeaderBrand";
 import { getIntakeCharRange } from "@/lib/intakeCharRange";
 
@@ -79,8 +80,11 @@ function IntakePage() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [refining, setRefining] = useState(false);
+  const [enhancing, setEnhancing] = useState(false);
+  const [mode, setMode] = useState<"quick" | "detailed">("quick");
   const [refineHint, setRefineHint] = useState<string | null>(null);
   const refineFn = useServerFn(refineIdea);
+  const enhanceFn = useServerFn(enhanceIdea);
 
   const onRefine = async () => {
     if (idea.trim().length < 5) {
@@ -98,6 +102,27 @@ function IntakePage() {
       setError(err instanceof Error ? err.message : t("intake.errRefine"));
     } finally {
       setRefining(false);
+    }
+  };
+
+  const onEnhance = async () => {
+    if (idea.trim().length < 5) {
+      setError(t("intake.errWriteMore"));
+      return;
+    }
+    setError(null);
+    setEnhancing(true);
+    try {
+      const result = await enhanceFn({ data: { idea: idea.trim(), mode } });
+      if (!result.ok) {
+        setError(result.error ?? "Enhance failed");
+      } else {
+        setIdea(result.refined);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Enhance failed");
+    } finally {
+      setEnhancing(false);
     }
   };
 
@@ -251,16 +276,43 @@ function IntakePage() {
               placeholder={t("intake.ideaPlaceholder")}
               className="mt-2 w-full resize-none bg-transparent text-base placeholder:text-muted-foreground/60 focus:outline-none"
             />
-            <div className="mt-1 flex items-center justify-between gap-3">
-              <button
-                type="button"
-                onClick={onRefine}
-                disabled={refining || idea.trim().length < 5}
-                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card/60 px-3 py-1 text-xs text-muted-foreground hover:text-foreground hover:bg-accent/40 transition disabled:opacity-50"
-              >
-                <Wand2 className="h-3.5 w-3.5 text-ember" />
-                {refining ? t("intake.refining") : t("intake.refineAI")}
-              </button>
+            <div className="mt-1 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={onRefine}
+                  disabled={refining || idea.trim().length < 5}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card/60 px-3 py-1 text-xs text-muted-foreground hover:text-foreground hover:bg-accent/40 transition disabled:opacity-50"
+                >
+                  <Wand2 className="h-3.5 w-3.5 text-ember" />
+                  {refining ? t("intake.refining") : t("intake.refineAI")}
+                </button>
+                <button
+                  type="button"
+                  onClick={onEnhance}
+                  disabled={enhancing || idea.trim().length < 5}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-indigo/40 bg-indigo/10 px-3 py-1 text-xs text-indigo hover:bg-indigo/20 transition disabled:opacity-50"
+                >
+                  <Zap className="h-3.5 w-3.5" />
+                  {enhancing ? "Enhancing…" : "Enhance with AI"}
+                </button>
+                <div className="inline-flex overflow-hidden rounded-full border border-border text-[10px]">
+                  <button
+                    type="button"
+                    onClick={() => setMode("quick")}
+                    className={`px-2.5 py-1 transition ${mode === "quick" ? "bg-surface-2 text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                  >
+                    Quick
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMode("detailed")}
+                    className={`px-2.5 py-1 transition ${mode === "detailed" ? "bg-surface-2 text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                  >
+                    Detailed
+                  </button>
+                </div>
+              </div>
               <span className={"text-[11px] " + (chars > 0 && chars < charRange.min ? "text-ember" : "text-muted-foreground")}>
                 {chars > 0 && chars < charRange.min ? t("intake.tipChars") : ""}
                 {chars}/{charRange.max}
